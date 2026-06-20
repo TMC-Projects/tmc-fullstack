@@ -1,0 +1,29 @@
+meta {
+  name: 2 - Create Subscription
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/subscriptions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "plan_id": 3
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  console.log(body.data.ID)
+  if (body && body.data && body.data.ID) {
+    bru.setEnvVar("subscription_id", body.data.ID.toString());
+  }
+}

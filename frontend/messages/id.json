@@ -1,0 +1,50 @@
+{
+  "Profile": {
+    "title": "Profil Player",
+    "edit_profile": "Edit Profil",
+    "personal_data": "Data Pribadi",
+    "stats": "Statistik Game",
+    "social_media": "Sosial Media",
+    "achievements": "Pencapaian",
+    "highlights": "Sorotan",
+    "club": "Klub",
+    "category": "Peran",
+    "join_date": "Bergabung Sejak",
+    "contract_until": "Kontrak Hingga",
+    "salary": "Gaji",
+    "market_value": "Nilai Pasar",
+    "no_data": "Tidak ada data",
+    "logout": "Keluar"
+  },
+  "Dashboard": {
+    "title": "B2C Dasbor",
+    "clubs": "Daftar Klub",
+    "trials": "Trial Terbuka",
+    "search": "Cari...",
+    "filter_all": "Semua",
+    "apply": "Daftar",
+    "applied": "Terdaftar",
+    "apply_success": "Berhasil mendaftar untuk trial!",
+    "apply_failed": "Gagal mendaftar. Maksimal 10 pendaftaran diperbolehkan.",
+    "view_profile": "Profil Saya"
+  },
+  "PortalDashboard": {
+    "title": "B2B Dasbor",
+    "member_overview": "Ringkasan Anggota",
+    "players": "Pemain",
+    "coaches": "Pelatih",
+    "staff": "Staf",
+    "bas": "Brand Ambassador",
+    "recent_applications": "Pendaftaran Trial Terbaru",
+    "applicant": "Pelamar",
+    "trial": "Trial",
+    "status": "Status",
+    "actions": "Aksi",
+    "view_profile": "Lihat Profil",
+    "shortlist": "Terima",
+    "reject": "Tolak",
+    "shortlist_success": "Pelamar berhasil diterima (shortlisted)!",
+    "reject_success": "Pelamar berhasil ditolak!",
+    "no_applications": "Belum ada pendaftaran"
+  }
+}

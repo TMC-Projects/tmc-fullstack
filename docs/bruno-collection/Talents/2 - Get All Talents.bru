@@ -1,0 +1,64 @@
+meta {
+  name: 2 - Get All Talents
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/talents?page=1&limit=10
+  body: none
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  limit: 10
+  ~category: coach
+  ~search: 
+  ~transfer_status: 
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  ## Get All Talents
+  
+  Menampilkan daftar talent (player, coach, staff, ba) dengan pagination, pencarian, dan filter.
+  
+  ### Query Parameters
+  
+  | Parameter       | Type   | Default | Keterangan |
+  |----------------|--------|---------|-----------|
+  | `page`          | int    | 1       | Halaman ke-n |
+  | `limit`         | int    | 10      | Jumlah per halaman (max 100) |
+  | `search`        | string | -       | Cari berdasarkan `full_name` atau `username` |
+  | `category`      | string | -       | Filter: `player`, `coach`, `staff`, `ba` |
+  | `transfer_status` | string | -    | Filter: `available`, `transferred`, `not_listed` |
+  
+  ### Contoh Request
+  ```
+  GET /api/talents?page=1&limit=10&search=john&category=player&transfer_status=available
+  ```
+  
+  ### Response
+  ```json
+  {
+    "success": true,
+    "message": "Talents retrieved successfully",
+    "data": {
+      "data": [...],
+      "total": 50,
+      "page": 1,
+      "limit": 10,
+      "total_pages": 5
+    }
+  }
+  ```
+  
+  ### transfer_status Values
+  - `available` — terdaftar di transfer market dan tersedia
+  - `transferred` — sudah ditransfer
+  - `not_listed` — belum terdaftar di transfer market (hired directly)
+}

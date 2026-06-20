@@ -1,0 +1,19 @@
+meta {
+  name: 1 - Get Global Trials
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/global/trials
+  body: none
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+}
+
+vars:pre-request {
+  apiKey: njara_global_landing_page_key_123
+}

@@ -1,0 +1,21 @@
+meta {
+  name: 2 - Update Attendance
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{baseUrl}}/api/trial-participants/1/attendance
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "attendance_status": "PRESENT"
+  }
+}

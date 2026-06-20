@@ -1,0 +1,34 @@
+meta {
+  name: 6 - Upload Profile Photo
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/profile/upload-photo
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  photo: @file(/Users/ridwan/Downloads/photo_2026-05-31 14.41.19.jpeg)
+}
+
+docs {
+  ### Upload User Profile Photo
+  Endpoint untuk mengunggah foto profil milik user yang sedang *login*.
+  
+  **Akses:**
+  Memerlukan otentikasi Bearer Token (JWT).
+  
+  **Parameter Body:**
+  - `photo`: File gambar yang akan diunggah (wajib).
+    - Format: jpeg, png, webp.
+    - Ukuran Maksimal: 5MB.
+    
+  Akan mengembalikan URL dari foto profil yang berhasil diunggah.
+}

@@ -1,0 +1,59 @@
+meta {
+  name: 4 - Midtrans Callback (Simulate Settlement)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/subscriptions/callback
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "transaction_time": "2026-06-14 10:00:00",
+    "transaction_status": "settlement",
+    "transaction_id": "txn-sandbox-001",
+    "status_code": "200",
+    "status_message": "midtrans payment notification",
+    "signature_key": "REPLACE_WITH_VALID_SIGNATURE",
+    "payment_type": "bank_transfer",
+    "order_id": "REPLACE_WITH_YOUR_ORDER_ID",
+    "merchant_id": "G082856386",
+    "gross_amount": "299000.00",
+    "fraud_status": "accept",
+    "currency": "IDR"
+  }
+}
+
+docs {
+  ## Midtrans Callback Endpoint
+
+  Endpoint ini digunakan oleh Midtrans untuk mengirimkan notifikasi status pembayaran.
+
+  ### Bagaimana cara mensimulasikan callback di Sandbox?
+
+  **Opsi 1 — Via Midtrans Sandbox Dashboard:**
+  1. Login ke https://dashboard.sandbox.midtrans.com
+  2. Pergi ke menu Transactions
+  3. Cari transaksi berdasarkan Order ID
+  4. Klik **"Accept Payment"** untuk mensimulasikan settlement
+
+  **Opsi 2 — Manual via Bruno (request ini):**
+  Untuk signature_key yang valid, hitung:
+  `SHA512(order_id + status_code + gross_amount + server_key)`
+
+  Server key: `SB-Mid-server-xKwEPlEPQriqAyFBtNKTbqHs`
+
+  Contoh:
+  - order_id: `SUB-1-1-1718340000`
+  - status_code: `200`
+  - gross_amount: `299000.00`
+  - Hasilnya concat → SHA512 → hex string
+
+  ### Transaction Status yang Dihandle:
+  - `settlement` / `capture` → Subscription **PAID**, club status jadi **full**
+  - `deny` / `cancel` / `expire` → Subscription **FAILED**
+  - `pending` → Tidak ada perubahan
+}

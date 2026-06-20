@@ -1,0 +1,21 @@
+meta {
+  name: 5 - Reject Application
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/api/trial-applications/1/reject
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "remarks": "Not meeting minimum requirements"
+  }
+}

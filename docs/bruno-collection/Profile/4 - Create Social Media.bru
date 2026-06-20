@@ -1,0 +1,23 @@
+meta {
+  name: 4 - Create Social Media
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/profile/social-media
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "platform": "Instagram",
+    "username": "ridnvil",
+    "url": "https://instagram.com/ridnvil"
+  }
+}

@@ -1,0 +1,49 @@
+meta {
+  name: 4 - Update Transfer Status
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/api/transfer-market/{{talent_user_id}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "status": "loan"
+  }
+}
+
+vars:pre-request {
+  talent_user_id: 1107
+}
+
+docs {
+  ## Update Transfer Status
+  
+  Set atau update status transfer seorang talent (player atau coach).
+  Jika talent belum terdaftar di transfer market (karena di-hire directly), endpoint ini akan otomatis mendaftarkannya (Create/Upsert).
+  
+  ### Rules
+  - Hanya bisa dilakukan oleh **owner** atau **manager** dari klub yang sama
+  - Hanya berlaku untuk user dengan kategori **player** atau **coach**
+  - Klub harus dalam status **aktif** (tidak expired)
+  
+  ### Request Body
+  ```json
+  { "status": "loan" }
+  ```
+  
+  Value untuk `status` hanya bisa salah satu dari:
+  - `loan`
+  - `free`
+  - `transfer`
+  - `retired`
+  - `closed`
+}

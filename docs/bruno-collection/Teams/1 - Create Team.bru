@@ -1,0 +1,24 @@
+meta {
+  name: 1 - Create Team
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/teams
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "RRQ Hoshi",
+    "game_id": 1,
+    "description": "Mobile Legends Division",
+    "status": "active"
+  }
+}

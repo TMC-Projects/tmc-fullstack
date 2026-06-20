@@ -1,0 +1,15 @@
+meta {
+  name: 1 - Get Decisions By Trial
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/trials/1/recruitment-decisions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

@@ -1,0 +1,21 @@
+meta {
+  name: 3 - Update Stage
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/api/trial-participants/1/stage
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "current_stage": "ROUND_2"
+  }
+}

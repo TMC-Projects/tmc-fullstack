@@ -1,0 +1,21 @@
+meta {
+  name: 4 - Shortlist Application
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/trial-applications/1/shortlist
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "remarks": "Great profile, invite to Phase 1"
+  }
+}

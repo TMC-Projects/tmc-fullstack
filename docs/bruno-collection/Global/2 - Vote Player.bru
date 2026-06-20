@@ -1,0 +1,37 @@
+meta {
+  name: 2 - Vote Player
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/players/:id/vote
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 1427
+}
+
+headers {
+  X-API-KEY: {{globalApiKey}}
+}
+
+vars:pre-request {
+  globalApiKey: njara_global_landing_page_key_123
+}
+
+docs {
+  ### Vote Player
+  Endpoint publik untuk melakukan voting pada player di landing page.
+  
+  **Autentikasi:**
+  Wajib menggunakan *Global API Key* yang dilempar melalui *header* `X-API-Key`.
+  
+  Mekanisme pembatasan:
+  - 1 Device (Cookie) dan 1 IP hanya bisa melakukan vote sekali dalam 24 jam.
+  - Server otomatis melakukan inject/read cookie `device_id`.
+  
+  Jika mencoba vote lebih dari sekali sebelum 24 jam berlalu, server akan merespon dengan `409 Conflict`.
+}

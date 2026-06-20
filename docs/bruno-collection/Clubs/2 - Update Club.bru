@@ -1,0 +1,32 @@
+meta {
+  name: 2 - Update Club
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/api/clubs/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "address": "456 Gaming Blvd",
+    "country": "US",
+    "established_year": 2000,
+    "category": "club",
+    "status": "full",
+    "organization_name": "PT Jaya Abadi Esports",
+    "nib": "1234567890123",
+    "npwp": "12.345.678.9-012.000"
+  }
+}

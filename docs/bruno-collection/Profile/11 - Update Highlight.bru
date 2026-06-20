@@ -1,0 +1,22 @@
+meta {
+  name: 11 - Update Highlight
+  type: http
+  seq: 11
+}
+
+put {
+  url: {{baseUrl}}/api/profile/highlights/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Savage Game 3 (Updated)",
+    "video_url": "https://youtube.com/watch?v=12345"
+  }
+}

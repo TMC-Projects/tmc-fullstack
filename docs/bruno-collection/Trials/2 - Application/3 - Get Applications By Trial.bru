@@ -1,0 +1,15 @@
+meta {
+  name: 3 - Get Applications By Trial
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/trials/1/applications
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

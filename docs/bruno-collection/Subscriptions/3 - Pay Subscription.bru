@@ -1,0 +1,36 @@
+meta {
+  name: 3 - Pay Subscription (Bank Transfer)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/subscriptions/{{subscription_id}}/pay
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "bank": "bca"
+  }
+}
+
+docs {
+  ## Payment via Bank Transfer (Virtual Account)
+  
+  ### Supported Banks
+  - `bca` — BCA Virtual Account
+  - `bni` — BNI Virtual Account
+  - `bri` — BRI Virtual Account
+  - `permata` — Permata Virtual Account
+  - `mandiri` — Mandiri Bill Payment (echannel)
+  
+  ### Sandbox Test
+  Gunakan VA number yang dikembalikan untuk melakukan pembayaran di Midtrans Sandbox Dashboard.
+  Atau simulate callback manual menggunakan request **4 - Midtrans Callback**.
+}

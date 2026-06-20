@@ -1,0 +1,50 @@
+{
+  "Profile": {
+    "title": "Player Profile",
+    "edit_profile": "Edit Profile",
+    "personal_data": "Personal Data",
+    "stats": "Game Stats",
+    "social_media": "Social Media",
+    "achievements": "Achievements",
+    "highlights": "Highlights",
+    "club": "Club",
+    "category": "Role",
+    "join_date": "Joined Since",
+    "contract_until": "Contract Until",
+    "salary": "Salary",
+    "market_value": "Market Value",
+    "no_data": "No data available",
+    "logout": "Log Out"
+  },
+  "Dashboard": {
+    "title": "B2C Dashboard",
+    "clubs": "Clubs",
+    "trials": "Open Trials",
+    "search": "Search...",
+    "filter_all": "All",
+    "apply": "Apply",
+    "applied": "Applied",
+    "apply_success": "Successfully applied for the trial!",
+    "apply_failed": "Failed to apply. Max 10 applications allowed.",
+    "view_profile": "My Profile"
+  },
+  "PortalDashboard": {
+    "title": "B2B Dashboard",
+    "member_overview": "Member Overview",
+    "players": "Players",
+    "coaches": "Coaches",
+    "staff": "Staff",
+    "bas": "Brand Ambassadors",
+    "recent_applications": "Recent Trial Applications",
+    "applicant": "Applicant",
+    "trial": "Trial",
+    "status": "Status",
+    "actions": "Actions",
+    "view_profile": "View Profile",
+    "shortlist": "Shortlist",
+    "reject": "Reject",
+    "shortlist_success": "Applicant shortlisted successfully!",
+    "reject_success": "Applicant rejected successfully!",
+    "no_applications": "No applications found"
+  }
+}

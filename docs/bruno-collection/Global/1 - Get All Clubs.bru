@@ -1,0 +1,27 @@
+meta {
+  name: 1 - Get All Clubs
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/global/clubs
+  body: none
+  auth: none
+}
+
+headers {
+  X-API-KEY: {{globalApiKey}}
+}
+
+vars:pre-request {
+  globalApiKey: njara_global_landing_page_key_123
+}
+
+docs {
+  ### Global Get All Clubs
+  Endpoint yang dapat diakses secara publik (biasanya untuk kebutuhan *landing page*) guna mengambil daftar semua club.
+  
+  **Autentikasi:**
+  Menggunakan *Global API Key* yang dilempar melalui *header* `X-API-Key`.
+}

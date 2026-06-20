@@ -1,0 +1,15 @@
+meta {
+  name: 3 - Get Assessment Scores
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/assessments/1/scores
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

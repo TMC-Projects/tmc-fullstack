@@ -1,0 +1,43 @@
+meta {
+  name: 4 - Update Contract and Salary
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/talents/:id/contract-salary
+  body: json
+  auth: bearer
+}
+
+params:path {
+  id: 1107
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "contract_until": "2028-12-31",
+    "salary": 150000000
+  }
+}
+
+docs {
+  ### Update Contract & Salary Talent (B2B)
+  Endpoint ini digunakan untuk mengupdate tanggal kedaluwarsa kontrak dan nilai gaji dari seorang player atau coach.
+  
+  **Aturan Akses:**
+  - Hanya dapat diakses oleh **owner** atau **manager**.
+  - Harus dilakukan pada talent yang berada di klub yang sama dengan owner/manager.
+  
+  **Request Body:**
+  - `contract_until`: String format "YYYY-MM-DD" (contoh: "2028-12-31"). Opsional jika hanya ingin mengupdate salary.
+  - `salary`: Integer (opsional).
+}

@@ -1,0 +1,50 @@
+meta {
+  name: 3 - Update Market Value
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/talents/{{talent_user_id}}/market-value
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "market_value": 500000000
+  }
+}
+
+vars:pre-request {
+  talent_user_id: 1107
+}
+
+docs {
+  ## Update Market Value
+  
+  Set atau update nilai market value seorang talent (player atau coach).
+  
+  ### Rules
+  - Hanya bisa dilakukan oleh **owner** atau **manager** dari klub yang sama
+  - Hanya berlaku untuk user dengan kategori **player** atau **coach**
+  - Klub harus dalam status **aktif** (tidak expired)
+  
+  ### Request Body
+  ```json
+  { "market_value": 5000000 }
+  ```
+  
+  Untuk **menghapus** market value, kirim `null`:
+  ```json
+  { "market_value": null }
+  ```
+  
+  ### Visibility
+  Field `market_value` hanya tampil di response `GET /api/talents` ketika
+  caller adalah **owner** atau **manager**. User lain akan melihat `market_value: null`.
+}

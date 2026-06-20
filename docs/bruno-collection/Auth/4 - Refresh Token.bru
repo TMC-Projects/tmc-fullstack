@@ -1,0 +1,33 @@
+meta {
+  name: 4 - Refresh Token
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/refresh-token
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMTk4LCJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc4MjAyMDY2MSwiaWF0IjoxNzgxNDE1ODYxfQ.mKTHGhUHGr201G-ciksHZjSvkTtEpsaBsqpJ4uNnQrU"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && body.data.token) {
+    bru.setEnvVar("token", body.data.token);
+  }
+}
+
+docs {
+  ### Refresh Token
+  Digunakan untuk menukarkan `refresh_token` yang valid dengan sepasang akses token dan refresh token yang baru. Endpoint ini membantu menjaga sesi user tetap aktif tanpa perlu memasukkan kredensial login (email & password) lagi setelah akses token kedaluwarsa dalam 1 jam.
+}

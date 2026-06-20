@@ -1,0 +1,15 @@
+meta {
+  name: Get Brand Ambassadors
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/ba
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

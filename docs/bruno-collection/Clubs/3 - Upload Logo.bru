@@ -1,0 +1,38 @@
+meta {
+  name: 3 - Upload Logo
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/clubs/:id/upload-logo
+  body: multipartForm
+  auth: bearer
+}
+
+params:path {
+  id: 1
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  logo: @file(/Users/ridwan/Downloads/photo_2026-05-31 14.41.19.jpeg)
+}
+
+docs {
+  ### Upload Club Logo
+  Endpoint untuk mengunggah logo klub.
+  
+  **Akses:**
+  Hanya `owner`, `manager`, atau `admin` dari klub yang dapat mengunggah logo. Otentikasi dilakukan menggunakan Bearer Token (JWT).
+  
+  **Parameter Body:**
+  - `logo`: File gambar yang akan diunggah (wajib).
+    - Format: jpeg, png, webp.
+    - Ukuran Maksimal: 5MB.
+    
+  Akan mengembalikan URL dari logo yang berhasil diunggah.
+}

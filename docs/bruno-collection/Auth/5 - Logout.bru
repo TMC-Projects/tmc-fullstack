@@ -1,0 +1,30 @@
+meta {
+  name: 5 - Logout
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/logout
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "refresh_token": "{{token}}"
+  }
+}
+
+docs {
+  ### Logout
+  Endpoint ini digunakan untuk membatalkan (invalidate) access token yang dikirim melalui header `Authorization: Bearer <token>`, serta secara opsional membatalkan `refresh_token` jika dilampirkan pada payload body. Token yang telah dibatalkan tidak akan bisa digunakan kembali.
+}

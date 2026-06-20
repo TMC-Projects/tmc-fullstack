@@ -1,0 +1,47 @@
+meta {
+  name: 4 - Add Assessment Scores
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/assessments/1/scores
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "scores": [
+      {
+        "criteria_id": 1,
+        "score": 85,
+        "note": "Good mechanics"
+      },
+      {
+        "criteria_id": 2,
+        "score": 90,
+        "note": "Excellent awareness"
+      },
+      {
+        "criteria_id": 3,
+        "score": 90,
+        "note": "Nice call team"
+      },
+      {
+        "criteria_id": 4,
+        "score": 90,
+        "note": "Fast adapt"
+      },
+      {
+        "criteria_id": 5,
+        "score": 90,
+        "note": "Nice Attitude"
+      }
+    ]
+  }
+}

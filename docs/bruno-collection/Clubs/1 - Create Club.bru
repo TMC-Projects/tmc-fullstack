@@ -1,0 +1,27 @@
+meta {
+  name: 1 - Create Club
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/clubs
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Team Liquid ID",
+    "address": "123 eSports Ave",
+    "country": "US",
+    "established_year": 2000,
+    "category": "club",
+    "status": "trial",
+    "expired_date": "2026-12-31T23:59:59Z"
+  }
+}

@@ -1,0 +1,15 @@
+meta {
+  name: 1 - Get Assessments By Participant
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/participants/1/assessments
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

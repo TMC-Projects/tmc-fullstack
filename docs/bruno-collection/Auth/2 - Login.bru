@@ -1,0 +1,26 @@
+meta {
+  name: 2 - Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "manager@evos.com",
+    "password": "M1r34cl3"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && body.data.token) {
+    bru.setEnvVar("token", body.data.token);
+    bru.setEnvVar("refresh_token", body.data.refresh_token);
+  }
+}

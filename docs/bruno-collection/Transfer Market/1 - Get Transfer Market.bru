@@ -1,0 +1,22 @@
+meta {
+  name: 1 - Get Transfer Market
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/transfer-market?status=&search=&page=1&limit=10
+  body: none
+  auth: bearer
+}
+
+params:query {
+  status: 
+  search: 
+  page: 1
+  limit: 10
+}
+
+auth:bearer {
+  token: {{token}}
+}

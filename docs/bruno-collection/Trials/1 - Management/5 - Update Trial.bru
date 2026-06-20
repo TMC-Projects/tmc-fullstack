@@ -1,0 +1,22 @@
+meta {
+  name: 5 - Update Trial
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/api/trials/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Pro MLBB Tryout Season 3 - Updated",
+    "status": "PUBLISHED"
+  }
+}

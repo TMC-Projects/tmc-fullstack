@@ -1,0 +1,26 @@
+meta {
+  name: 1 - Register Talent
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/talents
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "username": "coach_talent_1",
+    "email": "supertalent_coach@test.njara.io",
+    "password": "SuperSecret123!",
+    "full_name": "Jhon Super Doe",
+    "category": "player",
+    "salary": 1500000
+  }
+}

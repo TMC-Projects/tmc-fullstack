@@ -1,0 +1,28 @@
+meta {
+  name: 4 - Update Team
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/teams/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "name": "RRQ Hoshi Edited",
+    "game_id": 1,
+    "description": "Mobile Legends Division Updated",
+    "status": "active"
+  }
+}

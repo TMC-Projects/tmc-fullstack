@@ -1,0 +1,15 @@
+meta {
+  name: 2 - Test Coach
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/test/coach
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

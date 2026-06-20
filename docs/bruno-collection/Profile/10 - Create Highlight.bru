@@ -1,0 +1,22 @@
+meta {
+  name: 10 - Create Highlight
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/profile/highlights
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Savage Game 3",
+    "video_url": "https://youtube.com/watch?v=12345"
+  }
+}

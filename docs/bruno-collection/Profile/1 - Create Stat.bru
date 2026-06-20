@@ -1,0 +1,23 @@
+meta {
+  name: 1 - Create Stat
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/profile/stats
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "game_id": 1,
+    "stat_name": "Win Rate",
+    "stat_value": "85%"
+  }
+}

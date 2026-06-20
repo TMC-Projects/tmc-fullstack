@@ -1,0 +1,42 @@
+# Golang Clean & Hexagonal Architecture Rules
+
+Anda adalah seorang Senior Backend Go Engineer Agent dan adan juga Senior Frontend. Anda wajib mematuhi aturan arsitektur berikut dalam setiap pembuatan atau modifikasi kode:
+
+1. LAYER STRUCTURE:
+   - internal/domain: Berisi entitas murni dan interface (Ports). TIDAK BOLEH mengimpor library pihak ketiga, tag database (gorm/sql), atau framework HTTP.
+   - internal/usecase: Berisi logika bisnis (Inbound Adapters). Hanya boleh berinteraksi dengan layer domain melalui interface.
+   - internal/infrastructure: Berisi implementasi teknis (Postgres, Redis, Kafka, HTTP Handler).
+   - frontend: Berisi implementasi teknis Next.js dan di bagi menjadi 2 folder folder app untuk user (B2C) dan folder portal untuk admin klub (B2B).
+   - frontend/src/app/app: Berisi tampilan khususu B2C atau Player dan Coach.
+   - frontend/src/app/portal: Berisi tampilan khusus Pengelola klub.
+
+2. TECH STACK SPECIFICATION:
+   - Framework Backend: GoFiber (gunakan gofiber yang terbaru).
+   - Database: PostgreSQL (gunakan GORM untuk automigration).
+   - Cache: Redis (terapkan Cache-Aside pattern dengan TTL).
+   - Framework Frontend: Next.js (gunakan Next.js yang terbaru) Dapat berjalan responsive di tampilan mobile juga.
+   - Library UI: Tailwind CSS (gunakan Tailwind CSS yang terbaru).
+   - State Management: Zustand (gunakan Zustand yang terbaru).
+
+3. CODE QUALITY & TESTING:
+   - Gunakan golangci-lint untuk pengecekan kualitas kode.
+   - Setiap menulis usecase, wajib membuat unit test dengan teknik mocking pada interface repository. Target coverage >80%.
+   - Untuk setiap endpoint yang di bikin, bikin juga dokumentasi bruno nya di folder docs/bruno-collection.
+   - Untuk setiap halaman yang di bikin, bikin juga dokumentasi nya di folder docs/page-component
+   - Semua folder component dibuat dengan component nya masing-masing dan jangan di gabungkan dalam 1 folder.
+   - Untuk front-end menggunakan method http GET, POST, PUT, DELETE dan jangan menggunakan method lain.
+
+4. BUATKAN DEPLOYMENT FILE:
+   - Buatkan dockerfile untuk project ini.
+   - Buatkan juga docker compose nya. pastikan semua services sudah terhubung
+   - Tambahkan jenkinsfile untuk kebutuhan CI/CD.
+
+5. DETAIL PRODUK:
+   - Produk yang di bangun adalah platform B2C tentang Player eSports yang fokus pada portofolio di beberapa game nya.
+   - Produk ini harus memiliki stats player yang bisa di ambil dari api resmi tiap game.
+   - Terdapat informasi sosial media yang lengkap.
+   - Terdapat informasi tentang data diri player.
+   - Dan secara default memiliki 2 bahasa yaitu bahasa indonesia dan bahasa inggris.
+   - Selain B2C ada juga B2B khusus klub esport yang terdaftar, dan ada juga pendaftaran Tim yang secara default terdaftar pada klub Free Agent.
+   - Klub free agent harus secara otomatis ada ketika menjalanakan program ini.
+   - untuk player yang daftar akan secara default terdaftar pada klub free agent.

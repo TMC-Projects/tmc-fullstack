@@ -1,0 +1,17 @@
+uploads/*
+logs/*
+frontend/node_modules/*
+frontend/.next/*
+frontend/build/*
+frontend/dist/*
+frontend/next-env.d.ts
+frontend/*.tsbuildinfo
+frontend/yarn-error.log
+frontend/yarn.lock
+frontend/.env
+frontend/.env.local
+frontend/.env.development
+frontend/.env.production
+frontend/.env.test
+.env
+.DS_Store
