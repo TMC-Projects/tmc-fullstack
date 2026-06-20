@@ -16,7 +16,11 @@ import {
   Building2,
   Settings,
   UserCircle,
-  Shield
+  Shield,
+  ChevronDown,
+  ChevronUp,
+  Globe,
+  Check
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -27,6 +31,17 @@ export default function Sidebar() {
   const tCommon = useTranslations('Profile');
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  
+  // Parse current language from cookie if available, or default to id
+  const currentLang = typeof document !== 'undefined' ? (document.cookie.split('; ').find(row => row.startsWith('NEXT_LOCALE='))?.split('=')[1] || 'id') : 'id';
+
+  const handleLanguageChange = (lang: string) => {
+    document.cookie = `NEXT_LOCALE=${lang}; path=/`;
+    setIsLangOpen(false);
+    router.refresh();
+  };
 
   const handleLogout = async () => {
     try {
@@ -80,11 +95,12 @@ export default function Sidebar() {
   );
 
   if (!_hasHydrated) return null;
+  if (pathname.startsWith('/portal/club/create')) return null;
 
   const SidebarContent = (
     <div className="flex flex-col h-full bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl border-r border-slate-300 dark:border-slate-800">
       {/* Brand */}
-      <div className="h-16 flex items-center px-6 border-b border-slate-300 dark:border-slate-800 shrink-0">
+      <div className="h-16 flex items-center justify-between px-6 border-b border-slate-300 dark:border-slate-800 shrink-0">
         <Link href="/portal/dashboard" className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500">
             <Building2 className="w-5 h-5" />
@@ -93,6 +109,7 @@ export default function Sidebar() {
             TMC PORTAL
           </span>
         </Link>
+        <ThemeToggle />
       </div>
 
       {/* Navigation */}
@@ -118,17 +135,53 @@ export default function Sidebar() {
       </div>
 
       {/* User Footer */}
-      <div className="p-4 border-t border-slate-300 dark:border-slate-800 space-y-4 shrink-0">
-        <div className="flex items-center justify-between px-2">
-          <ThemeToggle />
+      <div className="p-4 border-t border-slate-300 dark:border-slate-800 space-y-3 shrink-0">
+        
+        {/* Language Switcher */}
+        <div className="relative">
+          <button 
+            onClick={() => setIsLangOpen(!isLangOpen)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-slate-200/50 dark:bg-slate-900/50 hover:bg-slate-300/50 dark:hover:bg-slate-800/50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-slate-500" />
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                {currentLang === 'id' ? 'Indonesia' : 'English'}
+              </span>
+            </div>
+            {isLangOpen ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+          </button>
+
+          {isLangOpen && (
+            <div className="absolute bottom-full mb-2 w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-1.5 shadow-xl shadow-slate-900/10 space-y-1 z-10">
+              <button
+                onClick={() => handleLanguageChange('en')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${currentLang === 'en' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+              >
+                <span>English</span>
+                {currentLang === 'en' && <Check className="w-4 h-4" />}
+              </button>
+              <button
+                onClick={() => handleLanguageChange('id')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${currentLang === 'id' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+              >
+                <span>Indonesia</span>
+                {currentLang === 'id' && <Check className="w-4 h-4" />}
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="bg-slate-200/50 dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-300 dark:border-slate-800">
-          <div className="flex items-center gap-3 mb-4">
+        {/* User Dropdown */}
+        <div className="relative">
+          <button 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-full flex items-center gap-3 p-3 rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-200/50 dark:bg-slate-900/50 hover:bg-slate-300/50 dark:hover:bg-slate-800/50 transition-colors"
+          >
             <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold shrink-0">
               {user?.full_name?.charAt(0)?.toUpperCase() || <UserCircle className="w-6 h-6" />}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-left">
               <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
                 {user?.full_name || 'Loading...'}
               </p>
@@ -136,37 +189,40 @@ export default function Sidebar() {
                 {user?.category || 'User'}
               </p>
             </div>
-          </div>
+            {isDropdownOpen ? <ChevronUp className="w-5 h-5 text-slate-500" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
+          </button>
 
-          <div className="space-y-1">
-            <Link
-              href="/portal/profile"
-              onClick={() => setIsMobileOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-blue-500/10 hover:text-blue-500 transition-colors"
-            >
-              <UserCircle className="w-4 h-4" />
-              Profil
-            </Link>
-
-            {(user?.category === 'owner' || user?.category === 'manager') && (
+          {isDropdownOpen && (
+            <div className="absolute bottom-full mb-2 w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl p-2 shadow-xl shadow-slate-900/10 space-y-1">
               <Link
-                href="/portal/club/edit"
+                href="/portal/profile"
                 onClick={() => setIsMobileOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-emerald-500/10 hover:text-emerald-500 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-blue-500/10 hover:text-blue-500 transition-colors"
               >
-                <Settings className="w-4 h-4" />
-                Edit Klub
+                <UserCircle className="w-4 h-4" />
+                Profil
               </Link>
-            )}
 
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-rose-500/10 hover:text-rose-500 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              {tCommon('logout')}
-            </button>
-          </div>
+              {(user?.category === 'owner' || user?.category === 'manager') && (
+                <Link
+                  href="/portal/club/edit"
+                  onClick={() => setIsMobileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-emerald-500/10 hover:text-emerald-500 transition-colors"
+                >
+                  <Settings className="w-4 h-4" />
+                  Edit Klub
+                </Link>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-rose-500/10 hover:text-rose-500 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                {tCommon('logout')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

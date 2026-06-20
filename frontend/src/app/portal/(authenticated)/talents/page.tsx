@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAlertStore } from '@/store/alertStore';
+import { useTranslations } from 'next-intl';
 
 interface TalentResult {
   id: number;
@@ -32,6 +34,8 @@ interface TalentResult {
 export default function TalentsPage() {
   const router = useRouter();
   const { token, user, _hasHydrated, clearAuth } = useAuthStore();
+  const { showAlert } = useAlertStore();
+  const t = useTranslations('Talents');
 
   // Data State
   const [talents, setTalents] = useState<TalentResult[]>([]);
@@ -128,53 +132,52 @@ export default function TalentsPage() {
         {/* Header & Actions */}
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Talent Management</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Kelola pemain, pelatih, dan staff klub Anda.</p>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('title')}</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{t('subtitle')}</p>
           </div>
           <button
             onClick={() => setIsRegisterOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-900/20 transition-all font-medium"
           >
             <Plus className="w-4 h-4" />
-            Tambah Talent
+            {t('add_talent')}
           </button>
         </div>
 
         {/* Filters */}
-        <div className="bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-500" />
             <input
               type="text"
-              placeholder="Cari nama atau username..."
+              placeholder={t('search')}
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
             />
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <select
               value={category}
               onChange={(e) => { setCategory(e.target.value); setPage(1); }}
               className="px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm focus:border-emerald-500 outline-none"
             >
-              <option value="">Semua Peran</option>
-              <option value="player">Player</option>
-              <option value="coach">Coach</option>
-              <option value="asst_coach">Asst. Coach</option>
-              <option value="manager">Manager</option>
-              <option value="staff">Staff</option>
-              <option value="ba">Brand Ambassador</option>
+              <option value="">{t('all_roles')}</option>
+              <option value="player">{t('role_player')}</option>
+              <option value="coach">{t('role_coach')}</option>
+              <option value="staff">{t('role_staff')}</option>
+              <option value="ba">{t('role_ba')}</option>
             </select>
             <select
               value={transferStatus}
               onChange={(e) => { setTransferStatus(e.target.value); setPage(1); }}
               className="px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm focus:border-emerald-500 outline-none"
             >
-              <option value="">Semua Status Transfer</option>
-              <option value="available">Available (Free Transfer)</option>
-              <option value="not_listed">Not Listed</option>
-              <option value="transferred">Transferred</option>
+              <option value="">{t('transfer_status')}</option>
+              <option value="none">{t('transfer_none')}</option>
+              <option value="transfer">{t('transfer_listed')}</option>
+              <option value="loan">{t('loan_listed')}</option>
+              <option value="free">{t('free_agent')}</option>
             </select>
           </div>
         </div>
@@ -184,11 +187,11 @@ export default function TalentsPage() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-500">
               <Activity className="w-8 h-8 animate-spin text-emerald-500 mb-4" />
-              <p>Memuat data talent...</p>
+              <p>{t('loading')}</p>
             </div>
           ) : talents.length === 0 ? (
             <div className="bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-2xl py-20 text-center text-slate-500">
-              Tidak ada talent yang ditemukan.
+              {t('no_data')}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -213,7 +216,7 @@ export default function TalentsPage() {
           {!isLoading && total > 0 && (
             <div className="flex items-center justify-between px-6 py-4 bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-2xl">
               <span className="text-sm text-slate-500 dark:text-slate-500">
-                Menampilkan halaman {page} dari {totalPages} (Total: {total})
+                {t('showing_page', { page, totalPages, total })}
               </span>
               <div className="flex gap-2">
                 <button
@@ -474,6 +477,7 @@ function RegisterTalentModal({ onClose, onSuccess, token }: { onClose: () => voi
 function MarketValueModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
   const [value, setValue] = useState(talent.market_value?.toString() || '');
   const [isLoading, setIsLoading] = useState(false);
+  const { showAlert } = useAlertStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -488,7 +492,7 @@ function MarketValueModal({ talent, onClose, onSuccess, token }: { talent: Talen
       if (!res.ok) throw new Error('Gagal memperbarui');
       onSuccess();
     } catch (err) {
-      alert('Gagal memperbarui market value');
+      showAlert('Gagal memperbarui market value', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -519,6 +523,7 @@ function ContractModal({ talent, onClose, onSuccess, token }: { talent: TalentRe
   const [contractUntil, setContractUntil] = useState(initDate);
   const [salary, setSalary] = useState(talent.salary?.toString() || '');
   const [isLoading, setIsLoading] = useState(false);
+  const { showAlert } = useAlertStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -535,7 +540,7 @@ function ContractModal({ talent, onClose, onSuccess, token }: { talent: TalentRe
       if (!res.ok) throw new Error('Gagal memperbarui');
       onSuccess();
     } catch (err) {
-      alert('Gagal memperbarui kontrak & gaji');
+      showAlert('Gagal memperbarui kontrak & gaji', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -865,6 +870,8 @@ function TalentCard({
   onViewDetail: (t: TalentResult) => void,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { showAlert } = useAlertStore();
+  const t = useTranslations('Talents');
 
   const initials = (talent.full_name || talent.username || 'UN').substring(0, 2).toUpperCase();
 
@@ -899,16 +906,16 @@ function TalentCard({
       {/* Top Right Actions */}
       <div className="absolute top-4 right-4 flex flex-col gap-3 z-20">
         <button
-          onClick={() => alert('Fitur hapus belum tersedia')}
+          onClick={() => showAlert('Fitur hapus belum tersedia', 'info')}
           className="w-9 h-9 rounded-full bg-red-600/90 flex items-center justify-center hover:bg-red-500 transition-colors shadow-lg"
-          title="Hapus Talent"
+          title="Delete"
         >
           <Trash2 className="w-4 h-4 text-white" />
         </button>
         <button
           onClick={() => onEditPhoto(talent)}
           className="w-9 h-9 rounded-full bg-slate-900/80 flex items-center justify-center hover:bg-slate-800 transition-colors shadow-lg"
-          title="Upload Foto"
+          title="Upload Photo"
         >
           <ImageIcon className="w-4 h-4 text-amber-400" />
         </button>
@@ -925,7 +932,7 @@ function TalentCard({
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="w-9 h-9 rounded-full bg-slate-900/80 flex items-center justify-center hover:bg-slate-800 transition-colors shadow-lg"
-            title="Lainnya"
+            title="More"
           >
             <Contact className="w-4 h-4 text-amber-400" />
           </button>
@@ -938,7 +945,7 @@ function TalentCard({
                   onClick={() => { setIsMenuOpen(false); onEditContract(talent); }}
                   className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
                 >
-                  <Calendar className="w-4 h-4 text-amber-400" /> Kontrak & Gaji
+                  <Calendar className="w-4 h-4 text-amber-400" /> Contract & Salary
                 </button>
                 <button
                   onClick={() => { setIsMenuOpen(false); onEditMarketValue(talent); }}
@@ -947,17 +954,17 @@ function TalentCard({
                   <DollarSign className="w-4 h-4 text-amber-400" /> Market Value
                 </button>
                 <button onClick={(e) => { setIsMenuOpen(false); onEditTransferStatus(talent); }} className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/50 flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-orange-400" /> Status Transfer
+                  <RefreshCw className="w-4 h-4 text-orange-400" /> Transfer Status
                 </button>
                 <button onClick={(e) => { setIsMenuOpen(false); onEditStatus(talent); }} className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/50 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-purple-400" /> Status Akun
+                  <Shield className="w-4 h-4 text-purple-400" /> Account Status
                 </button>
                 {(talent.category === 'player' || talent.category === 'coach') && (
                   <button
                     onClick={() => { setIsMenuOpen(false); onAssignTeam(talent); }}
                     className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
                   >
-                    <Shield className="w-4 h-4 text-emerald-400" /> Assign ke Tim
+                    <Shield className="w-4 h-4 text-emerald-400" /> Assign to Team
                   </button>
                 )}
                 <div className="border-t border-slate-700 my-1"></div>
@@ -1014,6 +1021,7 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
   const [selectedTeam, setSelectedTeam] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const { showAlert } = useAlertStore();
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -1054,7 +1062,7 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
       }
       onSuccess();
     } catch (err: any) {
-      alert(err.message);
+      showAlert(err.message, 'error');
     } finally {
       setIsLoading(false);
     }

@@ -159,7 +159,7 @@ func main() {
 	userHandler := domainhttp.NewUserHandler(userUsecase, authUsecase)
 	clubHandler := domainhttp.NewClubHandler(clubUsecase)
 	teamHandler := domainhttp.NewTeamHandler(teamUsecase)
-	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase)
+	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase, transferMarketRepo, cacheRepo)
 	talentHandler := domainhttp.NewTalentHandler(talentUsecase)
 	playerVoteHandler := domainhttp.NewPlayerVoteHandler(playerVoteUsecase)
 
@@ -309,6 +309,8 @@ func main() {
 	app.Put("/api/talents/:id/contract-salary", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.UpdateContractAndSalary)
 	app.Put("/api/talents/:id/status", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.UpdateStatus)
 	app.Post("/api/talents/:id/photo", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.UploadPhoto)
+	app.Post("/api/talents/:id/sign", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.SignFreeAgent)
+
 
 	// Subscription Endpoints (B2B)
 	// Plans, create, pay & callback intentionally left accessible for expired clubs so they can renew.

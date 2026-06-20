@@ -76,4 +76,5 @@ type TalentUsecase interface {
 	UpdateContractAndSalary(ctx context.Context, targetUserID int64, contractUntil *time.Time, salary *int64, callerUserID int64) error
 	UpdateProfilePicture(ctx context.Context, targetUserID int64, url string, callerUserID int64) error
 	UpdateStatus(ctx context.Context, targetUserID int64, status string, callerUserID int64) error
+	SignFreeAgent(ctx context.Context, targetUserID int64, callerUserID int64) error
 }

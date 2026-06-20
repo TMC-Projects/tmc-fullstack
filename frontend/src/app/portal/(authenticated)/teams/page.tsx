@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth';
 import { Shield, Plus, Edit, Trash2, X, Search, UserPlus, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useAlertStore } from '@/store/alertStore';
 
 interface Game {
   id: number;
@@ -29,7 +30,8 @@ interface Coach {
 
 export default function TeamsPage() {
   const { token, user, _hasHydrated } = useAuthStore();
-  const tCommon = useTranslations('Profile'); // Fallback translations
+  const t = useTranslations('Teams');
+  const { showAlert, showConfirm } = useAlertStore();
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [games, setGames] = useState<Game[]>([]);
@@ -120,7 +122,7 @@ export default function TeamsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const url = editingTeam 
+      const url = editingTeam
         ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/teams/${editingTeam.id}`
         : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/teams`;
       const method = editingTeam ? 'PUT' : 'POST';
@@ -140,30 +142,34 @@ export default function TeamsPage() {
       if (res.ok) {
         handleCloseModal();
         fetchData();
+        showAlert('Team saved successfully', 'success');
       } else {
-        alert('Operation failed');
+        showAlert('Operation failed', 'error');
       }
     } catch (error) {
       console.error('Submit error:', error);
-      alert('An error occurred');
+      showAlert('An error occurred', 'error');
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this team?')) return;
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/teams/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        fetchData();
-      } else {
-        alert('Failed to delete team');
+    showConfirm('Are you sure you want to delete this team?', async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/teams/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          fetchData();
+          showAlert('Team deleted successfully', 'success');
+        } else {
+          showAlert('Failed to delete team', 'error');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        showAlert('Failed to delete team', 'error');
       }
-    } catch (error) {
-      console.error('Delete error:', error);
-    }
+    });
   };
 
   const handleOpenAssignModal = (teamID: number) => {
@@ -189,11 +195,13 @@ export default function TeamsPage() {
       if (res.ok) {
         setIsAssignModalOpen(false);
         fetchData();
+        showAlert('Coach assigned successfully', 'success');
       } else {
-        alert('Failed to assign coach');
+        showAlert('Failed to assign coach', 'error');
       }
     } catch (error) {
       console.error('Assign error:', error);
+      showAlert('Failed to assign coach', 'error');
     }
   };
 
@@ -203,33 +211,33 @@ export default function TeamsPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 pb-20 relative p-4 md:p-8">
-      
+
       {/* Header */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-            Teams Management
+            {t('title')}
           </h1>
-          <p className="text-slate-500 mt-1">Manage esports teams within your club</p>
+          <p className="text-slate-500 mt-1">{t('subtitle')}</p>
         </div>
         <button
           onClick={() => handleOpenModal()}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 font-medium transition-all"
         >
           <Plus className="w-5 h-5" />
-          Create Team
+          {t('create_team')}
         </button>
       </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto space-y-6">
-        
+
         {/* Search Bar */}
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4">
           <Search className="w-5 h-5 text-slate-400" />
           <input
             type="text"
-            placeholder="Search teams..."
+            placeholder={t('search')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="flex-1 bg-transparent outline-none text-slate-700 dark:text-slate-300"
@@ -238,11 +246,11 @@ export default function TeamsPage() {
 
         {/* Teams List */}
         {loading ? (
-          <div className="text-center py-20 text-slate-500">Loading teams...</div>
+          <div className="text-center py-20 text-slate-500">{t('loading')}</div>
         ) : filteredTeams.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
             <Shield className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500">No teams found.</p>
+            <p className="text-slate-500">{t('no_data')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -256,7 +264,7 @@ export default function TeamsPage() {
                     <div>
                       <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">{team.name}</h3>
                       <span className="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md">
-                        {games.find(g => g.id === team.game_id)?.name || team.game?.name || 'Unknown Game'}
+                        {games.find(g => g.id === team.game_id)?.name || team.game?.name || t('unknown_game')}
                       </span>
                     </div>
                   </div>
@@ -264,9 +272,9 @@ export default function TeamsPage() {
                     {team.status.toUpperCase()}
                   </span>
                 </div>
-                
+
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2">
-                  {team.description || 'No description provided.'}
+                  {team.description || t('no_desc')}
                 </p>
 
                 <div className="flex items-center justify-between gap-2 border-t border-slate-200 dark:border-slate-800 pt-4 mt-2">
@@ -276,14 +284,14 @@ export default function TeamsPage() {
                       className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 rounded-lg transition-colors"
                     >
                       <Users className="w-4 h-4" />
-                      Lihat Anggota
+                      {t('view_members')}
                     </Link>
                     <button
                       onClick={() => handleOpenAssignModal(team.id)}
                       className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 rounded-lg transition-colors"
                     >
                       <UserPlus className="w-4 h-4" />
-                      Assign Coach
+                      {t('assign_coach')}
                     </button>
                   </div>
                   <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -319,7 +327,7 @@ export default function TeamsPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Team Name</label>
@@ -327,7 +335,7 @@ export default function TeamsPage() {
                   type="text"
                   required
                   value={formData.name}
-                  onChange={e => setFormData({...formData, name: e.target.value})}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-slate-100"
                   placeholder="e.g. RRQ Hoshi"
                 />
@@ -338,7 +346,7 @@ export default function TeamsPage() {
                 <select
                   required
                   value={formData.game_id}
-                  onChange={e => setFormData({...formData, game_id: Number(e.target.value)})}
+                  onChange={e => setFormData({ ...formData, game_id: Number(e.target.value) })}
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-slate-100"
                 >
                   <option value={0} disabled>Select a game</option>
@@ -353,7 +361,7 @@ export default function TeamsPage() {
                 <textarea
                   rows={3}
                   value={formData.description}
-                  onChange={e => setFormData({...formData, description: e.target.value})}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-slate-100 resize-none"
                   placeholder="Optional description"
                 />
@@ -363,7 +371,7 @@ export default function TeamsPage() {
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
                 <select
                   value={formData.status}
-                  onChange={e => setFormData({...formData, status: e.target.value})}
+                  onChange={e => setFormData({ ...formData, status: e.target.value })}
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-slate-100"
                 >
                   <option value="active">Active</option>
@@ -403,7 +411,7 @@ export default function TeamsPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleAssignSubmit} className="p-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Select Coach</label>

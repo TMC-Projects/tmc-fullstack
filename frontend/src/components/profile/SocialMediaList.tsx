@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { Globe, Link2, MessageCircle, Briefcase, Video, ExternalLink, Plus, Edit2, Trash2, X, Save } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
+import { useAlertStore } from '@/store/alertStore';
 
 export interface UserSocialMedia {
   ID: number;
@@ -31,6 +32,7 @@ const getIcon = (platform: string) => {
 export default function SocialMediaList({ socialMedias, isEditable, onRefresh }: SocialMediaListProps) {
   const t = useTranslations('Profile');
   const { token } = useAuthStore();
+  const { showAlert, showConfirm } = useAlertStore();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<UserSocialMedia | null>(null);
@@ -57,18 +59,19 @@ export default function SocialMediaList({ socialMedias, isEditable, onRefresh }:
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this social media link?')) return;
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/profile/social-media/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to delete');
-      if (onRefresh) onRefresh();
-    } catch (err) {
-      console.error(err);
-      alert('Failed to delete social media link');
-    }
+    showConfirm('Are you sure you want to delete this social media link?', async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/profile/social-media/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to delete');
+        if (onRefresh) onRefresh();
+      } catch (err) {
+        console.error(err);
+        showAlert('Failed to delete social media link', 'error');
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,7 +98,7 @@ export default function SocialMediaList({ socialMedias, isEditable, onRefresh }:
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error(err);
-      alert('Failed to save social media link');
+      showAlert('Failed to save social media link', 'error');
     } finally {
       setIsSaving(false);
     }

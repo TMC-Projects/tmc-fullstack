@@ -9,6 +9,7 @@ import {
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAlertStore } from '@/store/alertStore';
 
 interface Game {
   id: number;
@@ -32,6 +33,8 @@ export default function TrialsPage() {
   const router = useRouter();
   const { token, user, _hasHydrated, clearAuth } = useAuthStore();
   const tCommon = useTranslations('Profile');
+  const t = useTranslations('Trials');
+  const { showAlert } = useAlertStore();
 
   // Data State
   const [trials, setTrials] = useState<Trial[]>([]);
@@ -41,6 +44,7 @@ export default function TrialsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Filter State
+  const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [gameId, setGameId] = useState('');
   const [page, setPage] = useState(1);
@@ -85,7 +89,8 @@ export default function TrialsPage() {
         limit: '10',
         club_id: user.club_id.toString(),
         ...(status && { status }),
-        ...(gameId && { game_id: gameId })
+        ...(gameId && { game_id: gameId }),
+        ...(search && { search })
       });
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/trials?${query}`, {
@@ -209,8 +214,9 @@ export default function TrialsPage() {
 
       closeModal();
       fetchTrials();
+      showAlert('Trial saved successfully', 'success');
     } catch (err: any) {
-      alert(err.message);
+      showAlert(err.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -247,8 +253,9 @@ export default function TrialsPage() {
       }
 
       fetchTrials(); // Refresh list to get updated status
+      showAlert('Status updated successfully', 'success');
     } catch (err: any) {
-      alert(err.message);
+      showAlert(err.message, 'error');
     } finally {
       setIsUpdatingStatus(null);
     }
@@ -269,25 +276,38 @@ export default function TrialsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Trial Management</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Kelola pendaftaran trial pemain untuk klub Anda.</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('title')}</h1>
           </div>
-          <button
-            onClick={() => openModal()}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-xl transition-colors shadow-lg shadow-amber-900/20"
-          >
-            <Plus className="w-4 h-4" />
-            Buat Trial
-          </button>
+          {(user?.category === 'owner' || user?.category === 'manager' || user?.category === 'staff') && (
+            <button
+              onClick={() => {
+                openModal();
+              }}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-colors shadow-lg shadow-blue-500/20"
+            >
+              <Plus className="w-5 h-5" />
+              {t('create_trial')}
+            </button>
+          )}
         </div>
 
         {/* Filters */}
         <div className="bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-4">
-          <div className="flex-1 flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-500" />
+            <input
+              type="text"
+              placeholder={t('search')}
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            />
+          </div>
+          <div className="flex gap-4">
             <select
               value={gameId}
               onChange={(e) => { setGameId(e.target.value); setPage(1); }}
-              className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm focus:border-amber-500 outline-none"
+              className="px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm focus:border-blue-500 outline-none"
             >
               <option value="">Semua Game</option>
               {games.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
@@ -295,13 +315,13 @@ export default function TrialsPage() {
             <select
               value={status}
               onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-              className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm focus:border-amber-500 outline-none"
+              className="px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm focus:border-blue-500 outline-none"
             >
-              <option value="">Semua Status</option>
-              <option value="DRAFT">Draft</option>
-              <option value="PUBLISHED">Published</option>
+              <option value="">{t('all_status')}</option>
+              <option value="DRAFT">{t('draft')}</option>
+              <option value="PUBLISHED">{t('published')}</option>
               <option value="CLOSED">Closed</option>
-              <option value="COMPLETED">Completed</option>
+              <option value="COMPLETED">{t('completed')}</option>
             </select>
           </div>
         </div>
@@ -312,12 +332,12 @@ export default function TrialsPage() {
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-slate-600 dark:text-slate-400 uppercase bg-slate-50/50 dark:bg-slate-950/50 border-b border-slate-300 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-4 font-medium">Judul Trial</th>
-                  <th className="px-6 py-4 font-medium">Game</th>
-                  <th className="px-6 py-4 font-medium">Periode</th>
-                  <th className="px-6 py-4 font-medium">Partisipan</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium text-right">Aksi</th>
+                  <th className="px-6 py-4 font-medium">{t('trial_title')}</th>
+                  <th className="px-6 py-4 font-medium">{t('game')}</th>
+                  <th className="px-6 py-4 font-medium">{t('period')}</th>
+                  <th className="px-6 py-4 font-medium">{t('participants')}</th>
+                  <th className="px-6 py-4 font-medium">{t('status')}</th>
+                  <th className="px-6 py-4 font-medium text-right">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/50">
@@ -327,13 +347,13 @@ export default function TrialsPage() {
                       <div className="flex justify-center mb-2">
                         <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
                       </div>
-                      Memuat data...
+                      {t('loading')}
                     </td>
                   </tr>
                 ) : trials.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-slate-500 dark:text-slate-500">
-                      Tidak ada trial yang ditemukan.
+                      {t('no_data')}
                     </td>
                   </tr>
                 ) : (
@@ -346,17 +366,17 @@ export default function TrialsPage() {
                       <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
                         <div className="flex items-center gap-1.5">
                           <Gamepad2 className="w-4 h-4 text-slate-500 dark:text-slate-500" />
-                          {games.find(g => g.id === trial.GameID)?.name || 'Unknown'}
+                          {games.find(g => g.id === trial.GameID)?.name || t('unknown')}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-1">
                           <Calendar className="w-3.5 h-3.5 text-slate-500 dark:text-slate-500" />
-                          Mulai: {trial.StartDate ? formatDate(trial.StartDate) : '-'}
+                          {t('start_date')}: {trial.StartDate ? formatDate(trial.StartDate) : '-'}
                         </div>
                         <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5 text-slate-500 dark:text-slate-500" />
-                          Selesai: {trial.EndDate ? formatDate(trial.EndDate) : '-'}
+                          {t('end_date')}: {trial.EndDate ? formatDate(trial.EndDate) : '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
@@ -378,10 +398,10 @@ export default function TrialsPage() {
                               }`}
                             style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.3rem center', backgroundSize: '1em' }}
                           >
-                            <option value="DRAFT" className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">DRAFT</option>
-                            <option value="PUBLISHED" className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">PUBLISHED</option>
-                            <option value="CLOSED" className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">CLOSED</option>
-                            <option value="COMPLETED" className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">COMPLETED</option>
+                            <option value="DRAFT" className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">{t('draft')}</option>
+                            <option value="PUBLISHED" className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">{t('published')}</option>
+                            <option value="CLOSED" className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">{t('closed')}</option>
+                            <option value="COMPLETED" className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">{t('completed')}</option>
                           </select>
                         </div>
                       </td>
@@ -390,14 +410,14 @@ export default function TrialsPage() {
                           <Link
                             href={`/portal/trials/${trial.ID}/applications`}
                             className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-indigo-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                            title="Lihat Pendaftar"
+                            title={t('view_applicants')}
                           >
                             <Users className="w-4 h-4" />
                           </Link>
                           <button
                             onClick={() => openModal(trial)}
                             className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-amber-500 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                            title="Edit Trial"
+                            title={t('edit_trial')}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -414,7 +434,7 @@ export default function TrialsPage() {
           {!isLoading && total > 0 && (
             <div className="flex items-center justify-between px-6 py-4 bg-slate-50/50 dark:bg-slate-950/50 border-t border-slate-300 dark:border-slate-800">
               <span className="text-sm text-slate-600 dark:text-slate-400">
-                Menampilkan halaman {page} dari {totalPages} (Total: {total})
+                {t('showing_page', { page, totalPages, total })}
               </span>
               <div className="flex gap-2">
                 <button

@@ -109,8 +109,11 @@ func (u *authUsecase) Register(ctx context.Context, input domain.RegisterInput) 
 	}
 
 	// Auto-list the new user in the transfer market (Free Agent by default)
-	// ONLY if they are players, coaches, or staff. Owners and BAs should not be listed.
-	if u.tmRepo != nil && cat != "owner" && cat != "ba" {
+	// ONLY if they are players or coaches who self-register (they start as Free Agent).
+	// Managers, owners, staff, and BAs are never listed on the transfer market.
+	// If a player/coach is added by a club (not self-registered), the club must
+	// explicitly list them via the transfer market endpoint (UpdateStatusByUserID).
+	if u.tmRepo != nil && (cat == "player" || cat == "coach") {
 		tmEntry := &domain.TransferMarket{
 			UserID: user.ID,
 			Status: domain.TransferStatusFree,

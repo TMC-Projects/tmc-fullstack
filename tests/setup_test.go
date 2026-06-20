@@ -108,7 +108,7 @@ func TestMain(m *testing.M) {
 	transferMarketHandler := domainhttp.NewTransferMarketHandler(transferMarketUsecase)
 	userHandler := domainhttp.NewUserHandler(userUsecase, authUsecase)
 	clubHandler := domainhttp.NewClubHandler(clubUsecase)
-	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase)
+	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase, transferMarketRepo, cacheRepo)
 	talentHandler := domainhttp.NewTalentHandler(talentUsecase)
 
 	authMiddleware := domainhttp.NewAuthMiddleware(tokenProvider, authUsecase, rolePermRepo, clubRepo, "test_global_api_key_123", accessLogRepo)

@@ -115,3 +115,11 @@ func (r *transferMarketRepository) UpdateStatus(ctx context.Context, id int64, s
 	}
 	return nil
 }
+
+// DeleteByUserID removes a transfer market entry for a specific user.
+func (r *transferMarketRepository) DeleteByUserID(ctx context.Context, userID int64) error {
+	result := r.db.WithContext(ctx).
+		Where("user_id = ?", userID).
+		Delete(&TransferMarketModel{})
+	return result.Error
+}

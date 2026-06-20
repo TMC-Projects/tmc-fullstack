@@ -53,6 +53,8 @@ type TransferMarketRepository interface {
 	GetList(ctx context.Context, filter TransferMarketFilter) ([]TransferMarket, int64, error)
 	// UpdateStatus changes the status of a transfer market entry.
 	UpdateStatus(ctx context.Context, id int64, status string) error
+	// DeleteByUserID removes a transfer market entry for a specific user.
+	DeleteByUserID(ctx context.Context, userID int64) error
 }
 
 // TransferMarketUsecase defines the inbound port for transfer market business logic.

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { Trophy, Award, Calendar, Plus, Edit2, Trash2, X, Save } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
+import { useAlertStore } from '@/store/alertStore';
 
 export interface UserAchievement {
   ID: number;
@@ -23,6 +24,7 @@ interface AchievementListProps {
 export default function AchievementList({ achievements, isEditable, onRefresh }: AchievementListProps) {
   const t = useTranslations('Profile');
   const { token } = useAuthStore();
+  const { showAlert, showConfirm } = useAlertStore();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<UserAchievement | null>(null);
@@ -51,18 +53,19 @@ export default function AchievementList({ achievements, isEditable, onRefresh }:
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this achievement?')) return;
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/profile/achievements/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to delete');
-      if (onRefresh) onRefresh();
-    } catch (err) {
-      console.error(err);
-      alert('Failed to delete achievement');
-    }
+    showConfirm('Are you sure you want to delete this achievement?', async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/profile/achievements/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to delete');
+        if (onRefresh) onRefresh();
+      } catch (err) {
+        console.error(err);
+        showAlert('Failed to delete achievement', 'error');
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,7 +95,7 @@ export default function AchievementList({ achievements, isEditable, onRefresh }:
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error(err);
-      alert('Failed to save achievement');
+      showAlert('Failed to save achievement', 'error');
     } finally {
       setIsSaving(false);
     }

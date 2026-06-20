@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { Target, Plus, Edit2, Trash2, X, Save } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
+import { useAlertStore } from '@/store/alertStore';
 
 export interface UserStat {
   ID: number;
@@ -26,6 +27,7 @@ interface StatListProps {
 export default function StatList({ stats, isEditable, onRefresh }: StatListProps) {
   const t = useTranslations('Profile');
   const { token } = useAuthStore();
+  const { showAlert, showConfirm } = useAlertStore();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStat, setEditingStat] = useState<UserStat | null>(null);
@@ -68,18 +70,19 @@ export default function StatList({ stats, isEditable, onRefresh }: StatListProps
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this stat?')) return;
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/profile/stats/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to delete');
-      if (onRefresh) onRefresh();
-    } catch (err) {
-      console.error(err);
-      alert('Failed to delete stat');
-    }
+    showConfirm('Are you sure you want to delete this stat?', async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/profile/stats/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to delete');
+        if (onRefresh) onRefresh();
+      } catch (err) {
+        console.error(err);
+        showAlert('Failed to delete stat', 'error');
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,7 +112,7 @@ export default function StatList({ stats, isEditable, onRefresh }: StatListProps
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error(err);
-      alert('Failed to save stat');
+      showAlert('Failed to save stat', 'error');
     } finally {
       setIsSaving(false);
     }

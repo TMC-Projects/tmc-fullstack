@@ -279,3 +279,22 @@ func (h *TalentHandler) UpdateStatus(c *fiber.Ctx) error {
 
 	return SendSuccess(c, fiber.StatusOK, "Account status updated successfully", nil)
 }
+
+// SignFreeAgent handles POST /api/talents/:id/sign
+func (h *TalentHandler) SignFreeAgent(c *fiber.Ctx) error {
+	callerID, ok := c.Locals("userID").(int64)
+	if !ok || callerID == 0 {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	targetID, err := c.ParamsInt("id")
+	if err != nil || targetID == 0 {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid user id", err)
+	}
+
+	if err := h.talentUsecase.SignFreeAgent(c.UserContext(), int64(targetID), callerID); err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Player signed successfully", nil)
+}

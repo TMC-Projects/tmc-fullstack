@@ -8,6 +8,7 @@ import { ChevronLeft, UserCircle, Trophy, BarChart3, Star, Video, MessageCircle,
 import Link from 'next/link';
 import Image from 'next/image';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAlertStore } from '@/store/alertStore';
 
 interface PlayerDetail {
   ID: number;
@@ -25,8 +26,11 @@ interface PlayerDetail {
   MarketValue?: number;
   VoteCount?: number;
   Club?: {
-    ID: number;
-    Name: string;
+    id?: number;
+    ID?: number;
+    name?: string;
+    Name?: string;
+    logo_url?: string;
     LogoUrl?: string;
   };
 }
@@ -46,6 +50,7 @@ export default function PlayerDetailPage() {
   const searchParams = useSearchParams();
   const playerId = params.id as string;
   const { token, _hasHydrated } = useAuthStore();
+  const { showAlert } = useAlertStore();
 
   const appId = searchParams.get('appId');
   const appStatus = searchParams.get('appStatus');
@@ -120,8 +125,9 @@ export default function PlayerDetailPage() {
 
       closeActionModal();
       router.back();
+      showAlert('Aksi berhasil', 'success');
     } catch (err: any) {
-      alert(err.message);
+      showAlert(err.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -214,11 +220,11 @@ export default function PlayerDetailPage() {
                 <h1 className="text-3xl sm:text-4xl font-bold text-white mb-1">{player.FullName}</h1>
                 <p className="text-indigo-400 text-lg mb-3">@{player.Username}</p>
                 <div className="flex items-center justify-center sm:justify-start gap-2 text-sm">
-                  {player.Club?.LogoUrl ? (
+                  {(player.Club?.logo_url || player.Club?.LogoUrl) ? (
                     <div className="relative w-6 h-6 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800">
                       <Image
-                        src={player.Club.LogoUrl.startsWith('http') ? player.Club.LogoUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${player.Club.LogoUrl}`}
-                        alt={player.Club.Name}
+                        src={(player.Club.logo_url || player.Club.LogoUrl || '').startsWith('http') ? (player.Club.logo_url || player.Club.LogoUrl || '') : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${(player.Club.logo_url || player.Club.LogoUrl || '')}`}
+                        alt={player.Club.name || player.Club.Name || 'Club'}
                         fill
                         className="object-cover"
                         unoptimized
@@ -227,7 +233,7 @@ export default function PlayerDetailPage() {
                   ) : (
                     <Shield className="w-5 h-5 text-slate-500 dark:text-slate-500" />
                   )}
-                  <span className="text-slate-700 dark:text-slate-300 font-semibold">{player.Club?.Name || 'Free Agent'}</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-semibold">{player.Club?.name || player.Club?.Name || 'Free Agent'}</span>
                 </div>
               </div>
 

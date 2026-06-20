@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Shield, Calendar, Activity, Edit2, X, Save } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { User as AuthUser, useAuthStore } from '@/store/auth';
+import { useAlertStore } from '@/store/alertStore';
 
 interface ProfileHeaderProps {
   user: AuthUser;
@@ -15,6 +16,7 @@ interface ProfileHeaderProps {
 export default function ProfileHeader({ user, isEditable, onRefresh }: ProfileHeaderProps) {
   const t = useTranslations('Profile');
   const { token } = useAuthStore();
+  const { showAlert } = useAlertStore();
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -43,7 +45,7 @@ export default function ProfileHeader({ user, isEditable, onRefresh }: ProfileHe
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error(err);
-      alert('Failed to update profile');
+      showAlert('Failed to update profile', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -54,7 +56,7 @@ export default function ProfileHeader({ user, isEditable, onRefresh }: ProfileHe
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      showAlert('File size must be less than 5MB', 'warning');
       return;
     }
 
@@ -74,7 +76,7 @@ export default function ProfileHeader({ user, isEditable, onRefresh }: ProfileHe
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error(err);
-      alert('Failed to upload photo');
+      showAlert('Failed to upload photo', 'error');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';

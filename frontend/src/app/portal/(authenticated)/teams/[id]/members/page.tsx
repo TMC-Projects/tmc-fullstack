@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAlertStore } from '@/store/alertStore';
 
 interface TalentResult {
   id: number;
@@ -488,6 +489,7 @@ function RegisterTalentModal({ onClose, onSuccess, token }: { onClose: () => voi
 function MarketValueModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
   const [value, setValue] = useState(talent.market_value?.toString() || '');
   const [isLoading, setIsLoading] = useState(false);
+  const { showAlert } = useAlertStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -502,7 +504,7 @@ function MarketValueModal({ talent, onClose, onSuccess, token }: { talent: Talen
       if (!res.ok) throw new Error('Gagal memperbarui');
       onSuccess();
     } catch (err) {
-      alert('Gagal memperbarui market value');
+      showAlert('Gagal memperbarui market value', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -533,6 +535,7 @@ function ContractModal({ talent, onClose, onSuccess, token }: { talent: TalentRe
   const [contractUntil, setContractUntil] = useState(initDate);
   const [salary, setSalary] = useState(talent.salary?.toString() || '');
   const [isLoading, setIsLoading] = useState(false);
+  const { showAlert } = useAlertStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -549,7 +552,7 @@ function ContractModal({ talent, onClose, onSuccess, token }: { talent: TalentRe
       if (!res.ok) throw new Error('Gagal memperbarui');
       onSuccess();
     } catch (err) {
-      alert('Gagal memperbarui kontrak & gaji');
+      showAlert('Gagal memperbarui kontrak & gaji', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -879,6 +882,7 @@ function TalentCard({
   onViewDetail: (t: TalentResult) => void,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { showAlert } = useAlertStore();
   
   const initials = (talent.full_name || talent.username || 'UN').substring(0, 2).toUpperCase();
   
@@ -913,7 +917,7 @@ function TalentCard({
       {/* Top Right Actions */}
       <div className="absolute top-4 right-4 flex flex-col gap-3 z-20">
         <button 
-          onClick={() => alert('Fitur hapus belum tersedia')}
+          onClick={() => showAlert('Fitur hapus belum tersedia', 'info')}
           className="w-9 h-9 rounded-full bg-red-600/90 flex items-center justify-center hover:bg-red-500 transition-colors shadow-lg"
           title="Hapus Talent"
         >
@@ -1028,6 +1032,7 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
   const [selectedTeam, setSelectedTeam] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const { showAlert } = useAlertStore();
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -1068,7 +1073,7 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
       }
       onSuccess();
     } catch (err: any) {
-      alert(err.message);
+      showAlert(err.message, 'error');
     } finally {
       setIsLoading(false);
     }

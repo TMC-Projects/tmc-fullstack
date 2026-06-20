@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useAlertStore } from '@/store/alertStore';
+import { useTranslations } from 'next-intl';
 
 interface Player {
   ID: number;
@@ -208,6 +210,8 @@ export default function TrialApplicationsPage() {
   const params = useParams();
   const trialId = params.id as string;
   const { token, user, _hasHydrated } = useAuthStore();
+  const { showAlert } = useAlertStore();
+  const t = useTranslations('TrialApplications');
 
   const [applications, setApplications] = useState<Application[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -388,9 +392,10 @@ export default function TrialApplicationsPage() {
 
       closeAssessModal();
       window.location.reload();
+      showAlert('Assessment berhasil disimpan', 'success');
     } catch (err: any) {
       console.error(err);
-      alert('Gagal menyimpan assessment: ' + err.message);
+      showAlert('Gagal menyimpan assessment: ' + err.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -430,9 +435,10 @@ export default function TrialApplicationsPage() {
 
       closeDecisionModal();
       window.location.reload();
+      showAlert('Recruitment decision berhasil disimpan', 'success');
     } catch (err) {
       console.error(err);
-      alert('Gagal menyimpan recruitment decision');
+      showAlert('Gagal menyimpan recruitment decision', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -475,8 +481,9 @@ export default function TrialApplicationsPage() {
 
       closeActionModal();
       fetchApplications();
+      showAlert('Aksi berhasil', 'success');
     } catch (err: any) {
-      alert(err.message);
+      showAlert(err.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -493,33 +500,30 @@ export default function TrialApplicationsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link
               href="/portal/trials"
-              className="p-2 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-indigo-400 rounded-xl transition-colors border border-slate-300 dark:border-slate-800"
+              className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                Daftar Pendaftar Trial
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Kelola pemain yang mendaftar ke trial ini.</p>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('title')}</h1>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
+        <div className="mt-8 bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50 dark:bg-slate-950/50 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider">
-                  <th className="px-6 py-4 font-medium">Pemain</th>
-                  <th className="px-6 py-4 font-medium">Waktu Daftar</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium text-right">Aksi</th>
+              <thead className="text-xs text-slate-600 dark:text-slate-400 uppercase bg-slate-50/50 dark:bg-slate-950/50 border-b border-slate-300 dark:border-slate-800">
+                <tr>
+                  <th className="px-6 py-4 font-medium">{t('player')}</th>
+                  <th className="px-6 py-4 font-medium">{t('apply_time')}</th>
+                  <th className="px-6 py-4 font-medium">{t('status')}</th>
+                  <th className="px-6 py-4 font-medium text-right">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/50">
@@ -534,11 +538,8 @@ export default function TrialApplicationsPage() {
                   </tr>
                 ) : applications.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-slate-500 dark:text-slate-500">
-                      <div className="flex flex-col items-center gap-3">
-                        <UserCircle className="w-12 h-12 text-slate-700" />
-                        <p>Belum ada pemain yang mendaftar pada trial ini.</p>
-                      </div>
+                    <td colSpan={4} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                      {t('no_data')}
                     </td>
                   </tr>
                 ) : (
