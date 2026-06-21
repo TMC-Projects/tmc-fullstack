@@ -252,6 +252,9 @@ func main() {
 	app.Get("/api/clubs/:id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), clubHandler.GetByID)
 	app.Put("/api/clubs/:id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), clubHandler.Update)
 	app.Post("/api/clubs/:id/upload-logo", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "admin"), clubHandler.UploadLogo)
+	app.Post("/api/clubs/:id/achievements", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), clubHandler.AddAchievement)
+	app.Put("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), clubHandler.UpdateAchievement)
+	app.Delete("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), clubHandler.DeleteAchievement)
 
 	// Team Endpoints
 	app.Post("/api/teams", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequirePermission("manage_teams"), teamHandler.Create)
@@ -364,6 +367,7 @@ func migrateAndSeedDB(db *gorm.DB) error {
 	// GORM Automigration
 	err := db.AutoMigrate(
 		&postgres.ClubModel{},
+		&postgres.ClubAchievementModel{},
 		&postgres.TeamModel{},
 		&postgres.UserModel{},
 		&postgres.GameModel{},

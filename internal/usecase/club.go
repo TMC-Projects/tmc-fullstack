@@ -133,3 +133,89 @@ func (u *clubUsecase) UploadLogo(ctx context.Context, clubID int64, url string) 
 	return nil
 }
 
+// ─── Achievements ────────────────────────────────────────────────────────────
+
+func (u *clubUsecase) checkClubManagePermission(ctx context.Context, clubID, userID int64) error {
+	user, err := u.userRepo.GetByID(ctx, userID)
+	if err != nil || user == nil {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "user not found", err)
+	}
+	if user.ClubID != clubID {
+		return domain.NewAppError(domain.ErrCodeForbidden, "user does not belong to this club", nil)
+	}
+	permissions, err := u.rolePermRepo.GetPermissionsByCategory(ctx, user.Category)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to check permissions", err)
+	}
+	hasPerm := false
+	for _, p := range permissions {
+		if p == "manage_club" {
+			hasPerm = true
+			break
+		}
+	}
+	if !hasPerm {
+		return domain.NewAppError(domain.ErrCodeForbidden, "insufficient permissions to manage club", nil)
+	}
+	return nil
+}
+
+func (u *clubUsecase) AddAchievement(ctx context.Context, clubID int64, input domain.ClubAchievement, userID int64) (*domain.ClubAchievement, error) {
+	if err := u.checkClubManagePermission(ctx, clubID, userID); err != nil {
+		return nil, err
+	}
+	
+	input.ClubID = clubID
+	if err := u.clubRepo.CreateAchievement(ctx, &input); err != nil {
+		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to add achievement", err)
+	}
+	return &input, nil
+}
+
+func (u *clubUsecase) UpdateAchievement(ctx context.Context, clubID int64, achID int64, input domain.ClubAchievement, userID int64) (*domain.ClubAchievement, error) {
+	if err := u.checkClubManagePermission(ctx, clubID, userID); err != nil {
+		return nil, err
+	}
+	
+	existing, err := u.clubRepo.GetAchievementByID(ctx, achID)
+	if err != nil {
+		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to get achievement", err)
+	}
+	if existing == nil {
+		return nil, domain.NewAppError(domain.ErrCodeNotFound, "achievement not found", nil)
+	}
+	if existing.ClubID != clubID {
+		return nil, domain.NewAppError(domain.ErrCodeForbidden, "achievement does not belong to this club", nil)
+	}
+
+	existing.Title = input.Title
+	existing.Description = input.Description
+	existing.Date = input.Date
+
+	if err := u.clubRepo.UpdateAchievement(ctx, existing); err != nil {
+		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to update achievement", err)
+	}
+	return existing, nil
+}
+
+func (u *clubUsecase) DeleteAchievement(ctx context.Context, clubID int64, achID int64, userID int64) error {
+	if err := u.checkClubManagePermission(ctx, clubID, userID); err != nil {
+		return err
+	}
+
+	existing, err := u.clubRepo.GetAchievementByID(ctx, achID)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to get achievement", err)
+	}
+	if existing == nil {
+		return domain.NewAppError(domain.ErrCodeNotFound, "achievement not found", nil)
+	}
+	if existing.ClubID != clubID {
+		return domain.NewAppError(domain.ErrCodeForbidden, "achievement does not belong to this club", nil)
+	}
+
+	if err := u.clubRepo.DeleteAchievement(ctx, achID); err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to delete achievement", err)
+	}
+	return nil
+}

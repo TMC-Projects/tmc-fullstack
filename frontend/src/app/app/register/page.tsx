@@ -4,10 +4,13 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, User } from '@/store/auth';
 import { Mail, Lock, Eye, EyeOff, Gamepad2, ArrowRight, User as UserIcon, Tag, UserCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function B2CRegisterPage() {
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const t = useTranslations('AppAuth');
 
   const [formData, setFormData] = useState({
     full_name: '',
@@ -50,7 +53,7 @@ export default function B2CRegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Gagal melakukan registrasi');
+        throw new Error(data.message || t('register_error'));
       }
 
       const user = data.data.user as User;
@@ -59,13 +62,13 @@ export default function B2CRegisterPage() {
 
       // If validation passed, save to Zustand and redirect
       setAuth(token, refreshToken, user);
-      setSuccessMessage('Registrasi sukses! Mengalihkan ke dashboard...');
+      setSuccessMessage(t('register_success'));
 
       setTimeout(() => {
         router.push('/app/dashboard');
       }, 1500);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Terjadi kesalahan sistem. Silakan coba lagi.');
+      setErrorMessage(err.message || t('system_error'));
     } finally {
       setIsLoading(false);
     }
@@ -73,6 +76,7 @@ export default function B2CRegisterPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center relative overflow-hidden font-sans p-4 py-12">
+      <LanguageSwitcher />
       {/* Background Glows */}
       <div className="fixed top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
       <div className="fixed bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-600/10 blur-[120px] pointer-events-none" />
@@ -84,10 +88,10 @@ export default function B2CRegisterPage() {
             <Gamepad2 className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-violet-400 via-indigo-200 to-cyan-400 bg-clip-text text-transparent">
-            BUAT AKUN BARU
+            {t('register_title')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-            Daftar sebagai Player atau Coach eSports
+            {t('register_subtitle')}
           </p>
         </div>
 
@@ -111,7 +115,7 @@ export default function B2CRegisterPage() {
             {/* Full Name Field */}
             <div className="space-y-2">
               <label htmlFor="full_name" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Nama Lengkap
+                {t('fullname_label')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -121,7 +125,7 @@ export default function B2CRegisterPage() {
                   id="full_name"
                   type="text"
                   required
-                  placeholder="John Doe"
+                  placeholder={t('fullname_placeholder')}
                   value={formData.full_name}
                   onChange={handleChange}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none"
@@ -132,7 +136,7 @@ export default function B2CRegisterPage() {
             {/* Username Field */}
             <div className="space-y-2">
               <label htmlFor="username" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Username
+                {t('username_label')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -142,7 +146,7 @@ export default function B2CRegisterPage() {
                   id="username"
                   type="text"
                   required
-                  placeholder="johndoe99"
+                  placeholder={t('username_placeholder')}
                   value={formData.username}
                   onChange={handleChange}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none"
@@ -153,7 +157,7 @@ export default function B2CRegisterPage() {
             {/* Category Field */}
             <div className="space-y-2">
               <label htmlFor="category" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Peran (Role)
+                {t('role_label')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -165,8 +169,8 @@ export default function B2CRegisterPage() {
                   onChange={handleChange}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-2xl text-slate-900 dark:text-slate-100 transition-all outline-none appearance-none"
                 >
-                  <option value="player">Player</option>
-                  <option value="coach">Coach</option>
+                  <option value="player">{t('player')}</option>
+                  <option value="coach">{t('coach')}</option>
                 </select>
               </div>
             </div>
@@ -174,7 +178,7 @@ export default function B2CRegisterPage() {
             {/* Email Field */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Alamat Email
+                {t('email_label')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -184,7 +188,7 @@ export default function B2CRegisterPage() {
                   id="email"
                   type="email"
                   required
-                  placeholder="name@example.com"
+                  placeholder={t('email_placeholder')}
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none"
@@ -195,7 +199,7 @@ export default function B2CRegisterPage() {
             {/* Password Field */}
             <div className="space-y-2">
               <label htmlFor="password" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Kata Sandi
+                {t('password_label')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -206,7 +210,7 @@ export default function B2CRegisterPage() {
                   type={showPassword ? 'text' : 'password'}
                   required
                   minLength={6}
-                  placeholder="••••••••"
+                  placeholder={t('password_placeholder')}
                   value={formData.password}
                   onChange={handleChange}
                   className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none"
@@ -219,7 +223,7 @@ export default function B2CRegisterPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-500 text-right">Minimal 6 karakter.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-500 text-right">{t('password_hint')}</p>
             </div>
 
             {/* Submit Button */}
@@ -232,7 +236,7 @@ export default function B2CRegisterPage() {
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  Daftar Sekarang
+                  {t('register_button')}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -245,7 +249,7 @@ export default function B2CRegisterPage() {
               <div className="w-full border-t border-slate-300/80 dark:border-slate-800/80" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-slate-100/90 dark:bg-slate-900/90 px-3 text-slate-500 dark:text-slate-500">Sudah punya akun?</span>
+              <span className="bg-slate-100/90 dark:bg-slate-900/90 px-3 text-slate-500 dark:text-slate-500">{t('have_account')}</span>
             </div>
           </div>
 
@@ -255,7 +259,7 @@ export default function B2CRegisterPage() {
               href="/app/login"
               className="inline-flex items-center gap-2 text-violet-400 hover:text-violet-300 hover:underline font-semibold transition-colors"
             >
-              Masuk ke akun Anda
+              {t('login_here')}
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>

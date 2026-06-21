@@ -1,0 +1,27 @@
+meta {
+  name: Add Achievement
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/clubs/:id/achievements
+  body: json
+  auth: bearer
+}
+
+params:path {
+  id: 1
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Juara 1 MPL 2023",
+    "description": "Berhasil memenangkan turnamen terbesar di Indonesia.",
+    "date": "2023-10-15"
+  }
+}

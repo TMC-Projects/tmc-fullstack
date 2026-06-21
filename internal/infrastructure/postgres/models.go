@@ -23,6 +23,7 @@ type ClubModel struct {
 	ExpiredDate     *time.Time `gorm:"type:timestamp"`
 	CreatedAt       time.Time  `gorm:"not null"`
 	UpdatedAt       time.Time  `gorm:"not null"`
+	Achievements    []ClubAchievementModel `gorm:"foreignKey:ClubID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // TableName overrides GORM default table naming conventions.
@@ -35,7 +36,7 @@ func (m *ClubModel) ToDomain() *domain.Club {
 	if m == nil {
 		return nil
 	}
-	return &domain.Club{
+	club := &domain.Club{
 		ID:              m.ID,
 		Name:            m.Name,
 		Address:         m.Address,
@@ -52,6 +53,13 @@ func (m *ClubModel) ToDomain() *domain.Club {
 		CreatedAt:       m.CreatedAt,
 		UpdatedAt:       m.UpdatedAt,
 	}
+
+	if len(m.Achievements) > 0 {
+		for _, a := range m.Achievements {
+			club.Achievements = append(club.Achievements, *a.ToDomain())
+		}
+	}
+	return club
 }
 
 // ClubFromDomain maps pure domain Club to database ClubModel.
@@ -59,7 +67,7 @@ func ClubFromDomain(d *domain.Club) *ClubModel {
 	if d == nil {
 		return nil
 	}
-	return &ClubModel{
+	model := &ClubModel{
 		ID:              d.ID,
 		Name:            d.Name,
 		Address:         d.Address,
@@ -75,6 +83,56 @@ func ClubFromDomain(d *domain.Club) *ClubModel {
 		ExpiredDate:     d.ExpiredDate,
 		CreatedAt:       d.CreatedAt,
 		UpdatedAt:       d.UpdatedAt,
+	}
+
+	return model
+}
+
+// ClubAchievementModel represents the GORM schema for club_achievements table.
+type ClubAchievementModel struct {
+	ID          int64     `gorm:"primaryKey;autoIncrement"`
+	ClubID      int64     `gorm:"not null;index"`
+	Title       string    `gorm:"not null;type:varchar(255)"`
+	Description string    `gorm:"type:text;default:''"`
+	Date        time.Time `gorm:"not null"`
+	CreatedAt   time.Time `gorm:"not null"`
+	UpdatedAt   time.Time `gorm:"not null"`
+}
+
+// TableName overrides GORM default table naming conventions.
+func (ClubAchievementModel) TableName() string {
+	return "club_achievements"
+}
+
+// ToDomain maps database ClubAchievementModel to pure domain ClubAchievement.
+func (m *ClubAchievementModel) ToDomain() *domain.ClubAchievement {
+	if m == nil {
+		return nil
+	}
+	return &domain.ClubAchievement{
+		ID:          m.ID,
+		ClubID:      m.ClubID,
+		Title:       m.Title,
+		Description: m.Description,
+		Date:        m.Date,
+		CreatedAt:   m.CreatedAt,
+		UpdatedAt:   m.UpdatedAt,
+	}
+}
+
+// ClubAchievementFromDomain maps pure domain ClubAchievement to database ClubAchievementModel.
+func ClubAchievementFromDomain(d *domain.ClubAchievement) *ClubAchievementModel {
+	if d == nil {
+		return nil
+	}
+	return &ClubAchievementModel{
+		ID:          d.ID,
+		ClubID:      d.ClubID,
+		Title:       d.Title,
+		Description: d.Description,
+		Date:        d.Date,
+		CreatedAt:   d.CreatedAt,
+		UpdatedAt:   d.UpdatedAt,
 	}
 }
 

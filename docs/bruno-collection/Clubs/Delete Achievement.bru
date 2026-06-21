@@ -1,0 +1,20 @@
+meta {
+  name: Delete Achievement
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{base_url}}/clubs/:id/achievements/:ach_id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  id: 1
+  ach_id: 1
+}
+
+auth:bearer {
+  token: {{token}}
+}

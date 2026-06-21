@@ -221,3 +221,125 @@ func (h *ClubHandler) GetByID(c *fiber.Ctx) error {
 
 	return SendSuccess(c, fiber.StatusOK, "Successfully fetched club", club)
 }
+
+// ─── Achievements ────────────────────────────────────────────────────────────
+
+type clubAchievementRequest struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Date        string `json:"date"` // format: YYYY-MM-DD
+}
+
+func (h *ClubHandler) AddAchievement(c *fiber.Ctx) error {
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	clubIDStr := c.Params("id")
+	clubID, err := strconv.ParseInt(clubIDStr, 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid club ID", err)
+	}
+
+	var req clubAchievementRequest
+	if err := c.BodyParser(&req); err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid request body", err)
+	}
+
+	if req.Title == "" || req.Date == "" {
+		return domain.NewAppError(domain.ErrCodeValidation, "title and date are required", nil)
+	}
+
+	date, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeValidation, "invalid date format, must be YYYY-MM-DD", err)
+	}
+
+	input := domain.ClubAchievement{
+		Title:       req.Title,
+		Description: req.Description,
+		Date:        date,
+	}
+
+	ach, err := h.clubUsecase.AddAchievement(c.UserContext(), clubID, input, userID)
+	if err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusCreated, "Club achievement added successfully", ach)
+}
+
+func (h *ClubHandler) UpdateAchievement(c *fiber.Ctx) error {
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	clubIDStr := c.Params("id")
+	clubID, err := strconv.ParseInt(clubIDStr, 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid club ID", err)
+	}
+
+	achIDStr := c.Params("ach_id")
+	achID, err := strconv.ParseInt(achIDStr, 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid achievement ID", err)
+	}
+
+	var req clubAchievementRequest
+	if err := c.BodyParser(&req); err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid request body", err)
+	}
+
+	if req.Title == "" || req.Date == "" {
+		return domain.NewAppError(domain.ErrCodeValidation, "title and date are required", nil)
+	}
+
+	date, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeValidation, "invalid date format, must be YYYY-MM-DD", err)
+	}
+
+	input := domain.ClubAchievement{
+		Title:       req.Title,
+		Description: req.Description,
+		Date:        date,
+	}
+
+	ach, err := h.clubUsecase.UpdateAchievement(c.UserContext(), clubID, achID, input, userID)
+	if err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Club achievement updated successfully", ach)
+}
+
+func (h *ClubHandler) DeleteAchievement(c *fiber.Ctx) error {
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	clubIDStr := c.Params("id")
+	clubID, err := strconv.ParseInt(clubIDStr, 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid club ID", err)
+	}
+
+	achIDStr := c.Params("ach_id")
+	achID, err := strconv.ParseInt(achIDStr, 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid achievement ID", err)
+	}
+
+	if err := h.clubUsecase.DeleteAchievement(c.UserContext(), clubID, achID, userID); err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Club achievement deleted successfully", nil)
+}

@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
-import { Building2, ArrowRight, MapPin, Globe, Calendar, Settings, Edit3, X } from 'lucide-react';
+import { Building2, ArrowRight, MapPin, Globe, Calendar, Settings, Edit3, X, Upload, Trophy, Plus, Trash2, Edit } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function EditClubPage() {
   const router = useRouter();
-  const { token, user, _hasHydrated, clearAuth } = useAuthStore();
+  const t = useTranslations('EditClub');
+  const { token, user, _hasHydrated, clearAuth, updateUser } = useAuthStore();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -17,13 +19,22 @@ export default function EditClubPage() {
     established_year: new Date().getFullYear(),
     organization_name: '',
     nib: '',
-    npwp: ''
+    npwp: '',
+    logo_url: ''
   });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Achievements State
+  const [achievements, setAchievements] = useState<any[]>([]);
+  const [isAchModalOpen, setIsAchModalOpen] = useState(false);
+  const [editingAch, setEditingAch] = useState<any>(null);
+  const [achForm, setAchForm] = useState({ title: '', description: '', date: '' });
+  const [isSavingAch, setIsSavingAch] = useState(false);
 
   // Protect route
   useEffect(() => {
@@ -54,8 +65,10 @@ export default function EditClubPage() {
           established_year: data.data.established_year || new Date().getFullYear(),
           organization_name: data.data.organization_name || '',
           nib: data.data.nib || '',
-          npwp: data.data.npwp || ''
+          npwp: data.data.npwp || '',
+          logo_url: data.data.logo_url || ''
         });
+        setAchievements(data.data.achievements || []);
       }
     } catch (err) {
       console.error('Failed to fetch club data', err);
@@ -76,6 +89,49 @@ export default function EditClubPage() {
       ...formData,
       [e.target.id]: value
     });
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.club_id) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage(t('error_max_size'));
+      setTimeout(() => setErrorMessage(''), 3000);
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    setErrorMessage('');
+
+    const formDataObj = new FormData();
+    formDataObj.append('logo', file);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clubs/${user.club_id}/upload-logo`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataObj
+      });
+
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.message || t('error_upload_logo'));
+
+      const newLogoUrl = resData.data.logo_url;
+      setFormData(prev => ({ ...prev, logo_url: newLogoUrl }));
+      updateUser({ club_logo_url: newLogoUrl });
+      setSuccessMessage(t('success_upload_logo'));
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err: any) {
+      setErrorMessage(err.message || t('error_upload_logo'));
+      setTimeout(() => setErrorMessage(''), 3000);
+    } finally {
+      setIsUploadingLogo(false);
+      // Reset input
+      e.target.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,17 +165,91 @@ export default function EditClubPage() {
           router.push('/portal/login');
           return;
         }
-        throw new Error(data.message || 'Gagal menyimpan profil klub');
+        throw new Error(data.message || t('error_save_profile'));
       }
 
-      setSuccessMessage('Profil klub berhasil diperbarui!');
+      setSuccessMessage(t('success_save_profile'));
       setIsEditing(false); // Switch back to view mode
       await fetchClub(); // Refresh data
 
     } catch (err: any) {
-      setErrorMessage(err.message || 'Terjadi kesalahan sistem. Silakan coba lagi.');
+      setErrorMessage(err.message || t('error_save_profile'));
     } finally {
       setIsSaving(false);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    }
+  };
+
+  const handleOpenAddAch = () => {
+    setAchForm({ title: '', description: '', date: '' });
+    setEditingAch(null);
+    setIsAchModalOpen(true);
+  };
+
+  const handleOpenEditAch = (ach: any) => {
+    setAchForm({
+      title: ach.title,
+      description: ach.description,
+      date: ach.date ? ach.date.substring(0, 10) : ''
+    });
+    setEditingAch(ach);
+    setIsAchModalOpen(true);
+  };
+
+  const handleSaveAchievement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.club_id) return;
+
+    setIsSavingAch(true);
+    setErrorMessage('');
+
+    try {
+      const url = editingAch
+        ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clubs/${user.club_id}/achievements/${editingAch.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clubs/${user.club_id}/achievements`;
+
+      const method = editingAch ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(achForm)
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || t('error_save_ach'));
+      }
+
+      setSuccessMessage(t('success_save_ach'));
+      setIsAchModalOpen(false);
+      await fetchClub();
+    } catch (err: any) {
+      setErrorMessage(err.message || t('error_save_ach'));
+    } finally {
+      setIsSavingAch(false);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    }
+  };
+
+  const handleDeleteAchievement = async (id: number) => {
+    if (!user?.club_id || !confirm(t('confirm_delete_ach'))) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clubs/${user.club_id}/achievements/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) throw new Error(t('error_delete_ach'));
+      setSuccessMessage(t('success_delete_ach'));
+      await fetchClub();
+    } catch (err: any) {
+      setErrorMessage(err.message);
+    } finally {
       setTimeout(() => setSuccessMessage(''), 3000);
     }
   };
@@ -133,20 +263,17 @@ export default function EditClubPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center relative overflow-hidden font-sans p-4 py-12">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-start justify-center relative overflow-hidden font-sans p-4 py-12">
       <div className="fixed top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-600/10 blur-[120px] pointer-events-none" />
       <div className="fixed bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-xl z-10">
+      <div className="w-full max-w-4xl z-10">
         <div className="text-center mb-8 relative">
-          <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4 text-emerald-400">
-            <Building2 className="w-8 h-8" />
-          </div>
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-teal-200 to-cyan-400 bg-clip-text text-transparent">
-            PROFIL KLUB
+            {t('title')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-            Data organisasi dan legalitas klub Anda
+            {t('subtitle')}
           </p>
         </div>
 
@@ -158,52 +285,75 @@ export default function EditClubPage() {
             </div>
           )}
 
+          <div className="flex flex-col items-center mb-8">
+            <div className="relative group w-24 h-24 rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-sm flex items-center justify-center">
+              {formData.logo_url ? (
+                <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${formData.logo_url}`} alt="Club Logo" className="w-full h-full object-cover bg-white" />
+              ) : (
+                <Building2 className="w-10 h-10 text-slate-400" />
+              )}
+              {isEditing && (
+                <label className={`absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity ${isUploadingLogo ? 'opacity-100 cursor-not-allowed' : ''}`}>
+                  {isUploadingLogo ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Upload className="w-6 h-6 mb-1" />
+                      <span className="text-[10px] font-medium uppercase tracking-wider">{t('change_logo')}</span>
+                    </>
+                  )}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleLogoUpload} disabled={isUploadingLogo} />
+                </label>
+              )}
+            </div>
+          </div>
+
           {!isEditing ? (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">Nama Klub</h3>
-                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.name || '-'}</p>
+                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">{t('club_name')}</h3>
+                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.name || t('empty_value')}</p>
                 </div>
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">Nama PT / Organisasi</h3>
-                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.organization_name || '-'}</p>
+                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">{t('organization_name')}</h3>
+                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.organization_name || t('empty_value')}</p>
                 </div>
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">Negara</h3>
-                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.country || '-'}</p>
+                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">{t('country')}</h3>
+                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.country || t('empty_value')}</p>
                 </div>
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">Tahun Berdiri</h3>
-                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.established_year || '-'}</p>
+                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">{t('established_year')}</h3>
+                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.established_year || t('empty_value')}</p>
                 </div>
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">NIB</h3>
-                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.nib || '-'}</p>
+                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">{t('nib')}</h3>
+                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.nib || t('empty_value')}</p>
                 </div>
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">NPWP</h3>
-                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.npwp || '-'}</p>
+                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">{t('npwp')}</h3>
+                  <p className="text-slate-800 dark:text-slate-200 font-medium">{formData.npwp || t('empty_value')}</p>
                 </div>
                 <div className="md:col-span-2">
-                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">Alamat Lengkap</h3>
-                  <p className="text-slate-800 dark:text-slate-200 font-medium bg-slate-50/50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-300/50 dark:border-slate-800/50">{formData.address || '-'}</p>
+                  <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">{t('full_address')}</h3>
+                  <p className="text-slate-800 dark:text-slate-200 font-medium bg-slate-50/50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-300/50 dark:border-slate-800/50">{formData.address || t('empty_value')}</p>
                 </div>
               </div>
 
               <div className="pt-6 mt-6 border-t border-slate-300 dark:border-slate-800 flex gap-4">
                 <button
                   onClick={() => router.back()}
-                  className="flex-1 py-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-2xl transition-colors text-center"
+                  className="flex-1 py-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 hover:text-slate-300 text-slate-700 dark:text-slate-300 font-medium rounded-2xl transition-colors text-center"
                 >
-                  Kembali
+                  {t('back')}
                 </button>
                 <button
                   onClick={() => setIsEditing(true)}
                   className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-2xl transition-colors flex items-center justify-center gap-2"
                 >
                   <Edit3 className="w-4 h-4" />
-                  Edit Profil
+                  {t('edit_profile')}
                 </button>
               </div>
             </div>
@@ -218,7 +368,7 @@ export default function EditClubPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                    Nama Klub
+                    {t('club_name')}
                   </label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -237,7 +387,7 @@ export default function EditClubPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="organization_name" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                    Nama PT / Organisasi
+                    {t('organization_name')}
                   </label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -255,7 +405,7 @@ export default function EditClubPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="country" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                    Negara
+                    {t('country')}
                   </label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -273,7 +423,7 @@ export default function EditClubPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="established_year" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                    Tahun Berdiri
+                    {t('established_year')}
                   </label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -293,7 +443,7 @@ export default function EditClubPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="nib" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                    NIB
+                    {t('nib')}
                   </label>
                   <input
                     id="nib"
@@ -306,7 +456,7 @@ export default function EditClubPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="npwp" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                    NPWP
+                    {t('npwp')}
                   </label>
                   <input
                     id="npwp"
@@ -320,7 +470,7 @@ export default function EditClubPage() {
 
               <div className="space-y-2">
                 <label htmlFor="address" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                  Alamat Lengkap
+                  {t('full_address')}
                 </label>
                 <div className="relative">
                   <span className="absolute top-3 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -343,7 +493,7 @@ export default function EditClubPage() {
                   className="flex-1 py-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-2xl transition-colors flex items-center justify-center gap-2"
                 >
                   <X className="w-4 h-4" />
-                  Batal
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
@@ -354,7 +504,7 @@ export default function EditClubPage() {
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
-                      Simpan
+                      {t('save')}
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -363,7 +513,121 @@ export default function EditClubPage() {
             </form>
           )}
         </div>
+
+        {/* Achievements Section */}
+        <div className="mt-8 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300/80 dark:border-slate-800/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl relative">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500">
+                <Trophy className="w-5 h-5" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{t('achievements_title')}</h2>
+            </div>
+            <button
+              onClick={handleOpenAddAch}
+              className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-medium rounded-xl transition-colors flex items-center gap-2 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              {t('add_achievement')}
+            </button>
+          </div>
+
+          {achievements.length === 0 ? (
+            <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">
+              {t('no_achievements')}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {achievements.map((ach) => (
+                <div key={ach.id} className="p-5 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-start justify-between group">
+                  <div>
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-200">{ach.title}</h4>
+                    {ach.description && <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{ach.description}</p>}
+                    <p className="text-xs text-slate-500 mt-2">{new Date(ach.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  </div>
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => handleOpenEditAch(ach)} className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDeleteAchievement(ach.id)} className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Achievement Modal */}
+      {isAchModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button onClick={() => setIsAchModalOpen(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-500" />
+              {editingAch ? t('edit_achievement_modal') : t('add_achievement_modal')}
+            </h3>
+
+            <form onSubmit={handleSaveAchievement} className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-2">{t('ach_title')}</label>
+                <input
+                  type="text"
+                  required
+                  value={achForm.title}
+                  onChange={e => setAchForm({ ...achForm, title: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-2xl text-slate-900 dark:text-slate-100 transition-all outline-none"
+                  placeholder={t('ach_title_placeholder')}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-2">{t('ach_date')}</label>
+                <input
+                  type="date"
+                  required
+                  value={achForm.date}
+                  onChange={e => setAchForm({ ...achForm, date: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-2xl text-slate-900 dark:text-slate-100 transition-all outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-2">{t('ach_desc')}</label>
+                <textarea
+                  rows={3}
+                  value={achForm.description}
+                  onChange={e => setAchForm({ ...achForm, description: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-2xl text-slate-900 dark:text-slate-100 transition-all outline-none resize-none"
+                  placeholder={t('ach_desc_placeholder')}
+                />
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAchModalOpen(false)}
+                  className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-2xl transition-colors"
+                >
+                  {t('cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingAch}
+                  className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 text-white font-semibold rounded-2xl shadow-lg transition-all"
+                >
+                  {isSavingAch ? t('saving') : t('save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

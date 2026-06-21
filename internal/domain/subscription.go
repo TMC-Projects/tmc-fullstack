@@ -7,35 +7,35 @@ import (
 
 // SubscriptionPlan represents a subscription plan that clubs can purchase.
 type SubscriptionPlan struct {
-	ID             int64
-	Name           string
-	DurationMonths int
-	Price          int64 // Price in IDR (Rupiah)
-	Discount       int64 // Discount amount in IDR (Rupiah)
-	FinalPrice     int64 // Computed: Price - Discount
-	Description    string
-	IsActive       bool
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID             int64     `json:"id"`
+	Name           string    `json:"name"`
+	DurationMonths int       `json:"duration_months"`
+	Price          int64     `json:"price"` // Price in IDR (Rupiah)
+	Discount       int64     `json:"discount"` // Discount amount in IDR (Rupiah)
+	FinalPrice     int64     `json:"final_price"` // Computed: Price - Discount
+	Description    string    `json:"description"`
+	IsActive       bool      `json:"is_active"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 // Subscription represents a subscription transaction from a club.
 type Subscription struct {
-	ID              int64
-	ClubID          int64
-	Club            *Club
-	PlanID          int64
-	Plan            *SubscriptionPlan
-	Status          string // "pending", "paid", "failed", "expired"
-	Amount          int64  // Final amount paid (after discount) in IDR
-	PaymentProvider string // "midtrans", "paypal"
-	PaymentOrderID  string // Unique order ID sent to payment provider
-	PaymentToken    string // VA number / token returned by provider
-	ProviderPayload string // Raw JSON response from provider
-	PaidAt          *time.Time
-	ExpiredAt       *time.Time
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID              int64             `json:"id"`
+	ClubID          int64             `json:"club_id"`
+	Club            *Club             `json:"club,omitempty"`
+	PlanID          int64             `json:"plan_id"`
+	Plan            *SubscriptionPlan `json:"plan,omitempty"`
+	Status          string            `json:"status"` // "pending", "paid", "failed", "expired"
+	Amount          int64             `json:"amount"`  // Final amount paid (after discount) in IDR
+	PaymentProvider string            `json:"payment_provider"` // "midtrans", "paypal"
+	PaymentOrderID  string            `json:"payment_order_id"` // Unique order ID sent to payment provider
+	PaymentToken    string            `json:"payment_token"` // VA number / token returned by provider
+	ProviderPayload string            `json:"provider_payload"` // Raw JSON response from provider
+	PaidAt          *time.Time        `json:"paid_at"`
+	ExpiredAt       *time.Time        `json:"expired_at"`
+	CreatedAt       time.Time         `json:"created_at"`
+	UpdatedAt       time.Time         `json:"updated_at"`
 }
 
 // MidtransVANumber represents a Virtual Account number from Midtrans.

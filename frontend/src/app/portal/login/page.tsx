@@ -4,10 +4,13 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, User } from '@/store/auth';
 import { Mail, Lock, Eye, EyeOff, Building2, ArrowRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function B2BLoginPage() {
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const t = useTranslations('Auth');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,7 +40,7 @@ export default function B2BLoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Email atau password salah');
+        throw new Error(data.message || t('error_credentials'));
       }
 
       const user = data.data.user as User;
@@ -47,14 +50,12 @@ export default function B2BLoginPage() {
       // Rule: B2C accounts (player) must be rejected on B2B login page. Coach is allowed.
       const allowedPortalRoles = ['owner', 'manager', 'staff', 'ba', 'coach'];
       if (!allowedPortalRoles.includes(user.category)) {
-        throw new Error(
-          'Akun Anda terdaftar sebagai B2C (Player). Silakan gunakan portal Player untuk masuk.'
-        );
+        throw new Error(t('error_b2c'));
       }
 
       // If validation passed, save to Zustand and redirect
       setAuth(token, refreshToken, user);
-      setSuccessMessage('Login sukses! Mengalihkan ke dashboard portal...');
+      setSuccessMessage(t('login_success'));
 
       setTimeout(() => {
         if (user.category === 'coach') {
@@ -64,7 +65,7 @@ export default function B2BLoginPage() {
         }
       }, 1500);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Terjadi kesalahan sistem. Silakan coba lagi.');
+      setErrorMessage(err.message || t('system_error'));
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +73,7 @@ export default function B2BLoginPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center relative overflow-hidden font-sans p-4">
+      <LanguageSwitcher />
       {/* Background Glows */}
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-600/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-teal-600/10 blur-[120px] pointer-events-none" />
@@ -83,10 +85,10 @@ export default function B2BLoginPage() {
             <Building2 className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-teal-200 to-cyan-400 bg-clip-text text-transparent">
-            NJARA PORTAL
+            {t('login_title')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-            B2B Club Management & Administration
+            {t('login_subtitle')}
           </p>
         </div>
 
@@ -110,7 +112,7 @@ export default function B2BLoginPage() {
             {/* Email Field */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Email Institusi
+                {t('email_label')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -120,7 +122,7 @@ export default function B2BLoginPage() {
                   id="email"
                   type="email"
                   required
-                  placeholder="admin@yourclub.com"
+                  placeholder={t('email_placeholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none"
@@ -131,7 +133,7 @@ export default function B2BLoginPage() {
             {/* Password Field */}
             <div className="space-y-2">
               <label htmlFor="password" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Kata Sandi
+                {t('password_label')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -141,7 +143,7 @@ export default function B2BLoginPage() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="••••••••"
+                  placeholder={t('password_placeholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none"
@@ -166,7 +168,7 @@ export default function B2BLoginPage() {
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  Masuk ke Portal
+                  {t('login_button')}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -179,19 +181,19 @@ export default function B2BLoginPage() {
               <div className="w-full border-t border-slate-300/80 dark:border-slate-800/80" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-slate-100/90 dark:bg-slate-900/90 px-3 text-slate-500 dark:text-slate-500">Portal Lain</span>
+              <span className="bg-slate-100/90 dark:bg-slate-900/90 px-3 text-slate-500 dark:text-slate-500">{t('other_portal')}</span>
             </div>
           </div>
 
           {/* Redirect to Register */}
           <div className="text-center mb-6">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Belum punya akun Portal?{' '}
+              {t('no_account')}{' '}
               <a
                 href="/portal/register"
                 className="text-emerald-400 hover:text-emerald-300 hover:underline font-semibold transition-colors"
               >
-                Daftar di sini
+                {t('register_here')}
               </a>
             </p>
           </div>
@@ -199,12 +201,12 @@ export default function B2BLoginPage() {
           {/* Redirect B2C */}
           <div className="text-center">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Apakah Anda Player atau Coach?{' '}
+              {t('b2c_question')}{' '}
               <a
                 href="/app/login"
                 className="text-cyan-400 hover:text-cyan-300 hover:underline font-semibold transition-colors"
               >
-                Masuk ke Aplikasi B2C
+                {t('b2c_login')}
               </a>
             </p>
           </div>

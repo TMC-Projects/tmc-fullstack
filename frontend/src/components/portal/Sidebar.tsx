@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   LayoutDashboard,
   Users,
@@ -29,13 +29,12 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { token, user, clearAuth, _hasHydrated } = useAuthStore();
   const tCommon = useTranslations('Profile');
+  const tSidebar = useTranslations('Sidebar');
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
-  
-  // Parse current language from cookie if available, or default to id
-  const currentLang = typeof document !== 'undefined' ? (document.cookie.split('; ').find(row => row.startsWith('NEXT_LOCALE='))?.split('=')[1] || 'id') : 'id';
+  const currentLang = useLocale();
 
   const handleLanguageChange = (lang: string) => {
     document.cookie = `NEXT_LOCALE=${lang}; path=/`;
@@ -59,31 +58,31 @@ export default function Sidebar() {
 
   const navLinks = [
     {
-      name: 'Dashboard',
+      name: tSidebar('dashboard'),
       href: '/portal/dashboard',
       icon: LayoutDashboard,
       roles: ['owner', 'manager', 'staff', 'ba']
     },
     {
-      name: 'Talents',
+      name: tSidebar('talents'),
       href: '/portal/talents',
       icon: Users,
       roles: ['owner', 'manager', 'staff', 'ba']
     },
     {
-      name: 'Transfer Market',
+      name: tSidebar('transfer_market'),
       href: '/portal/transfer-market',
       icon: ArrowRightLeft,
       roles: ['owner', 'manager']
     },
     {
-      name: 'Trials',
+      name: tSidebar('trials'),
       href: '/portal/trials',
       icon: ClipboardList,
       roles: ['owner', 'manager', 'staff', 'coach']
     },
     {
-      name: 'Teams',
+      name: tSidebar('teams'),
       href: '/portal/teams',
       icon: Shield,
       roles: ['owner', 'manager', 'coach']
@@ -102,11 +101,15 @@ export default function Sidebar() {
       {/* Brand */}
       <div className="h-16 flex items-center justify-between px-6 border-b border-slate-300 dark:border-slate-800 shrink-0">
         <Link href="/portal/dashboard" className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500">
-            <Building2 className="w-5 h-5" />
-          </div>
-          <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent tracking-wide">
-            TMC PORTAL
+          {user?.club_logo_url ? (
+            <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.club_logo_url}`} alt="Club Logo" className="w-8 h-8 rounded-xl object-cover bg-white" />
+          ) : (
+            <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 shrink-0">
+              <Building2 className="w-5 h-5" />
+            </div>
+          )}
+          <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent tracking-wide truncate">
+            {user?.club_name || 'TMC PORTAL'}
           </span>
         </Link>
         <ThemeToggle />
@@ -200,7 +203,7 @@ export default function Sidebar() {
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-blue-500/10 hover:text-blue-500 transition-colors"
               >
                 <UserCircle className="w-4 h-4" />
-                Profil
+                {tSidebar('profile')}
               </Link>
 
               {(user?.category === 'owner' || user?.category === 'manager') && (
@@ -210,7 +213,18 @@ export default function Sidebar() {
                   className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-emerald-500/10 hover:text-emerald-500 transition-colors"
                 >
                   <Settings className="w-4 h-4" />
-                  Edit Klub
+                  {tSidebar('edit_club')}
+                </Link>
+              )}
+
+              {user?.category === 'owner' && (
+                <Link
+                  href="/portal/subscriptions"
+                  onClick={() => setIsMobileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-indigo-500/10 hover:text-indigo-500 transition-colors"
+                >
+                  <Shield className="w-4 h-4" />
+                  {tSidebar('subscriptions')}
                 </Link>
               )}
 

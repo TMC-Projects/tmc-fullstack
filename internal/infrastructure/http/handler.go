@@ -43,6 +43,7 @@ type userResponse struct {
 	Bio          string `json:"bio"`
 	ClubID       int64  `json:"club_id"`
 	ClubName     string `json:"club_name,omitempty"`
+	ClubLogoUrl  string `json:"club_logo_url,omitempty"`
 	Category      string     `json:"category"`
 	ContractUntil *time.Time `json:"contract_until"`
 	Salary        *int64     `json:"salary"`
@@ -71,6 +72,12 @@ func toUserResponse(u *domain.User) userResponse {
 		ClubName:    func() string {
 			if u.Club != nil {
 				return u.Club.Name
+			}
+			return ""
+		}(),
+		ClubLogoUrl: func() string {
+			if u.Club != nil {
+				return u.Club.LogoUrl
 			}
 			return ""
 		}(),

@@ -1,0 +1,28 @@
+meta {
+  name: Update Achievement
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{base_url}}/clubs/:id/achievements/:ach_id
+  body: json
+  auth: bearer
+}
+
+params:path {
+  id: 1
+  ach_id: 1
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Juara 1 MPL 2023 (Revisi)",
+    "description": "Deskripsi diperbarui",
+    "date": "2023-10-16"
+  }
+}

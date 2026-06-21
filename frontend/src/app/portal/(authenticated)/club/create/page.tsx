@@ -4,10 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { Building2, ArrowRight, MapPin, Globe, Calendar } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function CreateClubPage() {
   const router = useRouter();
   const { token, _hasHydrated, clearAuth } = useAuthStore();
+  const t = useTranslations('ClubCreate');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -65,10 +68,10 @@ export default function CreateClubPage() {
           router.push('/portal/login');
           return;
         }
-        throw new Error(data.message || 'Gagal membuat profil klub');
+        throw new Error(data.message || t('create_error'));
       }
 
-      setSuccessMessage('Profil klub berhasil dibuat! Mengalihkan ke dashboard...');
+      setSuccessMessage(t('create_success'));
 
       setTimeout(() => {
         router.push('/portal/dashboard');
@@ -84,6 +87,7 @@ export default function CreateClubPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center relative overflow-hidden font-sans p-4 py-12">
+      <LanguageSwitcher />
       {/* Background Glows */}
       <div className="fixed top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-600/10 blur-[120px] pointer-events-none" />
       <div className="fixed bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-teal-600/10 blur-[120px] pointer-events-none" />
@@ -95,10 +99,10 @@ export default function CreateClubPage() {
             <Building2 className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-teal-200 to-cyan-400 bg-clip-text text-transparent">
-            PROFIL KLUB
+            {t('title')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-            Lengkapi data klub Anda untuk melanjutkan
+            {t('subtitle')}
           </p>
         </div>
 
@@ -122,7 +126,7 @@ export default function CreateClubPage() {
             {/* Name Field */}
             <div className="space-y-2">
               <label htmlFor="name" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Nama Klub
+                {t('club_name')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -132,7 +136,7 @@ export default function CreateClubPage() {
                   id="name"
                   type="text"
                   required
-                  placeholder="e.g. EVOS Esports"
+                  placeholder={t('club_name_placeholder')}
                   value={formData.name}
                   onChange={handleChange}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none"
@@ -143,7 +147,7 @@ export default function CreateClubPage() {
             {/* Country Field */}
             <div className="space-y-2">
               <label htmlFor="country" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Negara
+                {t('country')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -152,7 +156,7 @@ export default function CreateClubPage() {
                 <input
                   id="country"
                   type="text"
-                  placeholder="e.g. Indonesia"
+                  placeholder={t('country_placeholder')}
                   value={formData.country}
                   onChange={handleChange}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none"
@@ -163,7 +167,7 @@ export default function CreateClubPage() {
             {/* Established Year Field */}
             <div className="space-y-2">
               <label htmlFor="established_year" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Tahun Berdiri
+                {t('established_year')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -174,7 +178,7 @@ export default function CreateClubPage() {
                   type="number"
                   min="1900"
                   max={new Date().getFullYear()}
-                  placeholder="e.g. 2021"
+                  placeholder={t('established_year_placeholder')}
                   value={formData.established_year}
                   onChange={handleChange}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none"
@@ -185,7 +189,7 @@ export default function CreateClubPage() {
             {/* Address Field */}
             <div className="space-y-2">
               <label htmlFor="address" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Alamat Lengkap (Opsional)
+                {t('address')}
               </label>
               <div className="relative">
                 <span className="absolute top-3 left-0 pl-4 flex items-center text-slate-500 dark:text-slate-500">
@@ -194,7 +198,7 @@ export default function CreateClubPage() {
                 <textarea
                   id="address"
                   rows={3}
-                  placeholder="Alamat kantor pusat atau basecamp..."
+                  placeholder={t('address_placeholder')}
                   value={formData.address}
                   onChange={(e) => setFormData({...formData, address: e.target.value})}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none resize-none"
@@ -212,7 +216,7 @@ export default function CreateClubPage() {
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  Simpan Profil Klub
+                  {t('save_button')}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

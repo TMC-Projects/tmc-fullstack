@@ -10,6 +10,7 @@ export interface User {
   bio: string;
   club_id: number;
   club_name?: string;
+  club_logo_url?: string;
   category: 'player' | 'coach' | 'owner' | 'manager' | 'staff' | 'ba';
   contract_until?: string;
   salary?: number;
@@ -24,6 +25,7 @@ interface AuthState {
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
   setAuth: (token: string, refreshToken: string, user: User) => void;
+  updateUser: (partialUser: Partial<User>) => void;
   clearAuth: () => void;
 }
 
@@ -36,6 +38,7 @@ export const useAuthStore = create<AuthState>()(
       _hasHydrated: false,
       setHasHydrated: (state) => set({ _hasHydrated: state }),
       setAuth: (token, refreshToken, user) => set({ token, refreshToken, user }),
+      updateUser: (partialUser) => set((state) => ({ user: state.user ? { ...state.user, ...partialUser } : null })),
       clearAuth: () => set({ token: null, refreshToken: null, user: null }),
     }),
     {
