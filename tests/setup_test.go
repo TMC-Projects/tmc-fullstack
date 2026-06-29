@@ -21,6 +21,7 @@ import (
 	"gorm.io/gorm"
 
 	"njara-platform/internal/config"
+	"njara-platform/internal/domain"
 	redisCache "njara-platform/internal/infrastructure/cache"
 	domainhttp "njara-platform/internal/infrastructure/http"
 	"njara-platform/internal/infrastructure/postgres"
@@ -171,6 +172,7 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		&postgres.RolePermissionModel{},
 		&postgres.TransferMarketModel{},
 		&postgres.AccessLogModel{},
+		&domain.ClubOnboarding{},
 	)
 	if err != nil {
 		return err

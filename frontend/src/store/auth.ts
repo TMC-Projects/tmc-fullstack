@@ -11,6 +11,7 @@ export interface User {
   club_id: number;
   club_name?: string;
   club_logo_url?: string;
+  verify?: boolean;
   category: 'player' | 'coach' | 'owner' | 'manager' | 'staff' | 'ba';
   contract_until?: string;
   salary?: number;

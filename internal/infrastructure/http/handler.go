@@ -44,7 +44,8 @@ type userResponse struct {
 	ClubID       int64  `json:"club_id"`
 	ClubName     string `json:"club_name,omitempty"`
 	ClubLogoUrl  string `json:"club_logo_url,omitempty"`
-	Category      string     `json:"category"`
+	Verify       bool   `json:"verify"`
+	Category     string `json:"category"`
 	ContractUntil *time.Time `json:"contract_until"`
 	Salary        *int64     `json:"salary"`
 	Stats         []domain.UserStat        `json:"stats"`
@@ -80,6 +81,12 @@ func toUserResponse(u *domain.User) userResponse {
 				return u.Club.LogoUrl
 			}
 			return ""
+		}(),
+		Verify: func() bool {
+			if u.Club != nil {
+				return u.Club.Verify
+			}
+			return false
 		}(),
 		Category:      u.Category,
 		ContractUntil: u.ContractUntil,

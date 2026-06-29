@@ -98,6 +98,7 @@ type AuthUsecase interface {
 	IsTokenBlocked(ctx context.Context, token string) bool
 	UpdateProfile(ctx context.Context, userID int64, input UpdateProfileInput) (*User, error)
 	UpdateProfilePicture(ctx context.Context, userID int64, url string) error
+	InvalidateProfileCache(ctx context.Context, userID int64) error
 }
 
 // RolePermissionRepository defines the outbound port for role permission mappings.

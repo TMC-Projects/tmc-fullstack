@@ -1,0 +1,15 @@
+meta {
+  name: Reject Onboarding
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/admin/onboardings/{{onboarding_id}}/reject
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

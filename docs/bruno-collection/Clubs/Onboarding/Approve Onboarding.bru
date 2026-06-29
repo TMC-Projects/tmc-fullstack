@@ -1,0 +1,19 @@
+meta {
+  name: Approve Onboarding
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/admin/onboardings/{{onboarding_id}}/approve
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  onboarding_id: 1
+}

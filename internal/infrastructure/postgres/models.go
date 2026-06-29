@@ -569,3 +569,16 @@ type PlayerVoteModel struct {
 func (PlayerVoteModel) TableName() string {
 	return "player_votes"
 }
+
+// CurrencyModel represents exchange rates
+type CurrencyModel struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement"`
+	Code      string    `gorm:"size:3;not null;uniqueIndex:idx_currency_code_to_code"`
+	ToCode    string    `gorm:"size:3;not null;uniqueIndex:idx_currency_code_to_code"`
+	Rate      float64   `gorm:"type:decimal(15,4);not null"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+}
+
+func (CurrencyModel) TableName() string {
+	return "currencies"
+}

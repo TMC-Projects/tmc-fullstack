@@ -6,8 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"njara-platform/internal/domain"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 // AuthMiddleware handles request authentication and RBAC checks.
@@ -52,7 +53,7 @@ func (m *AuthMiddleware) Authenticate(c *fiber.Ctx) error {
 	}
 
 	tokenString := parts[1]
-	
+
 	if m.authUsecase.IsTokenBlocked(c.UserContext(), tokenString) {
 		return domain.NewAppError(domain.ErrCodeUnauthorized, "token has been revoked", nil)
 	}
@@ -175,6 +176,37 @@ func (m *AuthMiddleware) RequireActiveB2BClub() fiber.Handler {
 		if club.Status == "trial" {
 			// trial without an expiry date is still in grace period — allow access
 			return c.Next()
+		}
+
+		return c.Next()
+	}
+}
+
+// RequireVerifiedClub enforces that the user's club is verified.
+func (m *AuthMiddleware) RequireVerifiedClub() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userIDVal := c.Locals("userID")
+		userID, ok := userIDVal.(int64)
+		if !ok {
+			return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+		}
+
+		user, err := m.authUsecase.GetProfile(c.UserContext(), userID)
+		if err != nil {
+			return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized or user not found", err)
+		}
+
+		if user.ClubID == 0 {
+			return domain.NewAppError(domain.ErrCodeForbidden, "access denied: user does not belong to a club", nil)
+		}
+
+		club, err := m.clubRepo.GetByID(c.UserContext(), user.ClubID)
+		if err != nil || club == nil {
+			return domain.NewAppError(domain.ErrCodeInternal, "failed to retrieve club info", err)
+		}
+
+		if !club.Verify {
+			return domain.NewAppError(domain.ErrCodeForbidden, "access denied: club is not verified", nil)
 		}
 
 		return c.Next()

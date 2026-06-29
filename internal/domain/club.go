@@ -36,6 +36,19 @@ type ClubAchievement struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+// ClubOnboarding represents the request for a club to verify its data
+type ClubOnboarding struct {
+	ID               int64     `json:"id" gorm:"primaryKey"`
+	ClubID           int64     `json:"club_id"`
+	OrganizationName string    `json:"organization_name"`
+	NIB              string    `json:"nib"`
+	NPWP             string    `json:"npwp"`
+	Status           string    `json:"status"` // "pending", "approved", "rejected"
+	OnboardingBy     int64     `json:"onboarding_by"` // User ID of owner/manager
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
 // ClubRepository defines the outbound port for Club database persistence.
 type ClubRepository interface {
 	Create(ctx context.Context, club *Club) error
@@ -49,6 +62,12 @@ type ClubRepository interface {
 	UpdateAchievement(ctx context.Context, ach *ClubAchievement) error
 	DeleteAchievement(ctx context.Context, id int64) error
 	GetAchievementByID(ctx context.Context, id int64) (*ClubAchievement, error)
+
+	// Onboarding operations
+	CreateOnboarding(ctx context.Context, onboarding *ClubOnboarding) error
+	GetLatestOnboardingByClubID(ctx context.Context, clubID int64) (*ClubOnboarding, error)
+	GetOnboardingByID(ctx context.Context, id int64) (*ClubOnboarding, error)
+	UpdateOnboarding(ctx context.Context, onboarding *ClubOnboarding) error
 }
 
 type ClubUsecase interface {
@@ -62,4 +81,10 @@ type ClubUsecase interface {
 	AddAchievement(ctx context.Context, clubID int64, input ClubAchievement, userID int64) (*ClubAchievement, error)
 	UpdateAchievement(ctx context.Context, clubID int64, achID int64, input ClubAchievement, userID int64) (*ClubAchievement, error)
 	DeleteAchievement(ctx context.Context, clubID int64, achID int64, userID int64) error
+
+	// Onboarding operations
+	SubmitOnboarding(ctx context.Context, clubID int64, input ClubOnboarding, userID int64) (*ClubOnboarding, error)
+	GetLatestOnboarding(ctx context.Context, clubID int64, userID int64) (*ClubOnboarding, error)
+	ApproveOnboarding(ctx context.Context, onboardingID int64, adminID int64) error
+	RejectOnboarding(ctx context.Context, onboardingID int64, adminID int64) error
 }

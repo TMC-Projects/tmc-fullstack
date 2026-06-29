@@ -1,0 +1,23 @@
+meta {
+  name: Submit Onboarding
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/clubs/{{club_id}}/onboarding
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "organization_name": "PT Nusamandiri Nusantara",
+    "nib": "88123992138",
+    "npwp": "99.888.111.2-000.111"
+  }
+}

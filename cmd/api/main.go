@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"njara-platform/internal/config"
+	"njara-platform/internal/domain"
 	redisCache "njara-platform/internal/infrastructure/cache"
 	domainhttp "njara-platform/internal/infrastructure/http"
 	midtransInfra "njara-platform/internal/infrastructure/midtrans"
@@ -125,6 +126,7 @@ func main() {
 	userProfileRepo := postgres.NewUserProfileRepository(db)
 	accessLogRepo := postgres.NewAccessLogRepository(db)
 	playerVoteRepo := postgres.NewPlayerVoteRepository(db)
+	currencyRepo := postgres.NewCurrencyRepository(db)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, clubRepo, cacheRepo, passwordHasher, tokenProvider, 15*time.Minute, transferMarketRepo)
 	gameUsecase := usecase.NewGameUsecase(gameRepo)
@@ -163,6 +165,9 @@ func main() {
 	talentHandler := domainhttp.NewTalentHandler(talentUsecase)
 	playerVoteHandler := domainhttp.NewPlayerVoteHandler(playerVoteUsecase)
 
+	currencyUsecase := usecase.NewCurrencyUsecase(currencyRepo)
+	currencyHandler := domainhttp.NewCurrencyHandler(currencyUsecase)
+
 	// Trial Management Handlers
 	trialHandler := domainhttp.NewTrialHandler(trialUsecase, trialAppRepo)
 	trialAppHandler := domainhttp.NewTrialApplicationHandler(trialAppUsecase)
@@ -181,6 +186,9 @@ func main() {
 	// Background Workers
 	voteProcessor := worker.NewVoteProcessor(cacheRepo, playerVoteRepo)
 	go voteProcessor.Start(context.Background())
+
+	currencyWorker := worker.NewCurrencyWorker(currencyRepo)
+	go currencyWorker.Start(context.Background())
 
 	// 6. Router Setup (GoFiber)
 	app := fiber.New(fiber.Config{
@@ -216,6 +224,7 @@ func main() {
 	app.Get("/api/global/trials", authMiddleware.RequireAPIKey(), trialHandler.GetList)
 	app.Get("/api/global/transfer-market", authMiddleware.RequireAPIKey(), transferMarketHandler.GetList)
 	app.Get("/api/global/criteria", assessmentCriteriaHandler.GetActive)
+	app.Get("/api/global/currencies", currencyHandler.GetExchangeRate)
 	app.Post("/api/players/:id/vote", authMiddleware.RequireAPIKey(), playerVoteHandler.HandleVote)
 
 	app.Post("/api/register", authHandler.Register)
@@ -226,8 +235,8 @@ func main() {
 	app.Put("/api/profile", authMiddleware.Authenticate, authHandler.UpdateProfile)
 	app.Post("/api/profile/upload-photo", authMiddleware.Authenticate, authHandler.UploadProfilePhoto)
 	app.Get("/api/games", gameHandler.GetList)
-	app.Get("/api/transfer-market", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), authMiddleware.RequirePermission("view_transfer_market"), transferMarketHandler.GetList)
-	app.Put("/api/transfer-market/:id/status", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), transferMarketHandler.UpdateStatus)
+	app.Get("/api/transfer-market", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireVerifiedClub(), authMiddleware.RequireCategory("owner", "manager"), authMiddleware.RequirePermission("view_transfer_market"), transferMarketHandler.GetList)
+	app.Put("/api/transfer-market/:id/status", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireVerifiedClub(), authMiddleware.RequireCategory("owner", "manager"), transferMarketHandler.UpdateStatus)
 	app.Get("/api/access-logs", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), accessLogHandler.GetList)
 
 	// User Profile Enrichment Endpoints
@@ -252,9 +261,15 @@ func main() {
 	app.Get("/api/clubs/:id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), clubHandler.GetByID)
 	app.Put("/api/clubs/:id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), clubHandler.Update)
 	app.Post("/api/clubs/:id/upload-logo", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "admin"), clubHandler.UploadLogo)
-	app.Post("/api/clubs/:id/achievements", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), clubHandler.AddAchievement)
-	app.Put("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), clubHandler.UpdateAchievement)
-	app.Delete("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), clubHandler.DeleteAchievement)
+	app.Post("/api/clubs/:id/achievements", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), clubHandler.AddAchievement)
+	app.Put("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), clubHandler.UpdateAchievement)
+	app.Delete("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), clubHandler.DeleteAchievement)
+	
+	// Onboarding Endpoints
+	app.Post("/api/clubs/:id/onboarding", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), clubHandler.SubmitOnboarding)
+	app.Get("/api/clubs/:id/onboarding", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), clubHandler.GetLatestOnboarding)
+	app.Post("/api/admin/onboardings/:id/approve", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner"), clubHandler.ApproveOnboarding) // ideally admin category, using owner for now
+	app.Post("/api/admin/onboardings/:id/reject", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner"), clubHandler.RejectOnboarding)
 
 	// Team Endpoints
 	app.Post("/api/teams", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequirePermission("manage_teams"), teamHandler.Create)
@@ -387,7 +402,9 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		&postgres.UserAchievementModel{},
 		&postgres.UserHighlightModel{},
 		&postgres.AccessLogModel{},
+		&domain.ClubOnboarding{},
 		&postgres.PlayerVoteModel{},
+		&postgres.CurrencyModel{},
 	)
 	if err != nil {
 		return err

@@ -1,0 +1,15 @@
+meta {
+  name: Get Latest Onboarding
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/clubs/{{club_id}}/onboarding
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

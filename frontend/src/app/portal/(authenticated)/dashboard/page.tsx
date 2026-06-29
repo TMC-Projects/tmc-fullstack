@@ -10,11 +10,11 @@ import Link from 'next/link';
 
 import MemberStats from '@/components/portal/dashboard/MemberStats';
 import RecentApplications from '@/components/portal/dashboard/RecentApplications';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import OnboardingModal from '@/components/portal/club/OnboardingModal';
 
 export default function PortalDashboardPage() {
   const router = useRouter();
-  const { token, user, clearAuth, _hasHydrated } = useAuthStore();
+  const { token, user, clearAuth, _hasHydrated, updateUser } = useAuthStore();
   const t = useTranslations('PortalDashboard');
   const tCommon = useTranslations('Profile');
 
@@ -22,6 +22,10 @@ export default function PortalDashboardPage() {
   const [error, setError] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  // States for Onboarding
+  const [onboardingStatus, setOnboardingStatus] = useState<string | null>(null);
+  const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
 
   // States for MemberStats
   const [counts, setCounts] = useState({
@@ -54,10 +58,30 @@ export default function PortalDashboardPage() {
       const trialsPromise = fetch(`${baseUrl}/api/trials?club_id=${user?.club_id}`, { headers })
         .then(res => res.json());
 
+      // Fetch onboarding status if club is not verified
+      const fetchOnboardingStatus = async () => {
+        if (!user?.verify && user?.club_id && (user.category === 'owner' || user.category === 'manager')) {
+          try {
+            const res = await fetch(`${baseUrl}/api/clubs/${user.club_id}/onboarding`, { headers });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.data) {
+                setOnboardingStatus(data.data.status);
+              }
+            }
+          } catch (e) {
+            console.error('Failed to fetch onboarding status', e);
+          }
+        }
+      };
+      
+      const onboardingPromise = fetchOnboardingStatus();
+
       const [profileRes, playersRes, coachesRes, staffRes, baRes, trialsRes] = await Promise.all([
         profilePromise,
         ...countPromises,
-        trialsPromise
+        trialsPromise,
+        onboardingPromise
       ]);
 
       // Category Validation
@@ -66,6 +90,12 @@ export default function PortalDashboardPage() {
         router.push('/portal/login');
         return;
       }
+      
+      // Update local user verify status if changed
+      if (profileRes.data?.verify !== user?.verify) {
+        updateUser({ verify: profileRes.data?.verify });
+      }
+
       const category = profileRes.data?.category;
       if (['player', 'coach'].includes(category)) {
         router.push('/app/dashboard');
@@ -94,7 +124,7 @@ export default function PortalDashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [token, user?.club_id, clearAuth, router]);
+  }, [token, user?.club_id, user?.verify, user?.category, clearAuth, router, updateUser]);
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -113,7 +143,7 @@ export default function PortalDashboardPage() {
     }
     
     fetchDashboardData();
-  }, [token, user, _hasHydrated, fetchDashboardData, router]);
+  }, [token, user?.club_id, _hasHydrated, fetchDashboardData, router]);
 
   const handleLogout = async () => {
     try {
@@ -127,6 +157,11 @@ export default function PortalDashboardPage() {
       clearAuth();
       router.push('/portal/login');
     }
+  };
+
+  const handleOnboardingSuccess = () => {
+    setIsOnboardingModalOpen(false);
+    setOnboardingStatus('pending');
   };
 
   if (!_hasHydrated || isLoading) {
@@ -158,6 +193,39 @@ export default function PortalDashboardPage() {
 
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8 space-y-12">
+        {/* Onboarding Banner */}
+        {!user?.verify && (user?.category === 'owner' || user?.category === 'manager') && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`border rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
+              onboardingStatus === 'pending'
+                ? 'bg-amber-500/10 border-amber-500/20'
+                : 'bg-emerald-500/10 border-emerald-500/20'
+            }`}
+          >
+            <div>
+              <h3 className={`text-lg font-bold ${onboardingStatus === 'pending' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
+                {onboardingStatus === 'pending' ? t('onboarding_pending_title') : t('onboarding_unverified_title')}
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                {onboardingStatus === 'pending' 
+                  ? t('onboarding_pending_desc')
+                  : t('onboarding_unverified_desc')}
+              </p>
+            </div>
+            
+            {onboardingStatus !== 'pending' && (
+              <button
+                onClick={() => setIsOnboardingModalOpen(true)}
+                className="whitespace-nowrap px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-xl transition-colors shadow-lg shadow-emerald-900/20"
+              >
+                {t('onboarding_btn')}
+              </button>
+            )}
+          </motion.div>
+        )}
+
         {/* Welcome Section */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -193,6 +261,14 @@ export default function PortalDashboardPage() {
           <RecentApplications trials={trials} />
         </motion.section>
       </div>
+
+      <OnboardingModal
+        isOpen={isOnboardingModalOpen}
+        onClose={() => setIsOnboardingModalOpen(false)}
+        token={token || ''}
+        clubId={user?.club_id || 0}
+        onSuccess={handleOnboardingSuccess}
+      />
     </main>
   );
 }

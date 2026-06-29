@@ -45,7 +45,12 @@
     "reject": "Reject",
     "shortlist_success": "Applicant shortlisted successfully!",
     "reject_success": "Applicant rejected successfully!",
-    "no_applications": "No applications found"
+    "no_applications": "No applications found",
+    "onboarding_pending_title": "Verification Pending",
+    "onboarding_pending_desc": "Your club verification request is currently being reviewed by our administrators. Transfer Market access will be unlocked once approved.",
+    "onboarding_unverified_title": "Club Not Verified",
+    "onboarding_unverified_desc": "Verify your club to unlock access to the Transfer Market. You just need to submit your PT Name, NIB, and NPWP.",
+    "onboarding_btn": "Onboarding Verification"
   },
   "TransferMarket": {
     "title": "Transfer Market",
@@ -309,6 +314,11 @@
     "error_delete_ach": "Failed to delete achievement",
     "success_delete_ach": "Achievement deleted successfully",
     "confirm_delete_ach": "Delete this achievement?",
-    "empty_value": "-"
+    "empty_value": "-",
+    "onboarding_pending_title": "Verification Pending",
+    "onboarding_pending_desc": "Your verification request is being reviewed.",
+    "onboarding_unverified_title": "Club Not Verified",
+    "onboarding_unverified_desc": "Submit PT Name, NIB, and NPWP to verify your club.",
+    "onboarding_btn": "Onboarding Verification"
   }
 }

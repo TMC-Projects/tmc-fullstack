@@ -98,7 +98,7 @@ export default function ClubList({ clubs }: ClubListProps) {
 
                 <div className="w-16 h-16 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-400 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0 relative z-0">
                   {club.logo_url ? (
-                    <img src={club.logo_url} alt={club.name} className="w-full h-full object-cover" />
+                    <img src={club.logo_url.startsWith('http') ? club.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${club.logo_url.startsWith('/') ? '' : '/'}${club.logo_url}`} alt={club.name} className="w-full h-full object-cover" />
                   ) : (
                     <Shield className="w-8 h-8 text-slate-600" />
                   )}

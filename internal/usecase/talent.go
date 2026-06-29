@@ -153,7 +153,11 @@ func (u *talentUsecase) UpdateTalentBiodata(ctx context.Context, targetUserID in
 	target.Category = input.Category
 	target.Bio = input.Bio
 
-	return u.userRepo.UpdateProfile(ctx, target)
+	err = u.userRepo.UpdateProfile(ctx, target)
+	if err == nil {
+		_ = u.cacheRepo.Delete(ctx, fmt.Sprintf("user:profile:%d", targetUserID))
+	}
+	return err
 }
 
 // UpdateMarketValue sets the market_value for a player or coach.
@@ -184,7 +188,11 @@ func (u *talentUsecase) UpdateMarketValue(ctx context.Context, targetUserID int6
 		return domain.NewAppError(domain.ErrCodeForbidden, "cannot set market value for talent outside your club", nil)
 	}
 
-	return u.userRepo.UpdateMarketValue(ctx, targetUserID, value)
+	err = u.userRepo.UpdateMarketValue(ctx, targetUserID, value)
+	if err == nil {
+		_ = u.cacheRepo.Delete(ctx, fmt.Sprintf("user:profile:%d", targetUserID))
+	}
+	return err
 }
 
 // UpdateContractAndSalary updates the contract expiration and salary for a player or coach.
@@ -215,7 +223,11 @@ func (u *talentUsecase) UpdateContractAndSalary(ctx context.Context, targetUserI
 		return domain.NewAppError(domain.ErrCodeForbidden, "cannot update contract for talent outside your club", nil)
 	}
 
-	return u.userRepo.UpdateContractAndSalary(ctx, targetUserID, contractUntil, salary)
+	err = u.userRepo.UpdateContractAndSalary(ctx, targetUserID, contractUntil, salary)
+	if err == nil {
+		_ = u.cacheRepo.Delete(ctx, fmt.Sprintf("user:profile:%d", targetUserID))
+	}
+	return err
 }
 
 // UpdateProfilePicture updates the profile picture of a talent.
@@ -241,7 +253,11 @@ func (u *talentUsecase) UpdateProfilePicture(ctx context.Context, targetUserID i
 		return domain.NewAppError(domain.ErrCodeForbidden, "cannot update profile picture for talent outside your club", nil)
 	}
 
-	return u.userRepo.UpdateProfilePicture(ctx, targetUserID, url)
+	err = u.userRepo.UpdateProfilePicture(ctx, targetUserID, url)
+	if err == nil {
+		_ = u.cacheRepo.Delete(ctx, fmt.Sprintf("user:profile:%d", targetUserID))
+	}
+	return err
 }
 
 // UpdateStatus updates the account status (active/inactive) of a talent.
@@ -271,7 +287,11 @@ func (u *talentUsecase) UpdateStatus(ctx context.Context, targetUserID int64, st
 		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid status", nil)
 	}
 
-	return u.userRepo.UpdateStatus(ctx, targetUserID, status)
+	err = u.userRepo.UpdateStatus(ctx, targetUserID, status)
+	if err == nil {
+		_ = u.cacheRepo.Delete(ctx, fmt.Sprintf("user:profile:%d", targetUserID))
+	}
+	return err
 }
 
 // SignFreeAgent assigns a free agent player to the caller's club.

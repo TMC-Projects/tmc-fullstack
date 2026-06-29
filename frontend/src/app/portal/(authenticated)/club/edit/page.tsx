@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { Building2, ArrowRight, MapPin, Globe, Calendar, Settings, Edit3, X, Upload, Trophy, Plus, Trash2, Edit } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import OnboardingModal from '@/components/portal/club/OnboardingModal';
 
 export default function EditClubPage() {
   const router = useRouter();
@@ -36,6 +37,10 @@ export default function EditClubPage() {
   const [achForm, setAchForm] = useState({ title: '', description: '', date: '' });
   const [isSavingAch, setIsSavingAch] = useState(false);
 
+  // Onboarding State
+  const [onboardingStatus, setOnboardingStatus] = useState<string | null>(null);
+  const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
+
   // Protect route
   useEffect(() => {
     if (_hasHydrated) {
@@ -56,6 +61,24 @@ export default function EditClubPage() {
           'Authorization': `Bearer ${token}`
         }
       });
+      
+      let onboardingResData = null;
+      if (!user.verify) {
+        try {
+          const obRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clubs/${user.club_id}/onboarding`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (obRes.ok) {
+            const obData = await obRes.json();
+            if (obData.data) {
+              setOnboardingStatus(obData.data.status);
+            }
+          }
+        } catch (e) {
+          console.error('Failed to fetch onboarding status', e);
+        }
+      }
+
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -307,6 +330,36 @@ export default function EditClubPage() {
               )}
             </div>
           </div>
+
+          {!user?.verify && !isEditing && (user?.category === 'owner' || user?.category === 'manager') && (
+            <div
+              className={`mb-8 border rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+                onboardingStatus === 'pending'
+                  ? 'bg-amber-500/10 border-amber-500/20'
+                  : 'bg-emerald-500/10 border-emerald-500/20'
+              }`}
+            >
+              <div>
+                <h3 className={`text-md font-bold ${onboardingStatus === 'pending' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
+                  {onboardingStatus === 'pending' ? t('onboarding_pending_title') : t('onboarding_unverified_title')}
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                  {onboardingStatus === 'pending' 
+                    ? t('onboarding_pending_desc')
+                    : t('onboarding_unverified_desc')}
+                </p>
+              </div>
+              
+              {onboardingStatus !== 'pending' && (
+                <button
+                  onClick={() => setIsOnboardingModalOpen(true)}
+                  className="whitespace-nowrap px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-xl transition-colors shadow-lg shadow-emerald-900/20"
+                >
+                  {t('onboarding_btn')}
+                </button>
+              )}
+            </div>
+          )}
 
           {!isEditing ? (
             <div className="space-y-6">
@@ -628,6 +681,22 @@ export default function EditClubPage() {
           </div>
         </div>
       )}
+
+      <OnboardingModal
+        isOpen={isOnboardingModalOpen}
+        onClose={() => setIsOnboardingModalOpen(false)}
+        token={token || ''}
+        clubId={user?.club_id || 0}
+        initialData={{
+          organization_name: formData.organization_name,
+          nib: formData.nib,
+          npwp: formData.npwp
+        }}
+        onSuccess={() => {
+          setIsOnboardingModalOpen(false);
+          setOnboardingStatus('pending');
+        }}
+      />
     </main>
   );
 }

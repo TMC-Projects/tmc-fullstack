@@ -219,3 +219,91 @@ func (u *clubUsecase) DeleteAchievement(ctx context.Context, clubID int64, achID
 	}
 	return nil
 }
+
+// ─── Onboarding ──────────────────────────────────────────────────────────────
+
+func (u *clubUsecase) SubmitOnboarding(ctx context.Context, clubID int64, input domain.ClubOnboarding, userID int64) (*domain.ClubOnboarding, error) {
+	if err := u.checkClubManagePermission(ctx, clubID, userID); err != nil {
+		return nil, err
+	}
+
+	// Check if there is already a pending onboarding
+	existing, err := u.clubRepo.GetLatestOnboardingByClubID(ctx, clubID)
+	if err == nil && existing != nil && existing.Status == "pending" {
+		return nil, domain.NewAppError(domain.ErrCodeValidation, "there is already a pending onboarding request", nil)
+	}
+
+	input.ClubID = clubID
+	input.OnboardingBy = userID
+	input.Status = "pending"
+
+	if err := u.clubRepo.CreateOnboarding(ctx, &input); err != nil {
+		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to submit onboarding", err)
+	}
+
+	return &input, nil
+}
+
+func (u *clubUsecase) GetLatestOnboarding(ctx context.Context, clubID int64, userID int64) (*domain.ClubOnboarding, error) {
+	if err := u.checkClubManagePermission(ctx, clubID, userID); err != nil {
+		return nil, err
+	}
+
+	onboarding, err := u.clubRepo.GetLatestOnboardingByClubID(ctx, clubID)
+	if err != nil {
+		return nil, domain.NewAppError(domain.ErrCodeNotFound, "no onboarding found", err)
+	}
+	return onboarding, nil
+}
+
+func (u *clubUsecase) ApproveOnboarding(ctx context.Context, onboardingID int64, adminID int64) error {
+	onboarding, err := u.clubRepo.GetOnboardingByID(ctx, onboardingID)
+	if err != nil || onboarding == nil {
+		return domain.NewAppError(domain.ErrCodeNotFound, "onboarding request not found", err)
+	}
+
+	if onboarding.Status != "pending" {
+		return domain.NewAppError(domain.ErrCodeValidation, "onboarding request is not pending", nil)
+	}
+
+	club, err := u.clubRepo.GetByID(ctx, onboarding.ClubID)
+	if err != nil || club == nil {
+		return domain.NewAppError(domain.ErrCodeNotFound, "club not found", err)
+	}
+
+	// Update Club
+	club.OrganizationName = onboarding.OrganizationName
+	club.NIB = onboarding.NIB
+	club.NPWP = onboarding.NPWP
+	club.Verify = true
+
+	if err := u.clubRepo.Update(ctx, club); err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to update club", err)
+	}
+
+	// Update Onboarding
+	onboarding.Status = "approved"
+	if err := u.clubRepo.UpdateOnboarding(ctx, onboarding); err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to update onboarding status", err)
+	}
+
+	return nil
+}
+
+func (u *clubUsecase) RejectOnboarding(ctx context.Context, onboardingID int64, adminID int64) error {
+	onboarding, err := u.clubRepo.GetOnboardingByID(ctx, onboardingID)
+	if err != nil || onboarding == nil {
+		return domain.NewAppError(domain.ErrCodeNotFound, "onboarding request not found", err)
+	}
+
+	if onboarding.Status != "pending" {
+		return domain.NewAppError(domain.ErrCodeValidation, "onboarding request is not pending", nil)
+	}
+
+	onboarding.Status = "rejected"
+	if err := u.clubRepo.UpdateOnboarding(ctx, onboarding); err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to update onboarding status", err)
+	}
+
+	return nil
+}

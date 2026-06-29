@@ -104,7 +104,7 @@ export default function ClubDetailPage() {
             {/* Logo */}
             <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 flex items-center justify-center overflow-hidden shrink-0 shadow-2xl shadow-indigo-500/10">
               {club.logo_url ? (
-                <img src={club.logo_url} alt={club.name} className="w-full h-full object-cover" />
+                <img src={club.logo_url.startsWith('http') ? club.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${club.logo_url.startsWith('/') ? '' : '/'}${club.logo_url}`} alt={club.name} className="w-full h-full object-cover" />
               ) : (
                 <Shield className="w-16 h-16 text-slate-700" />
               )}

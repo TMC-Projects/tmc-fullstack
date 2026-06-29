@@ -45,7 +45,12 @@
     "reject": "Tolak",
     "shortlist_success": "Pelamar berhasil diterima (shortlisted)!",
     "reject_success": "Pelamar berhasil ditolak!",
-    "no_applications": "Belum ada pendaftaran"
+    "no_applications": "Belum ada pendaftaran",
+    "onboarding_pending_title": "Menunggu Verifikasi",
+    "onboarding_pending_desc": "Permintaan verifikasi klub Anda sedang ditinjau oleh administrator kami. Akses Transfer Market akan terbuka setelah disetujui.",
+    "onboarding_unverified_title": "Klub Belum Terverifikasi",
+    "onboarding_unverified_desc": "Verifikasi klub Anda untuk membuka akses ke Transfer Market. Anda hanya perlu mengirimkan Nama PT, NIB, dan NPWP.",
+    "onboarding_btn": "Verifikasi Onboarding"
   },
   "TransferMarket": {
     "title": "Bursa Transfer",
@@ -309,6 +314,11 @@
     "error_delete_ach": "Gagal menghapus",
     "success_delete_ach": "Pencapaian berhasil dihapus",
     "confirm_delete_ach": "Hapus pencapaian ini?",
-    "empty_value": "-"
+    "empty_value": "-",
+    "onboarding_pending_title": "Menunggu Verifikasi",
+    "onboarding_pending_desc": "Permintaan verifikasi Anda sedang ditinjau.",
+    "onboarding_unverified_title": "Klub Belum Terverifikasi",
+    "onboarding_unverified_desc": "Kirim Nama PT, NIB, dan NPWP untuk memverifikasi klub Anda.",
+    "onboarding_btn": "Verifikasi Onboarding"
   }
 }

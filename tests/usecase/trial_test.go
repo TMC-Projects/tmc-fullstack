@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"njara-platform/internal/usecase" 
+	"njara-platform/internal/usecase"
 
 	"njara-platform/internal/domain"
 )
@@ -50,7 +50,7 @@ type mockUserRepoForTrial2 struct {
 	err  error
 }
 
-func (m *mockUserRepoForTrial2) Create(ctx context.Context, u *domain.User) error    { return nil }
+func (m *mockUserRepoForTrial2) Create(ctx context.Context, u *domain.User) error { return nil }
 func (m *mockUserRepoForTrial2) GetByID(ctx context.Context, id int64) (*domain.User, error) {
 	return m.user, m.err
 }
@@ -63,7 +63,7 @@ func (m *mockUserRepoForTrial2) GetByUsername(ctx context.Context, u string) (*d
 func (m *mockUserRepoForTrial2) GetByCategoryAndClub(ctx context.Context, cat string, clubID int64) ([]*domain.User, error) {
 	return nil, nil
 }
-func (m *mockUserRepoForTrial2) UpdateClubID(ctx context.Context, uID, cID int64) error  { return nil }
+func (m *mockUserRepoForTrial2) UpdateClubID(ctx context.Context, uID, cID int64) error { return nil }
 func (m *mockUserRepoForTrial2) GetTalents(ctx context.Context, f domain.TalentFilter) ([]*domain.TalentResult, int64, error) {
 	return nil, 0, nil
 }
@@ -74,9 +74,15 @@ func (m *mockUserRepoForTrial2) UpdateContractAndSalary(ctx context.Context, uID
 	return nil
 }
 func (m *mockUserRepoForTrial2) UpdateProfile(ctx context.Context, u *domain.User) error { return nil }
-func (m *mockUserRepoForTrial2) UpdateProfilePicture(ctx context.Context, userID int64, url string) error { return nil }
-func (m *mockUserRepoForTrial2) UpdateStatus(ctx context.Context, uID int64, s string) error { return nil }
-func (m *mockUserRepoForTrial2) UpdateTeamID(ctx context.Context, uID int64, tID *int64) error { return nil }
+func (m *mockUserRepoForTrial2) UpdateProfilePicture(ctx context.Context, userID int64, url string) error {
+	return nil
+}
+func (m *mockUserRepoForTrial2) UpdateStatus(ctx context.Context, uID int64, s string) error {
+	return nil
+}
+func (m *mockUserRepoForTrial2) UpdateTeamID(ctx context.Context, uID int64, tID *int64) error {
+	return nil
+}
 
 // ─── Mock: ClubRepository (for trial tests) ──────────────────────────────────
 
@@ -84,8 +90,8 @@ type mockClubRepoForTrial2 struct {
 	club *domain.Club
 }
 
-func (m *mockClubRepoForTrial2) Create(ctx context.Context, c *domain.Club) error   { return nil }
-func (m *mockClubRepoForTrial2) Update(ctx context.Context, c *domain.Club) error   { return nil }
+func (m *mockClubRepoForTrial2) Create(ctx context.Context, c *domain.Club) error { return nil }
+func (m *mockClubRepoForTrial2) Update(ctx context.Context, c *domain.Club) error { return nil }
 func (m *mockClubRepoForTrial2) GetByName(ctx context.Context, n string) (*domain.Club, error) {
 	return nil, nil
 }
@@ -94,6 +100,28 @@ func (m *mockClubRepoForTrial2) GetByID(ctx context.Context, id int64) (*domain.
 }
 func (m *mockClubRepoForTrial2) GetAll(ctx context.Context) ([]*domain.Club, error) {
 	return nil, nil
+}
+func (m *mockClubRepoForTrial2) CreateAchievement(ctx context.Context, ach *domain.ClubAchievement) error {
+	return nil
+}
+func (m *mockClubRepoForTrial2) UpdateAchievement(ctx context.Context, ach *domain.ClubAchievement) error {
+	return nil
+}
+func (m *mockClubRepoForTrial2) DeleteAchievement(ctx context.Context, id int64) error { return nil }
+func (m *mockClubRepoForTrial2) GetAchievementByID(ctx context.Context, id int64) (*domain.ClubAchievement, error) {
+	return nil, nil
+}
+func (m *mockClubRepoForTrial2) CreateOnboarding(ctx context.Context, o *domain.ClubOnboarding) error {
+	return nil
+}
+func (m *mockClubRepoForTrial2) GetLatestOnboardingByClubID(ctx context.Context, clubID int64) (*domain.ClubOnboarding, error) {
+	return nil, nil
+}
+func (m *mockClubRepoForTrial2) GetOnboardingByID(ctx context.Context, id int64) (*domain.ClubOnboarding, error) {
+	return nil, nil
+}
+func (m *mockClubRepoForTrial2) UpdateOnboarding(ctx context.Context, o *domain.ClubOnboarding) error {
+	return nil
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

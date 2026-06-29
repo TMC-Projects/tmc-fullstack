@@ -91,6 +91,32 @@ func (r *clubRepository) CreateAchievement(ctx context.Context, ach *domain.Club
 	return nil
 }
 
+// ─── Onboarding ──────────────────────────────────────────────────────────────
+
+func (r *clubRepository) CreateOnboarding(ctx context.Context, onboarding *domain.ClubOnboarding) error {
+	return r.db.WithContext(ctx).Create(onboarding).Error
+}
+
+func (r *clubRepository) GetLatestOnboardingByClubID(ctx context.Context, clubID int64) (*domain.ClubOnboarding, error) {
+	var onboarding domain.ClubOnboarding
+	if err := r.db.WithContext(ctx).Where("club_id = ?", clubID).Order("created_at desc").First(&onboarding).Error; err != nil {
+		return nil, err
+	}
+	return &onboarding, nil
+}
+
+func (r *clubRepository) GetOnboardingByID(ctx context.Context, id int64) (*domain.ClubOnboarding, error) {
+	var onboarding domain.ClubOnboarding
+	if err := r.db.WithContext(ctx).First(&onboarding, id).Error; err != nil {
+		return nil, err
+	}
+	return &onboarding, nil
+}
+
+func (r *clubRepository) UpdateOnboarding(ctx context.Context, onboarding *domain.ClubOnboarding) error {
+	return r.db.WithContext(ctx).Save(onboarding).Error
+}
+
 func (r *clubRepository) UpdateAchievement(ctx context.Context, ach *domain.ClubAchievement) error {
 	m := ClubAchievementFromDomain(ach)
 	err := r.db.WithContext(ctx).Save(m).Error

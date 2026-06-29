@@ -343,3 +343,108 @@ func (h *ClubHandler) DeleteAchievement(c *fiber.Ctx) error {
 
 	return SendSuccess(c, fiber.StatusOK, "Club achievement deleted successfully", nil)
 }
+
+// ─── Onboarding ──────────────────────────────────────────────────────────────
+
+type submitOnboardingRequest struct {
+	OrganizationName string `json:"organization_name"`
+	NIB              string `json:"nib"`
+	NPWP             string `json:"npwp"`
+}
+
+func (h *ClubHandler) SubmitOnboarding(c *fiber.Ctx) error {
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	clubIDStr := c.Params("id")
+	clubID, err := strconv.ParseInt(clubIDStr, 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid club ID", err)
+	}
+
+	var req submitOnboardingRequest
+	if err := c.BodyParser(&req); err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid request body", err)
+	}
+
+	if req.OrganizationName == "" || req.NIB == "" || req.NPWP == "" {
+		return domain.NewAppError(domain.ErrCodeValidation, "organization_name, nib, and npwp are required", nil)
+	}
+
+	input := domain.ClubOnboarding{
+		OrganizationName: req.OrganizationName,
+		NIB:              req.NIB,
+		NPWP:             req.NPWP,
+	}
+
+	onboarding, err := h.clubUsecase.SubmitOnboarding(c.UserContext(), clubID, input, userID)
+	if err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusCreated, "Onboarding submitted successfully", onboarding)
+}
+
+func (h *ClubHandler) GetLatestOnboarding(c *fiber.Ctx) error {
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	clubIDStr := c.Params("id")
+	clubID, err := strconv.ParseInt(clubIDStr, 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid club ID", err)
+	}
+
+	onboarding, err := h.clubUsecase.GetLatestOnboarding(c.UserContext(), clubID, userID)
+	if err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Latest onboarding retrieved", onboarding)
+}
+
+func (h *ClubHandler) ApproveOnboarding(c *fiber.Ctx) error {
+	adminIDVal := c.Locals("userID")
+	adminID, ok := adminIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	onboardingIDStr := c.Params("id")
+	onboardingID, err := strconv.ParseInt(onboardingIDStr, 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid onboarding ID", err)
+	}
+
+	if err := h.clubUsecase.ApproveOnboarding(c.UserContext(), onboardingID, adminID); err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Onboarding approved successfully", nil)
+}
+
+func (h *ClubHandler) RejectOnboarding(c *fiber.Ctx) error {
+	adminIDVal := c.Locals("userID")
+	adminID, ok := adminIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	onboardingIDStr := c.Params("id")
+	onboardingID, err := strconv.ParseInt(onboardingIDStr, 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid onboarding ID", err)
+	}
+
+	if err := h.clubUsecase.RejectOnboarding(c.UserContext(), onboardingID, adminID); err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Onboarding rejected successfully", nil)
+}
