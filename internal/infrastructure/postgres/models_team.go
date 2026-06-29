@@ -11,6 +11,8 @@ type TeamModel struct {
 	ID          int64     `gorm:"primaryKey;autoIncrement"`
 	ClubID      int64     `gorm:"not null;index"`
 	Club        ClubModel `gorm:"foreignKey:ClubID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	OwnerID     *int64    `gorm:"index"`
+	Owner       UserModel `gorm:"foreignKey:OwnerID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	GameID      int64     `gorm:"not null;index"`
 	Game        GameModel `gorm:"foreignKey:GameID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
 	Name        string    `gorm:"not null;type:varchar(255)"`
@@ -34,6 +36,7 @@ func (m *TeamModel) ToDomain() *domain.Team {
 	t := &domain.Team{
 		ID:          m.ID,
 		ClubID:      m.ClubID,
+		OwnerID:     m.OwnerID,
 		GameID:      m.GameID,
 		Name:        m.Name,
 		Description: m.Description,
@@ -60,6 +63,7 @@ func TeamFromDomain(d *domain.Team) *TeamModel {
 	return &TeamModel{
 		ID:          d.ID,
 		ClubID:      d.ClubID,
+		OwnerID:     d.OwnerID,
 		GameID:      d.GameID,
 		Name:        d.Name,
 		Description: d.Description,

@@ -8,6 +8,7 @@ import (
 type Team struct {
 	ID          int64     `json:"id"`
 	ClubID      int64     `json:"club_id"`
+	OwnerID     *int64    `json:"owner_id,omitempty"`
 	GameID      int64     `json:"game_id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
@@ -26,6 +27,7 @@ type TeamRepository interface {
 	Update(ctx context.Context, team *Team) error
 	GetByID(ctx context.Context, id int64) (*Team, error)
 	GetByClubID(ctx context.Context, clubID int64) ([]*Team, error)
+	GetByOwnerID(ctx context.Context, ownerID int64) ([]*Team, error)
 	Delete(ctx context.Context, id int64) error
 }
 

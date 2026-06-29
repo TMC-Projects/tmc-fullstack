@@ -423,6 +423,8 @@ type SubscriptionModel struct {
 	ID              int64                  `gorm:"primaryKey;autoIncrement"`
 	ClubID          int64                  `gorm:"not null;index"`
 	Club            ClubModel              `gorm:"foreignKey:ClubID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
+	UserID          *int64                 `gorm:"index"`
+	User            UserModel              `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	PlanID          int64                  `gorm:"not null"`
 	Plan            SubscriptionPlanModel  `gorm:"foreignKey:PlanID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
 	Status          string                 `gorm:"not null;type:varchar(50);default:'pending';index"`
@@ -450,6 +452,7 @@ func (m *SubscriptionModel) ToDomain() *domain.Subscription {
 	sub := &domain.Subscription{
 		ID:              m.ID,
 		ClubID:          m.ClubID,
+		UserID:          m.UserID,
 		PlanID:          m.PlanID,
 		Status:          m.Status,
 		Amount:          m.Amount,
@@ -479,6 +482,7 @@ func SubscriptionFromDomain(d *domain.Subscription) *SubscriptionModel {
 	return &SubscriptionModel{
 		ID:              d.ID,
 		ClubID:          d.ClubID,
+		UserID:          d.UserID,
 		PlanID:          d.PlanID,
 		Status:          d.Status,
 		Amount:          d.Amount,

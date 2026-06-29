@@ -26,6 +26,9 @@ func (u *teamUsecase) CreateTeam(ctx context.Context, input *domain.Team, userID
 	}
 
 	input.ClubID = user.ClubID
+	if user.Category == "team_owner" {
+		input.OwnerID = &user.ID
+	}
 	if input.Status == "" {
 		input.Status = "active"
 	}
@@ -49,8 +52,14 @@ func (u *teamUsecase) UpdateTeam(ctx context.Context, teamID int64, input *domai
 		return nil, err
 	}
 
-	if team.ClubID != user.ClubID {
-		return nil, domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+	if user.Category == "team_owner" {
+		if team.OwnerID == nil || *team.OwnerID != user.ID {
+			return nil, domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+		}
+	} else {
+		if team.ClubID != user.ClubID {
+			return nil, domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+		}
 	}
 
 	team.Name = input.Name
@@ -77,6 +86,11 @@ func (u *teamUsecase) GetTeamsByClubID(ctx context.Context, clubID int64, userID
 		return nil, err
 	}
 
+	// If team_owner, fetch by OwnerID
+	if user.Category == "team_owner" {
+		return u.teamRepo.GetByOwnerID(ctx, userID)
+	}
+
 	// For admin/manager, they can only view teams of their own club if we want strictly bound,
 	// but generally get by clubID is fine if they ask for their own clubID.
 	// We'll enforce they can only fetch their own club's teams
@@ -98,8 +112,14 @@ func (u *teamUsecase) GetTeamByID(ctx context.Context, teamID int64, userID int6
 		return nil, err
 	}
 
-	if team.ClubID != user.ClubID {
-		return nil, domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+	if user.Category == "team_owner" {
+		if team.OwnerID == nil || *team.OwnerID != user.ID {
+			return nil, domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+		}
+	} else {
+		if team.ClubID != user.ClubID {
+			return nil, domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+		}
 	}
 
 	return team, nil
@@ -116,8 +136,14 @@ func (u *teamUsecase) DeleteTeam(ctx context.Context, teamID int64, userID int64
 		return err
 	}
 
-	if team.ClubID != user.ClubID {
-		return domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+	if user.Category == "team_owner" {
+		if team.OwnerID == nil || *team.OwnerID != user.ID {
+			return domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+		}
+	} else {
+		if team.ClubID != user.ClubID {
+			return domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+		}
 	}
 
 	return u.teamRepo.Delete(ctx, teamID)
@@ -134,8 +160,14 @@ func (u *teamUsecase) AssignUser(ctx context.Context, teamID int64, targetUserID
 		return err
 	}
 
-	if team.ClubID != adminUser.ClubID {
-		return domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+	if adminUser.Category == "team_owner" {
+		if team.OwnerID == nil || *team.OwnerID != adminUser.ID {
+			return domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+		}
+	} else {
+		if team.ClubID != adminUser.ClubID {
+			return domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+		}
 	}
 
 	targetUser, err := u.userRepo.GetByID(ctx, targetUserID)
@@ -143,7 +175,7 @@ func (u *teamUsecase) AssignUser(ctx context.Context, teamID int64, targetUserID
 		return err
 	}
 
-	if targetUser.ClubID != adminUser.ClubID {
+	if adminUser.Category != "team_owner" && targetUser.ClubID != adminUser.ClubID {
 		return domain.NewAppError(domain.ErrCodeForbidden, "User does not belong to your club", nil)
 	}
 

@@ -68,6 +68,25 @@ func (r *teamRepository) GetByClubID(ctx context.Context, clubID int64) ([]*doma
 	return teams, nil
 }
 
+func (r *teamRepository) GetByOwnerID(ctx context.Context, ownerID int64) ([]*domain.Team, error) {
+	var models []TeamModel
+	err := r.db.WithContext(ctx).
+		Where("owner_id = ?", ownerID).
+		Preload("Club").
+		Preload("Game").
+		Order("created_at desc").
+		Find(&models).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var teams []*domain.Team
+	for _, m := range models {
+		teams = append(teams, m.ToDomain())
+	}
+	return teams, nil
+}
+
 func (r *teamRepository) Delete(ctx context.Context, id int64) error {
 	if err := r.db.WithContext(ctx).Delete(&TeamModel{}, id).Error; err != nil {
 		return err

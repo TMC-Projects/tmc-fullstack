@@ -54,6 +54,9 @@ export default function Home() {
 
             {/* Club Auth */}
             <div className="flex items-center gap-3">
+              <Link href="/team-portal/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+                {t('nav_team_login', { defaultMessage: 'Team Login' })}
+              </Link>
               <Link href="/portal/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
                 {t('nav_club_login')}
               </Link>
@@ -89,6 +92,7 @@ export default function Home() {
             <div className="pt-4 border-t border-white/10 flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-4">
                 <Link href="/app/login" className="w-full text-center px-4 py-2 bg-slate-800 text-slate-300 font-semibold rounded-lg border border-slate-700">{t('nav_player_login')}</Link>
+                <Link href="/team-portal/login" className="w-full text-center px-4 py-2 bg-slate-800 text-slate-300 font-semibold rounded-lg border border-slate-700">{t('nav_team_login', { defaultMessage: 'Team Login' })}</Link>
                 <Link href="/portal/login" className="w-full text-center px-4 py-2 bg-slate-800 text-slate-300 font-semibold rounded-lg border border-slate-700">{t('nav_club_login')}</Link>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -133,7 +137,10 @@ export default function Home() {
               {t('hero_btn_player')} <Rocket className="w-5 h-5" />
             </Link>
             <Link href="/portal/login" className="w-full sm:w-auto px-8 py-4 bg-slate-800/80 hover:bg-slate-700/80 text-white font-bold rounded-xl border border-slate-700/50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 backdrop-blur-sm">
-              {t('hero_btn_club')} <Building2 className="w-5 h-5" />
+              {t('hero_secondary_cta')}
+            </Link>
+            <Link href="/team-portal/register" className="w-full sm:w-auto px-8 py-4 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 hover:text-emerald-300 font-bold rounded-xl border border-emerald-500/30 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 backdrop-blur-sm">
+              {t('hero_team_cta', { defaultMessage: 'Create Independent Team' })} <Building2 className="w-5 h-5" />
             </Link>
           </div>
         </div>
@@ -395,7 +402,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Player Plan */}
             <div className="bg-[#151A28] rounded-3xl p-8 border border-slate-800 hover:border-cyan-500/50 transition-colors flex flex-col relative overflow-hidden">
               <div className="mb-8">
@@ -416,6 +423,29 @@ export default function Home() {
               </ul>
               <Link href="/app/register" className="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors border border-slate-700 text-center">
                 {t('price_player_btn')}
+              </Link>
+            </div>
+
+            {/* Team Plan */}
+            <div className="bg-[#151A28] rounded-3xl p-8 border border-slate-800 hover:border-emerald-500/50 transition-colors flex flex-col relative overflow-hidden">
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-slate-200 mb-2">{t('price_team_title')}</h3>
+                <p className="text-sm text-slate-400">{t('price_team_desc')}</p>
+              </div>
+              <div className="mb-8">
+                <div className="flex items-end gap-2 mb-2">
+                  <span className="text-4xl font-bold text-white">${billingCycle === 'monthly' ? t('price_team_monthly') : t('price_team_yearly')}</span>
+                  <span className="text-slate-500 mb-1">/{billingCycle === 'monthly' ? t('price_monthly').toLowerCase() : t('price_yearly').toLowerCase()}</span>
+                </div>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1 text-sm text-slate-300">
+                <li className="flex gap-3"><Check className="w-5 h-5 text-emerald-400 shrink-0" /> {t('price_team_feat_1')}</li>
+                <li className="flex gap-3"><Check className="w-5 h-5 text-emerald-400 shrink-0" /> {t('price_team_feat_2')}</li>
+                <li className="flex gap-3"><Check className="w-5 h-5 text-emerald-400 shrink-0" /> {t('price_team_feat_3')}</li>
+                <li className="flex gap-3"><Check className="w-5 h-5 text-emerald-400 shrink-0" /> {t('price_team_feat_4')}</li>
+              </ul>
+              <Link href="/team-portal/register" className="w-full py-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold rounded-xl transition-colors border border-emerald-500/30 text-center">
+                {t('price_team_btn')}
               </Link>
             </div>
 

@@ -12,7 +12,7 @@ export interface User {
   club_name?: string;
   club_logo_url?: string;
   verify?: boolean;
-  category: 'player' | 'coach' | 'owner' | 'manager' | 'staff' | 'ba';
+  category: 'player' | 'coach' | 'owner' | 'manager' | 'staff' | 'ba' | 'team_owner';
   contract_until?: string;
   salary?: number;
   market_value?: number;

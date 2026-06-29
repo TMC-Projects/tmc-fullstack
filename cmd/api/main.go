@@ -235,9 +235,9 @@ func main() {
 	app.Put("/api/profile", authMiddleware.Authenticate, authHandler.UpdateProfile)
 	app.Post("/api/profile/upload-photo", authMiddleware.Authenticate, authHandler.UploadProfilePhoto)
 	app.Get("/api/games", gameHandler.GetList)
-	app.Get("/api/transfer-market", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireVerifiedClub(), authMiddleware.RequireCategory("owner", "manager"), authMiddleware.RequirePermission("view_transfer_market"), transferMarketHandler.GetList)
-	app.Put("/api/transfer-market/:id/status", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireVerifiedClub(), authMiddleware.RequireCategory("owner", "manager"), transferMarketHandler.UpdateStatus)
-	app.Get("/api/access-logs", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), accessLogHandler.GetList)
+	app.Get("/api/transfer-market", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireVerifiedClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), authMiddleware.RequirePermission("view_transfer_market"), transferMarketHandler.GetList)
+	app.Put("/api/transfer-market/:id/status", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireVerifiedClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), transferMarketHandler.UpdateStatus)
+	app.Get("/api/access-logs", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager", "team_owner"), accessLogHandler.GetList)
 
 	// User Profile Enrichment Endpoints
 	app.Post("/api/profile/stats", authMiddleware.Authenticate, userProfileHandler.CreateStat)
@@ -319,22 +319,22 @@ func main() {
 	app.Get("/api/ba", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), userHandler.GetListByCategory("ba"))
 
 	// Talent Endpoints (B2B - blocked when club is expired)
-	app.Get("/api/talents", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.GetTalents)
+	app.Get("/api/talents", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.GetTalents)
 	app.Get("/api/talents/:id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), userHandler.GetUserDetail)
-	app.Post("/api/talents", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), authMiddleware.RequirePermission("manage_talents"), talentHandler.RegisterTalent)
-	app.Put("/api/talents/:id/market-value", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.UpdateMarketValue)
-	app.Put("/api/talents/:id/biodata", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.UpdateBiodata)
-	app.Put("/api/talents/:id/contract-salary", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.UpdateContractAndSalary)
-	app.Put("/api/talents/:id/status", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.UpdateStatus)
-	app.Post("/api/talents/:id/photo", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.UploadPhoto)
-	app.Post("/api/talents/:id/sign", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), talentHandler.SignFreeAgent)
+	app.Post("/api/talents", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), authMiddleware.RequirePermission("manage_talents"), talentHandler.RegisterTalent)
+	app.Put("/api/talents/:id/market-value", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.UpdateMarketValue)
+	app.Put("/api/talents/:id/biodata", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.UpdateBiodata)
+	app.Put("/api/talents/:id/contract-salary", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.UpdateContractAndSalary)
+	app.Put("/api/talents/:id/status", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.UpdateStatus)
+	app.Post("/api/talents/:id/photo", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.UploadPhoto)
+	app.Post("/api/talents/:id/sign", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.SignFreeAgent)
 
 
 	// Subscription Endpoints (B2B)
 	// Plans, create, pay & callback intentionally left accessible for expired clubs so they can renew.
 	app.Get("/api/subscriptions/plans", subHandler.GetPlans)
-	app.Post("/api/subscriptions", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner"), subHandler.CreateSubscription)
-	app.Post("/api/subscriptions/:id/pay", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner"), subHandler.ChargePayment)
+	app.Post("/api/subscriptions", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "team_owner"), subHandler.CreateSubscription)
+	app.Post("/api/subscriptions/:id/pay", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "team_owner"), subHandler.ChargePayment)
 	app.Post("/api/subscriptions/callback", subHandler.HandleMidtransCallback)
 	app.Post("/api/callback", subHandler.HandleMidtransCallback) // Alias for Midtrans notification URL
 	app.Get("/api/subscriptions/my-club", authMiddleware.Authenticate, subHandler.GetMySubscriptions)
@@ -482,6 +482,9 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		{"owner", "manage_teams"},
 		{"owner", "view_analytics"},
 		{"owner", "manage_talents"},
+		{"team_owner", "view_transfer_market"},
+		{"team_owner", "manage_teams"},
+		{"team_owner", "manage_talents"},
 	}
 
 	for _, rp := range rolePermissions {

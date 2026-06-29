@@ -20,10 +20,12 @@ interface SubscriptionCardProps {
   plan: Plan;
   onSelect: (planId: number) => void;
   isPopular?: boolean;
+  currency?: string;
+  translationNamespace?: string;
 }
 
-export default function SubscriptionCard({ plan, onSelect, isPopular = false }: SubscriptionCardProps) {
-  const t = useTranslations('Subscriptions');
+export default function SubscriptionCard({ plan, onSelect, isPopular = false, currency = 'Rp', translationNamespace = 'Subscriptions' }: SubscriptionCardProps) {
+  const t = useTranslations(translationNamespace as any);
   const finalPrice = plan.price - plan.discount;
   
   // Example features list based on the plan description for visual flair
@@ -33,7 +35,7 @@ export default function SubscriptionCard({ plan, onSelect, isPopular = false }: 
     t('feature_3'),
     t('feature_4'),
     t('feature_5'),
-    plan.duration_months > 1 ? `${t('save_amount')} Rp ${(plan.discount).toLocaleString('id-ID')}` : t('feature_flexible')
+    plan.duration_months > 1 ? `${t('save_amount')} ${currency} ${(plan.discount).toLocaleString('id-ID')}` : t('feature_flexible')
   ];
 
   const getIcon = () => {
@@ -56,7 +58,7 @@ export default function SubscriptionCard({ plan, onSelect, isPopular = false }: 
     >
       {isPopular && (
         <div className="absolute -top-4 left-0 right-0 flex justify-center">
-          <span className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+           <span className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
             {t('popular_badge')}
           </span>
         </div>
@@ -79,7 +81,7 @@ export default function SubscriptionCard({ plan, onSelect, isPopular = false }: 
       <div className="mb-6">
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
-            Rp {(finalPrice).toLocaleString('id-ID')}
+            {currency} {(finalPrice).toLocaleString('id-ID')}
           </span>
           <span className="text-sm font-medium text-slate-500">
             / {plan.duration_months} {t('months_suffix')}
@@ -89,10 +91,10 @@ export default function SubscriptionCard({ plan, onSelect, isPopular = false }: 
         {plan.discount > 0 && (
           <div className="mt-1 flex items-center gap-2">
             <span className="text-sm line-through text-slate-400">
-              Rp {(plan.price).toLocaleString('id-ID')}
+              {currency} {(plan.price).toLocaleString('id-ID')}
             </span>
             <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-              {t('save_amount')} Rp {(plan.discount).toLocaleString('id-ID')}
+              {t('save_amount')} {currency} {(plan.discount).toLocaleString('id-ID')}
             </span>
           </div>
         )}

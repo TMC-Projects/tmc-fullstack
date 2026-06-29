@@ -24,6 +24,8 @@ type Subscription struct {
 	ID              int64             `json:"id"`
 	ClubID          int64             `json:"club_id"`
 	Club            *Club             `json:"club,omitempty"`
+	UserID          *int64            `json:"user_id,omitempty"`
+	User            *User             `json:"user,omitempty"`
 	PlanID          int64             `json:"plan_id"`
 	Plan            *SubscriptionPlan `json:"plan,omitempty"`
 	Status          string            `json:"status"` // "pending", "paid", "failed", "expired"

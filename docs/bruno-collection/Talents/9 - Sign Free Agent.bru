@@ -1,0 +1,29 @@
+meta {
+  name: 9 - Sign Free Agent
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{base_url}}/api/talents/:id/sign
+  body: json
+  auth: bearer
+}
+
+params:path {
+  id: 4
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "team_id": 1
+  }
+}

@@ -280,6 +280,10 @@ func (h *TalentHandler) UpdateStatus(c *fiber.Ctx) error {
 	return SendSuccess(c, fiber.StatusOK, "Account status updated successfully", nil)
 }
 
+type signFreeAgentRequest struct {
+	TeamID *int64 `json:"team_id"`
+}
+
 // SignFreeAgent handles POST /api/talents/:id/sign
 func (h *TalentHandler) SignFreeAgent(c *fiber.Ctx) error {
 	callerID, ok := c.Locals("userID").(int64)
@@ -292,7 +296,12 @@ func (h *TalentHandler) SignFreeAgent(c *fiber.Ctx) error {
 		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid user id", err)
 	}
 
-	if err := h.talentUsecase.SignFreeAgent(c.UserContext(), int64(targetID), callerID); err != nil {
+	var req signFreeAgentRequest
+	if err := c.BodyParser(&req); err != nil && err.Error() != "Unprocessable Entity" {
+		// Body is optional for club owners, but required for team_owners
+	}
+
+	if err := h.talentUsecase.SignFreeAgent(c.UserContext(), int64(targetID), callerID, req.TeamID); err != nil {
 		return err
 	}
 

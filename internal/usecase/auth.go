@@ -82,7 +82,7 @@ func (u *authUsecase) Register(ctx context.Context, input domain.RegisterInput) 
 
 	// Category validation (default to "player")
 	cat := input.Category
-	if cat != "player" && cat != "coach" && cat != "manager" && cat != "owner" && cat != "staff" && cat != "ba" {
+	if cat != "player" && cat != "coach" && cat != "manager" && cat != "owner" && cat != "staff" && cat != "ba" && cat != "team_owner" {
 		cat = "player"
 	}
 

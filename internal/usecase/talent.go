@@ -295,7 +295,7 @@ func (u *talentUsecase) UpdateStatus(ctx context.Context, targetUserID int64, st
 }
 
 // SignFreeAgent assigns a free agent player to the caller's club.
-func (u *talentUsecase) SignFreeAgent(ctx context.Context, targetUserID int64, callerUserID int64) error {
+func (u *talentUsecase) SignFreeAgent(ctx context.Context, targetUserID int64, callerUserID int64, teamID *int64) error {
 	// 1. Get caller profile
 	caller, err := u.authUsecase.GetProfile(ctx, callerUserID)
 	if err != nil {
@@ -327,9 +327,20 @@ func (u *talentUsecase) SignFreeAgent(ctx context.Context, targetUserID int64, c
 		return domain.NewAppError(domain.ErrCodeBadRequest, "talent is not a free agent", nil)
 	}
 
-	// 4. Update the talent's club_id
-	if err := u.userRepo.UpdateClubID(ctx, targetUserID, caller.ClubID); err != nil {
-		return domain.NewAppError(domain.ErrCodeInternal, "failed to update talent club", err)
+	// 4. Update the talent's club_id and/or team_id
+	if caller.Category == "team_owner" {
+		if teamID == nil {
+			return domain.NewAppError(domain.ErrCodeBadRequest, "team_id is required for team_owner to sign a player", nil)
+		}
+		// Set the player's team_id, keep club_id as Free Agent
+		if err := u.userRepo.UpdateTeamID(ctx, targetUserID, teamID); err != nil {
+			return domain.NewAppError(domain.ErrCodeInternal, "failed to update talent team", err)
+		}
+	} else {
+		// Normal club owner/manager
+		if err := u.userRepo.UpdateClubID(ctx, targetUserID, caller.ClubID); err != nil {
+			return domain.NewAppError(domain.ErrCodeInternal, "failed to update talent club", err)
+		}
 	}
 
 	// 5. Delete from transfer market
