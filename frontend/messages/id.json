@@ -17,7 +17,7 @@
     "logout": "Keluar"
   },
   "Dashboard": {
-    "title": "B2C Dasbor",
+    "title": "Dasbor",
     "clubs": "Daftar Klub",
     "trials": "Trial Terbuka",
     "search": "Cari...",
@@ -26,10 +26,13 @@
     "applied": "Terdaftar",
     "apply_success": "Berhasil mendaftar untuk trial!",
     "apply_failed": "Gagal mendaftar. Maksimal 10 pendaftaran diperbolehkan.",
-    "view_profile": "Profil Saya"
+    "view_profile": "Profil Saya",
+    "welcome_title": "Selamat datang di Platform TMC",
+    "welcome_desc": "Temukan teman, klub impian, daftar trial terbuka, dan mulai perjalanan esports profesional Anda hari ini.",
+    "search_player": "Cari Player berdasarkan ID..."
   },
   "PortalDashboard": {
-    "title": "B2B Dasbor",
+    "title": "Dasbor",
     "member_overview": "Ringkasan Anggota",
     "players": "Pemain",
     "coaches": "Pelatih",
@@ -254,7 +257,7 @@
     "no_account": "Belum punya akun Portal?",
     "register_here": "Daftar di sini",
     "b2c_question": "Apakah Anda Player atau Coach?",
-    "b2c_login": "Masuk ke Aplikasi B2C",
+    "b2c_login": "Masuk ke Portal Player/Coach",
     "register_title": "DAFTAR PORTAL B2B",
     "register_subtitle": "Registrasi sebagai Owner atau Manager Klub",
     "fullname_label": "Nama Lengkap",

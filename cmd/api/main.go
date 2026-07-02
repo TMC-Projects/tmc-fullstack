@@ -146,6 +146,10 @@ func main() {
 	userProfileUsecase := usecase.NewUserProfileUsecase(userProfileRepo, cacheRepo)
 	playerVoteUsecase := usecase.NewPlayerVoteUsecase(userRepo, cacheRepo)
 
+	// Follow System
+	userFollowRepo := postgres.NewUserFollowRepository(db)
+	userFollowUsecase := usecase.NewUserFollowUsecase(userFollowRepo, userRepo)
+
 	// Midtrans
 	midtransClient := midtransInfra.NewClient(cfg.MidtransServerKey, cfg.MidtransMerchantID)
 
@@ -167,6 +171,10 @@ func main() {
 
 	currencyUsecase := usecase.NewCurrencyUsecase(currencyRepo)
 	currencyHandler := domainhttp.NewCurrencyHandler(currencyUsecase)
+
+	// B2C Handlers
+	userFollowHandler := domainhttp.NewUserFollowHandler(userFollowUsecase)
+	b2cPlayerHandler := domainhttp.NewB2CPlayerHandler(authUsecase, userFollowUsecase)
 
 	// Trial Management Handlers
 	trialHandler := domainhttp.NewTrialHandler(trialUsecase, trialAppRepo)
@@ -264,7 +272,7 @@ func main() {
 	app.Post("/api/clubs/:id/achievements", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), clubHandler.AddAchievement)
 	app.Put("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), clubHandler.UpdateAchievement)
 	app.Delete("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), clubHandler.DeleteAchievement)
-	
+
 	// Onboarding Endpoints
 	app.Post("/api/clubs/:id/onboarding", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), clubHandler.SubmitOnboarding)
 	app.Get("/api/clubs/:id/onboarding", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager"), clubHandler.GetLatestOnboarding)
@@ -329,7 +337,6 @@ func main() {
 	app.Post("/api/talents/:id/photo", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.UploadPhoto)
 	app.Post("/api/talents/:id/sign", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.SignFreeAgent)
 
-
 	// Subscription Endpoints (B2B)
 	// Plans, create, pay & callback intentionally left accessible for expired clubs so they can renew.
 	app.Get("/api/subscriptions/plans", subHandler.GetPlans)
@@ -338,6 +345,12 @@ func main() {
 	app.Post("/api/subscriptions/callback", subHandler.HandleMidtransCallback)
 	app.Post("/api/callback", subHandler.HandleMidtransCallback) // Alias for Midtrans notification URL
 	app.Get("/api/subscriptions/my-club", authMiddleware.Authenticate, subHandler.GetMySubscriptions)
+
+	// B2C Player & Follow Endpoints
+	app.Get("/api/b2c/players/:id", authMiddleware.Authenticate, b2cPlayerHandler.GetB2CPlayerDetail)
+	app.Post("/api/b2c/users/:id/follow", authMiddleware.Authenticate, userFollowHandler.Follow)
+	app.Delete("/api/b2c/users/:id/unfollow", authMiddleware.Authenticate, userFollowHandler.Unfollow)
+	app.Get("/api/b2c/users/:id/follow-status", authMiddleware.Authenticate, userFollowHandler.FollowStatus)
 
 	// RBAC Test Endpoints
 	app.Get("/api/test/player", authMiddleware.Authenticate, authMiddleware.RequirePermission("edit_portfolio"), func(c *fiber.Ctx) error {
@@ -405,6 +418,7 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		&domain.ClubOnboarding{},
 		&postgres.PlayerVoteModel{},
 		&postgres.CurrencyModel{},
+		&postgres.UserFollowModel{},
 	)
 	if err != nil {
 		return err

@@ -11,9 +11,21 @@ interface ProfileHeaderProps {
   user: AuthUser;
   isEditable?: boolean;
   onRefresh?: () => void;
+  followersCount?: number;
+  followingCount?: number;
+  isFollowing?: boolean;
+  onFollowToggle?: () => void;
 }
 
-export default function ProfileHeader({ user, isEditable, onRefresh }: ProfileHeaderProps) {
+export default function ProfileHeader({ 
+  user, 
+  isEditable, 
+  onRefresh,
+  followersCount,
+  followingCount,
+  isFollowing,
+  onFollowToggle
+}: ProfileHeaderProps) {
   const t = useTranslations('Profile');
   const { token } = useAuthStore();
   const { showAlert } = useAlertStore();
@@ -133,11 +145,43 @@ export default function ProfileHeader({ user, isEditable, onRefresh }: ProfileHe
         {/* User Info */}
         <div className="flex-1 text-center md:text-left space-y-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
-              {user.full_name}
-            </h1>
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
+                {user.full_name}
+              </h1>
+              
+              {!isEditable && onFollowToggle && (
+                <button
+                  onClick={onFollowToggle}
+                  className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all shadow-lg ${
+                    isFollowing 
+                      ? 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/50 border border-transparent' 
+                      : 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-500/25'
+                  }`}
+                >
+                  {isFollowing ? 'Following' : 'Follow'}
+                </button>
+              )}
+            </div>
             <p className="text-slate-600 dark:text-slate-400 font-medium mt-1">@{user.username}</p>
           </div>
+          
+          {(followersCount !== undefined || followingCount !== undefined) && (
+            <div className="flex items-center justify-center md:justify-start gap-6 text-sm">
+              {followersCount !== undefined && (
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-slate-900 dark:text-white">{followersCount}</span>
+                  <span className="text-slate-600 dark:text-slate-400">Followers</span>
+                </div>
+              )}
+              {followingCount !== undefined && (
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-slate-900 dark:text-white">{followingCount}</span>
+                  <span className="text-slate-600 dark:text-slate-400">Following</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {user.bio && (
             <p className="text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">

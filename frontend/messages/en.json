@@ -17,7 +17,7 @@
     "logout": "Log Out"
   },
   "Dashboard": {
-    "title": "B2C Dashboard",
+    "title": "Dashboard",
     "clubs": "Clubs",
     "trials": "Open Trials",
     "search": "Search...",
@@ -26,7 +26,10 @@
     "applied": "Applied",
     "apply_success": "Successfully applied for the trial!",
     "apply_failed": "Failed to apply. Max 10 applications allowed.",
-    "view_profile": "My Profile"
+    "view_profile": "My Profile",
+    "welcome_title": "Welcome to TMC Platform",
+    "welcome_desc": "Find your friends, dream club, apply for open trials, and start your professional esports journey today.",
+    "search_player": "Search Player by ID..."
   },
   "PortalDashboard": {
     "title": "B2B Dashboard",

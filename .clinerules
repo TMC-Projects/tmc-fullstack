@@ -41,3 +41,4 @@ Anda adalah seorang Senior Backend Go Engineer Agent dan adan juga Senior Fronte
    - Klub free agent harus secara otomatis ada ketika menjalanakan program ini.
    - untuk player yang daftar akan secara default terdaftar pada klub free agent.
    - Untuk setiap halaman yang dibikin, harus bisa di translate ke english dan Indonesia.
+   - Untuk Platform B2C nya antara user / player bisa saling follow dan unfollow dan bisa search detail player lain jika di share by ID user atau player nya. dan yang bisa di share cuma user dengan category/role player.

@@ -586,3 +586,17 @@ type CurrencyModel struct {
 func (CurrencyModel) TableName() string {
 	return "currencies"
 }
+
+// UserFollowModel represents the GORM schema for user_follows table.
+type UserFollowModel struct {
+	FollowerID  int64     `gorm:"primaryKey;autoIncrement:false"`
+	FollowingID int64     `gorm:"primaryKey;autoIncrement:false"`
+	CreatedAt   time.Time `gorm:"not null"`
+	Follower    UserModel `gorm:"foreignKey:FollowerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Following   UserModel `gorm:"foreignKey:FollowingID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
+
+// TableName overrides GORM default table naming conventions.
+func (UserFollowModel) TableName() string {
+	return "user_follows"
+}

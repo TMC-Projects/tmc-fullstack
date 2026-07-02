@@ -116,22 +116,36 @@ func (h *ClubHandler) Update(c *fiber.Ctx) error {
 }
 
 // GetClubs retrieves all clubs globally (only verified)
+type clubListResponse struct {
+	ID      int64  `json:"id"`
+	Name    string `json:"name"`
+	LogoUrl string `json:"logo_url"`
+	Address string `json:"address"`
+	Verify  bool   `json:"verify"`
+}
+
 func (h *ClubHandler) GetClubs(c *fiber.Ctx) error {
 	clubs, err := h.clubUsecase.GetAllClubs(c.UserContext())
 	if err != nil {
 		return domain.NewAppError(domain.ErrCodeInternal, "failed to get clubs", err)
 	}
 	
-	var verifiedClubs []*domain.Club
+	var verifiedClubs []clubListResponse
 	for _, club := range clubs {
 		if club.Verify {
-			verifiedClubs = append(verifiedClubs, club)
+			verifiedClubs = append(verifiedClubs, clubListResponse{
+				ID:      club.ID,
+				Name:    club.Name,
+				LogoUrl: club.LogoUrl,
+				Address: club.Address,
+				Verify:  club.Verify,
+			})
 		}
 	}
 	
 	// ensure empty array is returned instead of null
 	if verifiedClubs == nil {
-		verifiedClubs = []*domain.Club{}
+		verifiedClubs = []clubListResponse{}
 	}
 
 	return SendSuccess(c, fiber.StatusOK, "Successfully fetched clubs", verifiedClubs)

@@ -47,8 +47,8 @@ export default function TeamPortalLoginPage() {
       const token = data.data.token;
       const refreshToken = data.data.refresh_token;
 
-      // Rule: B2C accounts (player) must be rejected on B2B login page. Coach is allowed.
-      const allowedPortalRoles = ['owner', 'manager', 'staff', 'ba', 'coach'];
+      // Rule: B2C accounts (player) must be rejected on Team Portal login page.
+      const allowedPortalRoles = ['owner', 'manager', 'staff', 'ba', 'coach', 'team_owner', 'team_manager'];
       if (!allowedPortalRoles.includes(user.category)) {
         throw new Error(t('error_b2c'));
       }
@@ -69,7 +69,9 @@ export default function TeamPortalLoginPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center relative overflow-hidden font-sans p-4">
-      <LanguageSwitcher />
+      <div className="absolute top-6 right-6 z-50">
+        <LanguageSwitcher />
+      </div>
       {/* Background Glows */}
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-600/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-teal-600/10 blur-[120px] pointer-events-none" />

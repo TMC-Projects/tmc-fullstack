@@ -112,6 +112,11 @@ func TestMain(m *testing.M) {
 	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase, transferMarketRepo, cacheRepo)
 	talentHandler := domainhttp.NewTalentHandler(talentUsecase)
 
+	userFollowRepo := postgres.NewUserFollowRepository(db)
+	userFollowUsecase := usecase.NewUserFollowUsecase(userFollowRepo, userRepo)
+	userFollowHandler := domainhttp.NewUserFollowHandler(userFollowUsecase)
+	b2cPlayerHandler := domainhttp.NewB2CPlayerHandler(authUsecase, userFollowUsecase)
+
 	authMiddleware := domainhttp.NewAuthMiddleware(tokenProvider, authUsecase, rolePermRepo, clubRepo, "test_global_api_key_123", accessLogRepo)
 
 	// Setup Fiber app — identical routing to main.go
@@ -136,6 +141,12 @@ func TestMain(m *testing.M) {
 	app.Get("/api/ba", authMiddleware.Authenticate, userHandler.GetListByCategory("ba"))
 
 	app.Post("/api/talents", authMiddleware.Authenticate, authMiddleware.RequirePermission("manage_talents"), talentHandler.RegisterTalent)
+	
+	// B2C Player & Follow Endpoints
+	app.Get("/api/b2c/players/:id", authMiddleware.Authenticate, b2cPlayerHandler.GetB2CPlayerDetail)
+	app.Post("/api/b2c/users/:id/follow", authMiddleware.Authenticate, userFollowHandler.Follow)
+	app.Delete("/api/b2c/users/:id/unfollow", authMiddleware.Authenticate, userFollowHandler.Unfollow)
+	app.Get("/api/b2c/users/:id/follow-status", authMiddleware.Authenticate, userFollowHandler.FollowStatus)
 
 	app.Get("/api/test/player", authMiddleware.Authenticate, authMiddleware.RequirePermission("edit_portfolio"), func(c *fiber.Ctx) error {
 		return domainhttp.SendSuccess(c, fiber.StatusOK, "Welcome Player! You have 'edit_portfolio' permission.", nil)

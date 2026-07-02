@@ -13,6 +13,7 @@ import StatList from '@/components/profile/StatList';
 import SocialMediaList from '@/components/profile/SocialMediaList';
 import AchievementList from '@/components/profile/AchievementList';
 import HighlightList from '@/components/profile/HighlightList';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function B2CProfilePage() {
@@ -21,6 +22,8 @@ export default function B2CProfilePage() {
   const t = useTranslations('Profile');
 
   const [profileData, setProfileData] = useState<any>(null);
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -55,6 +58,22 @@ export default function B2CProfilePage() {
       }
 
       setProfileData(data.data);
+
+      // Fetch followers/following count
+      try {
+        const countsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/b2c/players/${data.data.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const countsData = await countsRes.json();
+        if (countsRes.ok && countsData.success) {
+          setFollowersCount(countsData.data.followers_count || 0);
+          setFollowingCount(countsData.data.following_count || 0);
+        }
+      } catch (err) {
+        // gracefully ignore
+      }
     } catch (err: any) {
       setError(err.message);
       if (err.message.toLowerCase().includes('unauthorized') || err.message.toLowerCase().includes('token')) {
@@ -113,6 +132,7 @@ export default function B2CProfilePage() {
         <div className="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
           <h1 className="text-lg font-bold text-slate-800 dark:text-slate-200">{t('title')}</h1>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Link 
               href="/app/dashboard"
               className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 hover:text-amber-400 transition-colors bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-800"
@@ -132,7 +152,13 @@ export default function B2CProfilePage() {
 
       <div className="max-w-5xl mx-auto px-4 md:px-8 mt-8 space-y-12">
         {/* Profile Header */}
-        <ProfileHeader user={profileData} isEditable={true} onRefresh={fetchProfile} />
+        <ProfileHeader 
+          user={profileData} 
+          isEditable={true} 
+          onRefresh={fetchProfile}
+          followersCount={followersCount}
+          followingCount={followingCount}
+        />
 
         {/* Sections Wrapper */}
         <motion.div 

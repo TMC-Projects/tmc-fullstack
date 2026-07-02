@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LogOut, User, RefreshCw, ClipboardList } from 'lucide-react';
+import { LogOut, User, RefreshCw, ClipboardList, Search } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -11,6 +11,7 @@ import Link from 'next/link';
 import ClubList, { Club } from '@/components/dashboard/ClubList';
 import OpenTrialList, { Trial } from '@/components/dashboard/OpenTrialList';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function B2CDashboardPage() {
   const router = useRouter();
@@ -21,7 +22,8 @@ export default function B2CDashboardPage() {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [trials, setTrials] = useState<Trial[]>([]);
   const [myApplications, setMyApplications] = useState<any[]>([]);
-  
+  const [searchPlayerId, setSearchPlayerId] = useState('');
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -61,7 +63,7 @@ export default function B2CDashboardPage() {
 
       if (!clubsRes.ok) throw new Error(clubsData.message || 'Failed to fetch clubs');
       if (!trialsRes.ok) throw new Error(trialsData.message || 'Failed to fetch trials');
-      
+
       // appsRes might fail if not fully authorized, but we handle it
       if (appsRes.ok) {
         setMyApplications(appsData.data || []);
@@ -73,7 +75,7 @@ export default function B2CDashboardPage() {
 
       setClubs(clubsData.data || []);
       setTrials(trialsData.data?.items || []);
-      
+
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -111,13 +113,20 @@ export default function B2CDashboardPage() {
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/my-applications`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.data) {
-        setMyApplications(data.data);
-      }
-    })
-    .catch(console.error);
+      .then(res => res.json())
+      .then(data => {
+        if (data.data) {
+          setMyApplications(data.data);
+        }
+      })
+      .catch(console.error);
+  };
+
+  const handleSearchPlayer = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchPlayerId.trim()) {
+      router.push(`/app/player/${searchPlayerId.trim()}`);
+    }
   };
 
   if (!_hasHydrated || isLoading) {
@@ -133,7 +142,7 @@ export default function B2CDashboardPage() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-6">
         <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl p-8 max-w-md w-full text-center">
           <p className="text-rose-400 mb-6">{error}</p>
-          <button 
+          <button
             onClick={fetchDashboardData}
             className="flex items-center justify-center gap-2 w-full py-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition-colors"
           >
@@ -149,25 +158,29 @@ export default function B2CDashboardPage() {
       {/* Top Navbar */}
       <nav className="sticky top-0 z-50 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-300 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-            {t('title')}
-          </h1>
+          <Link href="/app/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <img src="/logo.png" alt="TMC Platform Logo" className="h-8 w-auto" />
+            <h1 className="text-xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent hidden sm:block">
+              {t('title')}
+            </h1>
+          </Link>
           <div className="flex items-center gap-3">
-            <Link 
+            <LanguageSwitcher />
+            <Link
               href="/app/applications"
               className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 hover:text-amber-400 transition-colors bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-800"
             >
               <ClipboardList className="w-4 h-4" />
               <span className="hidden sm:inline">Trial</span>
             </Link>
-            <Link 
+            <Link
               href="/app/profile"
               className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 hover:text-amber-400 transition-colors bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-800"
             >
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">{t('view_profile')}</span>
             </Link>
-            <button 
+            <button
               onClick={handleLogout}
               className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-rose-400 transition-colors bg-slate-100 dark:bg-slate-900 hover:bg-rose-500/10 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-800"
             >
@@ -180,15 +193,36 @@ export default function B2CDashboardPage() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8 space-y-12">
         {/* Welcome Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-3xl p-8 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Welcome to Njara Platform</h2>
-          <p className="text-slate-600 dark:text-slate-400 max-w-2xl">Find your dream club, apply for open trials, and start your professional esports journey today.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            <div>
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">{t('welcome_title')}</h2>
+              <p className="text-slate-600 dark:text-slate-400 max-w-2xl">{t('welcome_desc')}</p>
+            </div>
+
+            <form onSubmit={handleSearchPlayer} className="w-full md:w-auto flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 p-2 rounded-2xl border border-amber-500/30 backdrop-blur-sm shadow-sm">
+              <input
+                type="text"
+                placeholder={t('search_player')}
+                value={searchPlayerId}
+                onChange={(e) => setSearchPlayerId(e.target.value)}
+                className="bg-transparent border-none focus:outline-none focus:ring-0 text-sm px-3 w-full md:w-48 text-slate-800 dark:text-slate-200 placeholder:text-slate-500"
+              />
+              <button
+                type="submit"
+                disabled={!searchPlayerId.trim()}
+                className="p-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:hover:bg-amber-500 text-white rounded-xl transition-colors flex items-center justify-center shrink-0"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
         </motion.div>
 
         {/* Trials Section */}
@@ -197,10 +231,10 @@ export default function B2CDashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <OpenTrialList 
-            trials={trials} 
-            myApplications={myApplications} 
-            onApplySuccess={handleApplySuccess} 
+          <OpenTrialList
+            trials={trials}
+            myApplications={myApplications}
+            onApplySuccess={handleApplySuccess}
           />
         </motion.section>
 

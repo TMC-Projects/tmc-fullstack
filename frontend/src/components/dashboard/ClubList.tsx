@@ -3,16 +3,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
-import { Shield, Search, Users, Info } from 'lucide-react';
+import { Shield, Search, Info, BadgeCheck, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 export interface Club {
   id: number;
   name: string;
   logo_url: string;
-  status: string;
-  category: string;
-  member_count: number;
+  address: string;
+  verify: boolean;
 }
 
 interface ClubListProps {
@@ -104,19 +103,14 @@ export default function ClubList({ clubs }: ClubListProps) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0 relative z-0">
-                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-400 transition-colors break-words whitespace-normal">
+                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-400 transition-colors break-words whitespace-normal flex items-center gap-1.5">
                     {club.name}
+                    {club.verify && <BadgeCheck className="w-5 h-5 text-blue-500 shrink-0" />}
                   </h3>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${
-                      club.status === 'open' 
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                    }`}>
-                      {club.status.toUpperCase()}
-                    </span>
-                    <span className="text-xs text-slate-500 dark:text-slate-500 flex items-center gap-1">
-                      <Users className="w-3 h-3" /> {club.member_count}
+                  <div className="flex flex-col gap-1 mt-1">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 shrink-0" /> 
+                      <span className="truncate">{club.address || 'Address not provided'}</span>
                     </span>
                   </div>
                 </div>
