@@ -3,13 +3,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LogOut, User, RefreshCw, ClipboardList, Search } from 'lucide-react';
+import { LogOut, User, RefreshCw, ClipboardList, Search, MessageSquare, X, Shield } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
 import ClubList, { Club } from '@/components/dashboard/ClubList';
 import OpenTrialList, { Trial } from '@/components/dashboard/OpenTrialList';
+import TeamInvitations from '@/components/dashboard/TeamInvitations';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
@@ -26,6 +27,12 @@ export default function B2CDashboardPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [feedbackError, setFeedbackError] = useState('');
+  const [feedbackSuccess, setFeedbackSuccess] = useState('');
 
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
@@ -129,6 +136,40 @@ export default function B2CDashboardPage() {
     }
   };
 
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedbackMessage.trim()) return;
+
+    setIsSubmittingFeedback(true);
+    setFeedbackError('');
+    setFeedbackSuccess('');
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/b2c/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ message: feedbackMessage })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to submit feedback');
+
+      setFeedbackSuccess('Thank you! Your feedback has been submitted.');
+      setFeedbackMessage('');
+      setTimeout(() => {
+        setIsFeedbackModalOpen(false);
+        setFeedbackSuccess('');
+      }, 2000);
+    } catch (err: any) {
+      setFeedbackError(err.message);
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
+
   if (!_hasHydrated || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -172,6 +213,13 @@ export default function B2CDashboardPage() {
             >
               <ClipboardList className="w-4 h-4" />
               <span className="hidden sm:inline">Trial</span>
+            </Link>
+            <Link
+              href="/app/invitations"
+              className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 hover:text-amber-400 transition-colors bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-800"
+            >
+              <Shield className="w-4 h-4" />
+              <span className="hidden sm:inline">Invitations</span>
             </Link>
             <Link
               href="/app/profile"
@@ -225,6 +273,15 @@ export default function B2CDashboardPage() {
           </div>
         </motion.div>
 
+        {/* Invitations Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.05 }}
+        >
+          <TeamInvitations />
+        </motion.section>
+
         {/* Trials Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -247,6 +304,70 @@ export default function B2CDashboardPage() {
           <ClubList clubs={clubs} />
         </motion.section>
       </div>
+
+      {/* Floating Feedback Button */}
+      <button
+        onClick={() => setIsFeedbackModalOpen(true)}
+        className="fixed bottom-6 right-6 p-4 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg shadow-amber-500/20 transition-transform hover:scale-105 z-40"
+        title="Send Feedback"
+      >
+        <MessageSquare className="w-6 h-6" />
+      </button>
+
+      {/* Feedback Modal */}
+      {isFeedbackModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-md shadow-xl border border-slate-200 dark:border-slate-800"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Send Feedback</h3>
+              <button 
+                onClick={() => setIsFeedbackModalOpen(false)}
+                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleFeedbackSubmit}>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                We'd love to hear your thoughts on how we can improve the platform for you.
+              </p>
+              
+              <textarea
+                value={feedbackMessage}
+                onChange={(e) => setFeedbackMessage(e.target.value)}
+                placeholder="Type your feedback here..."
+                className="w-full h-32 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl resize-none focus:ring-2 focus:ring-amber-500 focus:outline-none mb-4 text-slate-900 dark:text-white"
+                required
+              />
+
+              {feedbackError && <p className="text-sm text-rose-500 mb-3">{feedbackError}</p>}
+              {feedbackSuccess && <p className="text-sm text-emerald-500 mb-3">{feedbackSuccess}</p>}
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsFeedbackModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingFeedback || !feedbackMessage.trim()}
+                  className="px-4 py-2 text-sm font-medium bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-lg transition-colors"
+                >
+                  {isSubmittingFeedback ? 'Submitting...' : 'Submit'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </main>
   );
 }

@@ -864,6 +864,7 @@ function TalentCard({
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { showAlert } = useAlertStore();
+  const { user } = useAuthStore();
   const t = useTranslations('Talents');
 
   const initials = (talent.full_name || talent.username || 'UN').substring(0, 2).toUpperCase();
@@ -898,27 +899,7 @@ function TalentCard({
 
       {/* Top Right Actions */}
       <div className="absolute top-4 right-4 flex flex-col gap-3 z-20">
-        <button
-          onClick={() => showAlert('Fitur hapus belum tersedia', 'info')}
-          className="w-9 h-9 rounded-full bg-red-600/90 flex items-center justify-center hover:bg-red-500 transition-colors shadow-lg"
-          title="Delete"
-        >
-          <Trash2 className="w-4 h-4 text-white" />
-        </button>
-        <button
-          onClick={() => onEditPhoto(talent)}
-          className="w-9 h-9 rounded-full bg-slate-900/80 flex items-center justify-center hover:bg-slate-800 transition-colors shadow-lg"
-          title="Upload Photo"
-        >
-          <ImageIcon className="w-4 h-4 text-amber-400" />
-        </button>
-        <button
-          onClick={() => onEditBiodata(talent)}
-          className="w-9 h-9 rounded-full bg-slate-900/80 flex items-center justify-center hover:bg-slate-800 transition-colors shadow-lg"
-          title="Edit Biodata"
-        >
-          <Edit2 className="w-4 h-4 text-amber-400" />
-        </button>
+
 
         {/* Menu Dropdown Container */}
         <div className="relative">
@@ -934,25 +915,8 @@ function TalentCard({
             <>
               <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)} />
               <div className="absolute right-0 top-full mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200">
-                <button
-                  onClick={() => { setIsMenuOpen(false); onEditContract(talent); }}
-                  className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <Calendar className="w-4 h-4 text-amber-400" /> Contract & Salary
-                </button>
-                <button
-                  onClick={() => { setIsMenuOpen(false); onEditMarketValue(talent); }}
-                  className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <DollarSign className="w-4 h-4 text-amber-400" /> Market Value
-                </button>
-                <button onClick={(e) => { setIsMenuOpen(false); onEditTransferStatus(talent); }} className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/50 flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-orange-400" /> Transfer Status
-                </button>
-                <button onClick={(e) => { setIsMenuOpen(false); onEditStatus(talent); }} className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/50 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-purple-400" /> Account Status
-                </button>
-                {(talent.category === 'player' || talent.category === 'coach') && (
+
+                {(talent.category === 'player' || talent.category === 'coach') && user?.category === 'team_owner' && (
                   <button
                     onClick={() => { setIsMenuOpen(false); onAssignTeam(talent); }}
                     className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
@@ -960,13 +924,7 @@ function TalentCard({
                     <Shield className="w-4 h-4 text-emerald-400" /> Assign to Team
                   </button>
                 )}
-                <div className="border-t border-slate-700 my-1"></div>
-                <button
-                  onClick={() => { setIsMenuOpen(false); onViewDetail(talent); }}
-                  className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <UserCircle className="w-4 h-4 text-emerald-400" /> Detail
-                </button>
+
               </div>
             </>
           )}
@@ -1014,6 +972,7 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
   const [selectedTeam, setSelectedTeam] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
   const { showAlert } = useAlertStore();
 
   useEffect(() => {
@@ -1035,10 +994,15 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
     fetchTeams();
   }, [token]);
 
+  const handleNext = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTeam) return;
+    setShowConfirm(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTeam) return;
-
     setIsLoading(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/talents/${talent.id}/sign`, {
@@ -1051,7 +1015,7 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || 'Gagal menetapkan ke tim');
+        throw new Error(data.message || 'Gagal mengirim undangan ke pemain');
       }
       onSuccess();
     } catch (err: any) {
@@ -1061,11 +1025,28 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
     }
   };
 
+  if (showConfirm) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Konfirmasi Undangan</h3>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Apakah Anda yakin ingin merekrut pemain <strong>{talent.full_name || talent.username}</strong> ke dalam tim Anda?
+          </p>
+          <form onSubmit={handleSubmit} className="flex justify-center gap-3">
+            <button type="button" onClick={() => setShowConfirm(false)} className="px-6 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors font-medium">Tidak</button>
+            <button type="submit" disabled={isLoading} className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50 font-medium">{isLoading ? 'Loading...' : 'Ya, Rekrut'}</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Assign ke Tim</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Pilih Tim</h3>
+        <form onSubmit={handleNext} className="space-y-4">
           <div>
             <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Pilih Tim</label>
             {isFetching ? (
@@ -1089,7 +1070,7 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">Batal</button>
-            <button type="submit" disabled={isLoading || isFetching || teams.length === 0 || !selectedTeam} className="px-4 py-2 bg-emerald-600 text-white rounded-xl disabled:opacity-50">{isLoading ? 'Loading...' : 'Assign'}</button>
+            <button type="submit" disabled={isFetching || teams.length === 0 || !selectedTeam} className="px-4 py-2 bg-emerald-600 text-white rounded-xl disabled:opacity-50">Lanjut</button>
           </div>
         </form>
       </div>

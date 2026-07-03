@@ -157,3 +157,32 @@ func (h *TeamHandler) AssignMember(c *fiber.Ctx) error {
 
 	return SendSuccess(c, fiber.StatusOK, "User assigned to team successfully", nil)
 }
+
+func (h *TeamHandler) ReleaseMember(c *fiber.Ctx) error {
+	userIDVal := c.Locals("userID")
+	adminUserID, ok := userIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	teamID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "Invalid team ID", err)
+	}
+
+	var req assignMemberRequest // Re-using the same request struct since it only takes user_id
+	if err := c.BodyParser(&req); err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "Invalid request body", err)
+	}
+
+	if req.UserID == 0 {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "user_id is required", nil)
+	}
+
+	err = h.usecase.ReleaseUser(c.Context(), teamID, req.UserID, adminUserID)
+	if err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "User released from team successfully", nil)
+}

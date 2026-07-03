@@ -7,7 +7,7 @@ import {
   Search, Filter, Plus, Edit2, Copy, Check, X,
   Shield, Activity, DollarSign, Calendar,
   ChevronLeft, ChevronRight, UserCircle, LogOut, Menu,
-  Settings, Trash2, Image as ImageIcon, Contact, Star, RefreshCw
+  Settings, Trash2, Image as ImageIcon, Contact, Star, RefreshCw, UserMinus
 } from "lucide-react";
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -22,6 +22,7 @@ interface TalentResult {
   category: string;
   bio: string;
   club_id: number;
+  team_id: number | null;
   contract_until: string | null;
   salary: number | null;
   market_value: number | null;
@@ -57,6 +58,7 @@ export default function TalentsPage() {
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
   const [isAssignTeamOpen, setIsAssignTeamOpen] = useState(false);
+  const [isReleaseTeamOpen, setIsReleaseTeamOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -205,6 +207,7 @@ export default function TalentsPage() {
                   onEditTransferStatus={(talent) => { setSelectedTalent(talent); setIsTransferOpen(true); }}
                   onEditPhoto={(talent) => { setSelectedTalent(talent); setIsPhotoOpen(true); }}
                   onAssignTeam={(talent) => { setSelectedTalent(talent); setIsAssignTeamOpen(true); }}
+                  onReleaseTeam={(talent) => { setSelectedTalent(talent); setIsReleaseTeamOpen(true); }}
                   onEditStatus={(talent) => { setSelectedTalent(talent); setIsStatusOpen(true); }}
                   onViewDetail={(talent) => { router.push(`/portal/talents/${talent.id}`); }}
                 />
@@ -314,6 +317,16 @@ export default function TalentsPage() {
           talent={selectedTalent}
           onClose={() => { setIsAssignTeamOpen(false); setSelectedTalent(null); }}
           onSuccess={() => { setIsAssignTeamOpen(false); setSelectedTalent(null); fetchTalents(); }}
+          token={token || ''}
+        />
+      )}
+
+      {/* Release Team Modal */}
+      {isReleaseTeamOpen && selectedTalent && (
+        <ReleaseTeamModal
+          talent={selectedTalent}
+          onClose={() => { setIsReleaseTeamOpen(false); setSelectedTalent(null); }}
+          onSuccess={() => { setIsReleaseTeamOpen(false); setSelectedTalent(null); fetchTalents(); }}
           token={token || ''}
         />
       )}
@@ -856,6 +869,7 @@ function TalentCard({
   onEditTransferStatus,
   onEditPhoto,
   onAssignTeam,
+  onReleaseTeam,
   onEditStatus,
   onViewDetail
 }: {
@@ -866,6 +880,7 @@ function TalentCard({
   onEditTransferStatus: (t: TalentResult) => void,
   onEditPhoto: (t: TalentResult) => void,
   onAssignTeam: (t: TalentResult) => void,
+  onReleaseTeam: (t: TalentResult) => void,
   onEditStatus: (t: TalentResult) => void,
   onViewDetail: (t: TalentResult) => void,
 }) {
@@ -960,12 +975,21 @@ function TalentCard({
                   <Shield className="w-4 h-4 text-purple-400" /> Account Status
                 </button>
                 {(talent.category === 'player' || talent.category === 'coach') && (
-                  <button
-                    onClick={() => { setIsMenuOpen(false); onAssignTeam(talent); }}
-                    className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                  >
-                    <Shield className="w-4 h-4 text-emerald-400" /> Assign to Team
-                  </button>
+                  talent.team_id ? (
+                    <button
+                      onClick={() => { setIsMenuOpen(false); onReleaseTeam(talent); }}
+                      className="w-full text-left px-4 py-2 text-sm text-rose-400 hover:bg-slate-800 flex items-center gap-2"
+                    >
+                      <UserMinus className="w-4 h-4 text-rose-400" /> Release from Team
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => { setIsMenuOpen(false); onAssignTeam(talent); }}
+                      className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
+                    >
+                      <Shield className="w-4 h-4 text-emerald-400" /> Assign to Team
+                    </button>
+                  )
                 )}
                 <div className="border-t border-slate-700 my-1"></div>
                 <button
@@ -1099,6 +1123,53 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
             <button type="submit" disabled={isLoading || isFetching || teams.length === 0 || !selectedTeam} className="px-4 py-2 bg-emerald-600 text-white rounded-xl disabled:opacity-50">{isLoading ? 'Loading...' : 'Assign'}</button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function ReleaseTeamModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const { showAlert } = useAlertStore();
+
+  const handleRelease = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/teams/${talent.team_id}/release`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ user_id: talent.id })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Gagal melepaskan pemain dari tim');
+      }
+      onSuccess();
+    } catch (err: any) {
+      showAlert(err.message, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Release from Team</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+          Apakah Anda yakin ingin melepaskan <strong>{talent.full_name || talent.username}</strong> dari tim saat ini?
+        </p>
+        <div className="flex justify-center gap-3">
+          <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-700">
+            Batal
+          </button>
+          <button type="button" onClick={handleRelease} disabled={isLoading} className="px-4 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 disabled:opacity-50">
+            {isLoading ? 'Loading...' : 'Release'}
+          </button>
+        </div>
       </div>
     </div>
   );

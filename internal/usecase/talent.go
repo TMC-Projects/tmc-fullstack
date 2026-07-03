@@ -15,15 +15,23 @@ type talentUsecase struct {
 	authUsecase domain.AuthUsecase
 	tmRepo      domain.TransferMarketRepository
 	cacheRepo   domain.CacheRepository
+	invRepo     domain.TeamInvitationRepository
 }
 
 // NewTalentUsecase creates a new instance of TalentUsecase.
-func NewTalentUsecase(userRepo domain.UserRepository, authUsecase domain.AuthUsecase, tmRepo domain.TransferMarketRepository, cacheRepo domain.CacheRepository) domain.TalentUsecase {
+func NewTalentUsecase(
+	userRepo domain.UserRepository,
+	authUsecase domain.AuthUsecase,
+	tmRepo domain.TransferMarketRepository,
+	cacheRepo domain.CacheRepository,
+	invRepo domain.TeamInvitationRepository,
+) domain.TalentUsecase {
 	return &talentUsecase{
 		userRepo:    userRepo,
 		authUsecase: authUsecase,
 		tmRepo:      tmRepo,
 		cacheRepo:   cacheRepo,
+		invRepo:     invRepo,
 	}
 }
 
@@ -302,8 +310,8 @@ func (u *talentUsecase) SignFreeAgent(ctx context.Context, targetUserID int64, c
 		return domain.NewAppError(domain.ErrCodeUnauthorized, "failed to authenticate caller", err)
 	}
 
-	if caller.Category != "owner" && caller.Category != "manager" {
-		return domain.NewAppError(domain.ErrCodeForbidden, "only owner or manager can sign players", nil)
+	if caller.Category != "owner" && caller.Category != "manager" && caller.Category != "team_owner" {
+		return domain.NewAppError(domain.ErrCodeForbidden, "only owner, manager, or team owner can sign players", nil)
 	}
 
 	if caller.ClubID == 0 {
@@ -327,32 +335,23 @@ func (u *talentUsecase) SignFreeAgent(ctx context.Context, targetUserID int64, c
 		return domain.NewAppError(domain.ErrCodeBadRequest, "talent is not a free agent", nil)
 	}
 
-	// 4. Update the talent's club_id and/or team_id
-	if caller.Category == "team_owner" {
-		if teamID == nil {
-			return domain.NewAppError(domain.ErrCodeBadRequest, "team_id is required for team_owner to sign a player", nil)
-		}
-		// Set the player's team_id, keep club_id as Free Agent
-		if err := u.userRepo.UpdateTeamID(ctx, targetUserID, teamID); err != nil {
-			return domain.NewAppError(domain.ErrCodeInternal, "failed to update talent team", err)
-		}
-	} else {
-		// Normal club owner/manager
-		if err := u.userRepo.UpdateClubID(ctx, targetUserID, caller.ClubID); err != nil {
-			return domain.NewAppError(domain.ErrCodeInternal, "failed to update talent club", err)
-		}
+	// 4. Create Invitation
+	invitation := &domain.TeamInvitation{
+		ClubID:   caller.ClubID,
+		TeamID:   teamID, // Can be nil
+		PlayerID: targetUserID,
+		Status:   "pending",
 	}
 
-	// 5. Delete from transfer market
-	if err := u.tmRepo.DeleteByUserID(ctx, targetUserID); err != nil {
-		// Log or ignore error, or return. Usually we return error or log it.
-		// For consistency we will return error to ensure atomic behavior.
-		return domain.NewAppError(domain.ErrCodeInternal, "failed to remove from transfer market", err)
+	// Check if already invited
+	existing, _ := u.invRepo.GetPendingByPlayerAndClub(ctx, targetUserID, caller.ClubID)
+	if existing != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "you already sent a pending invitation to this player", nil)
 	}
 
-	// 6. Invalidate transfer market cache and user profile cache
-	_ = u.cacheRepo.DeletePrefix(ctx, "transfer_market:list:")
-	_ = u.cacheRepo.Delete(ctx, fmt.Sprintf("user:profile:%d", targetUserID))
+	if err := u.invRepo.Create(ctx, invitation); err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to create invitation", err)
+	}
 
 	return nil
 }

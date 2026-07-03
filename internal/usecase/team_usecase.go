@@ -181,3 +181,36 @@ func (u *teamUsecase) AssignUser(ctx context.Context, teamID int64, targetUserID
 
 	return u.userRepo.UpdateTeamID(ctx, targetUserID, &teamID)
 }
+
+func (u *teamUsecase) ReleaseUser(ctx context.Context, teamID int64, targetUserID int64, adminUserID int64) error {
+	adminUser, err := u.userRepo.GetByID(ctx, adminUserID)
+	if err != nil {
+		return err
+	}
+
+	team, err := u.teamRepo.GetByID(ctx, teamID)
+	if err != nil {
+		return err
+	}
+
+	if adminUser.Category == "team_owner" {
+		if team.OwnerID == nil || *team.OwnerID != adminUser.ID {
+			return domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+		}
+	} else {
+		if team.ClubID != adminUser.ClubID {
+			return domain.NewAppError(domain.ErrCodeForbidden, "Not allowed to access team", nil)
+		}
+	}
+
+	targetUser, err := u.userRepo.GetByID(ctx, targetUserID)
+	if err != nil {
+		return err
+	}
+
+	if targetUser.TeamID == nil || *targetUser.TeamID != teamID {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "User is not in this team", nil)
+	}
+
+	return u.userRepo.UpdateTeamID(ctx, targetUserID, nil)
+}

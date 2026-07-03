@@ -38,4 +38,5 @@ type TeamUsecase interface {
 	GetTeamByID(ctx context.Context, teamID int64, userID int64) (*Team, error)
 	DeleteTeam(ctx context.Context, teamID int64, userID int64) error
 	AssignUser(ctx context.Context, teamID int64, targetUserID int64, adminUserID int64) error
+	ReleaseUser(ctx context.Context, teamID int64, targetUserID int64, adminUserID int64) error
 }

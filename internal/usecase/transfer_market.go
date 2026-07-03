@@ -17,6 +17,7 @@ type transferMarketUsecase struct {
 	cacheRepo   domain.CacheRepository
 	userRepo    domain.UserRepository
 	authUsecase domain.AuthUsecase
+	invRepo     domain.TeamInvitationRepository
 }
 
 // NewTransferMarketUsecase creates a new instance of domain.TransferMarketUsecase.
@@ -25,12 +26,14 @@ func NewTransferMarketUsecase(
 	cacheRepo domain.CacheRepository,
 	userRepo domain.UserRepository,
 	authUsecase domain.AuthUsecase,
+	invRepo domain.TeamInvitationRepository,
 ) domain.TransferMarketUsecase {
 	return &transferMarketUsecase{
 		tmRepo:      tmRepo,
 		cacheRepo:   cacheRepo,
 		userRepo:    userRepo,
 		authUsecase: authUsecase,
+		invRepo:     invRepo,
 	}
 }
 
@@ -100,6 +103,23 @@ func (u *transferMarketUsecase) GetList(ctx context.Context, filter domain.Trans
 			if entries[i].User != nil {
 				entries[i].User.Salary = nil
 				entries[i].User.MarketValue = nil
+			}
+		}
+	}
+
+	// Enrich with pending invitations if caller belongs to a club
+	if filter.CallerUserID > 0 {
+		caller, err := u.authUsecase.GetProfile(ctx, filter.CallerUserID)
+		if err == nil && caller != nil && caller.ClubID > 0 {
+			pendingPlayerIDs, _ := u.invRepo.GetPendingPlayerIDsByClub(ctx, caller.ClubID)
+			pendingMap := make(map[int64]bool)
+			for _, id := range pendingPlayerIDs {
+				pendingMap[id] = true
+			}
+			for i := range entries {
+				if pendingMap[entries[i].UserID] {
+					entries[i].HasPendingInvitation = true
+				}
 			}
 		}
 	}

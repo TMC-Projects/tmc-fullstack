@@ -40,11 +40,12 @@ type transferMarketPlayerResponse struct {
 
 // transferMarketEntryResponse is the JSON shape of a single transfer market entry.
 type transferMarketEntryResponse struct {
-	ID       int64                        `json:"id"`
-	UserID   int64                        `json:"user_id"`
-	Status   string                       `json:"status"`
-	Player   transferMarketPlayerResponse `json:"player"`
-	ListedAt string                       `json:"listed_at"`
+	ID                   int64                        `json:"id"`
+	UserID               int64                        `json:"user_id"`
+	Status               string                       `json:"status"`
+	HasPendingInvitation bool                         `json:"has_pending_invitation"`
+	Player               transferMarketPlayerResponse `json:"player"`
+	ListedAt             string                       `json:"listed_at"`
 }
 
 // transferMarketListResponse wraps the paginated list with metadata.
@@ -90,10 +91,11 @@ func (h *TransferMarketHandler) GetList(c *fiber.Ctx) error {
 	data := make([]transferMarketEntryResponse, len(entries))
 	for i, e := range entries {
 		entry := transferMarketEntryResponse{
-			ID:       e.ID,
-			UserID:   e.UserID,
-			Status:   e.Status,
-			ListedAt: e.CreatedAt.UTC().Format("2006-01-02T15:04:05Z"),
+			ID:                   e.ID,
+			UserID:               e.UserID,
+			Status:               e.Status,
+			HasPendingInvitation: e.HasPendingInvitation,
+			ListedAt:             e.CreatedAt.UTC().Format("2006-01-02T15:04:05Z"),
 		}
 		if e.User != nil {
 			entry.Player = transferMarketPlayerResponse{

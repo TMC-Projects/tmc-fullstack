@@ -100,7 +100,8 @@ func TestMain(m *testing.M) {
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, clubRepo, cacheRepo, passwordHasher, tokenProvider, 15*time.Minute, transferMarketRepo)
 	gameUsecase := usecase.NewGameUsecase(gameRepo)
-	transferMarketUsecase := usecase.NewTransferMarketUsecase(transferMarketRepo, cacheRepo, userRepo, authUsecase)
+	invRepo := postgres.NewTeamInvitationRepository(db)
+	transferMarketUsecase := usecase.NewTransferMarketUsecase(transferMarketRepo, cacheRepo, userRepo, authUsecase, invRepo)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	clubUsecase := usecase.NewClubUsecase(clubRepo, userRepo, rolePermRepo, cacheRepo)
 
@@ -109,13 +110,22 @@ func TestMain(m *testing.M) {
 	transferMarketHandler := domainhttp.NewTransferMarketHandler(transferMarketUsecase)
 	userHandler := domainhttp.NewUserHandler(userUsecase, authUsecase)
 	clubHandler := domainhttp.NewClubHandler(clubUsecase)
-	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase, transferMarketRepo, cacheRepo)
+	invUsecase := usecase.NewTeamInvitationUsecase(invRepo, userRepo, transferMarketRepo, cacheRepo)
+	invHandler := domainhttp.NewTeamInvitationHandler(invUsecase)
+
+	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase, transferMarketRepo, cacheRepo, invRepo)
 	talentHandler := domainhttp.NewTalentHandler(talentUsecase)
 
 	userFollowRepo := postgres.NewUserFollowRepository(db)
 	userFollowUsecase := usecase.NewUserFollowUsecase(userFollowRepo, userRepo)
 	userFollowHandler := domainhttp.NewUserFollowHandler(userFollowUsecase)
 	b2cPlayerHandler := domainhttp.NewB2CPlayerHandler(authUsecase, userFollowUsecase)
+	
+	feedbackRepo := postgres.NewFeedbackRepository(db)
+	feedbackUsecase := usecase.NewFeedbackUsecase(feedbackRepo)
+	feedbackHandler := domainhttp.NewFeedbackHandler(feedbackUsecase)
+
+
 
 	authMiddleware := domainhttp.NewAuthMiddleware(tokenProvider, authUsecase, rolePermRepo, clubRepo, "test_global_api_key_123", accessLogRepo)
 
@@ -141,12 +151,16 @@ func TestMain(m *testing.M) {
 	app.Get("/api/ba", authMiddleware.Authenticate, userHandler.GetListByCategory("ba"))
 
 	app.Post("/api/talents", authMiddleware.Authenticate, authMiddleware.RequirePermission("manage_talents"), talentHandler.RegisterTalent)
+	app.Post("/api/talents/:id/sign", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.SignFreeAgent)
 	
 	// B2C Player & Follow Endpoints
 	app.Get("/api/b2c/players/:id", authMiddleware.Authenticate, b2cPlayerHandler.GetB2CPlayerDetail)
 	app.Post("/api/b2c/users/:id/follow", authMiddleware.Authenticate, userFollowHandler.Follow)
 	app.Delete("/api/b2c/users/:id/unfollow", authMiddleware.Authenticate, userFollowHandler.Unfollow)
 	app.Get("/api/b2c/users/:id/follow-status", authMiddleware.Authenticate, userFollowHandler.FollowStatus)
+	app.Post("/api/b2c/feedback", authMiddleware.Authenticate, feedbackHandler.Create)
+	app.Get("/api/b2c/invitations", authMiddleware.Authenticate, invHandler.GetMyInvitations)
+	app.Post("/api/b2c/invitations/:id/respond", authMiddleware.Authenticate, invHandler.Respond)
 
 	app.Get("/api/test/player", authMiddleware.Authenticate, authMiddleware.RequirePermission("edit_portfolio"), func(c *fiber.Ctx) error {
 		return domainhttp.SendSuccess(c, fiber.StatusOK, "Welcome Player! You have 'edit_portfolio' permission.", nil)
@@ -184,6 +198,8 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		&postgres.TransferMarketModel{},
 		&postgres.AccessLogModel{},
 		&domain.ClubOnboarding{},
+		&postgres.FeedbackModel{},
+		&postgres.TeamInvitationModel{},
 	)
 	if err != nil {
 		return err

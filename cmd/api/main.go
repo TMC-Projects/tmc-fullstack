@@ -114,6 +114,7 @@ func main() {
 	gameRepo := postgres.NewGameRepository(db)
 	rolePermRepo := postgres.NewRolePermissionRepository(db)
 	transferMarketRepo := postgres.NewTransferMarketRepository(db)
+	invRepo := postgres.NewTeamInvitationRepository(db)
 
 	// Trial Management Repositories
 	trialRepo := postgres.NewTrialRepository(db)
@@ -127,10 +128,11 @@ func main() {
 	accessLogRepo := postgres.NewAccessLogRepository(db)
 	playerVoteRepo := postgres.NewPlayerVoteRepository(db)
 	currencyRepo := postgres.NewCurrencyRepository(db)
+	feedbackRepo := postgres.NewFeedbackRepository(db)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, clubRepo, cacheRepo, passwordHasher, tokenProvider, 15*time.Minute, transferMarketRepo)
 	gameUsecase := usecase.NewGameUsecase(gameRepo)
-	transferMarketUsecase := usecase.NewTransferMarketUsecase(transferMarketRepo, cacheRepo, userRepo, authUsecase)
+	transferMarketUsecase := usecase.NewTransferMarketUsecase(transferMarketRepo, cacheRepo, userRepo, authUsecase, invRepo)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	clubUsecase := usecase.NewClubUsecase(clubRepo, userRepo, rolePermRepo, cacheRepo)
 	teamRepo := postgres.NewTeamRepository(db)
@@ -165,16 +167,24 @@ func main() {
 	userHandler := domainhttp.NewUserHandler(userUsecase, authUsecase)
 	clubHandler := domainhttp.NewClubHandler(clubUsecase)
 	teamHandler := domainhttp.NewTeamHandler(teamUsecase)
-	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase, transferMarketRepo, cacheRepo)
+
+	invUsecase := usecase.NewTeamInvitationUsecase(invRepo, userRepo, transferMarketRepo, cacheRepo)
+	invHandler := domainhttp.NewTeamInvitationHandler(invUsecase)
+
+	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase, transferMarketRepo, cacheRepo, invRepo)
 	talentHandler := domainhttp.NewTalentHandler(talentUsecase)
 	playerVoteHandler := domainhttp.NewPlayerVoteHandler(playerVoteUsecase)
 
 	currencyUsecase := usecase.NewCurrencyUsecase(currencyRepo)
 	currencyHandler := domainhttp.NewCurrencyHandler(currencyUsecase)
 
+	feedbackUsecase := usecase.NewFeedbackUsecase(feedbackRepo)
+	feedbackHandler := domainhttp.NewFeedbackHandler(feedbackUsecase)
+
 	// B2C Handlers
 	userFollowHandler := domainhttp.NewUserFollowHandler(userFollowUsecase)
 	b2cPlayerHandler := domainhttp.NewB2CPlayerHandler(authUsecase, userFollowUsecase)
+	b2cInvitationHandler := invHandler
 
 	// Trial Management Handlers
 	trialHandler := domainhttp.NewTrialHandler(trialUsecase, trialAppRepo)
@@ -286,6 +296,7 @@ func main() {
 	app.Put("/api/teams/:id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequirePermission("manage_teams"), teamHandler.Update)
 	app.Delete("/api/teams/:id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequirePermission("manage_teams"), teamHandler.Delete)
 	app.Post("/api/teams/:id/assign", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequirePermission("manage_teams"), teamHandler.AssignMember)
+	app.Post("/api/teams/:id/release", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequirePermission("manage_teams"), teamHandler.ReleaseMember)
 
 	// Trial Management Endpoints
 	// Module 1: Trial
@@ -351,6 +362,9 @@ func main() {
 	app.Post("/api/b2c/users/:id/follow", authMiddleware.Authenticate, userFollowHandler.Follow)
 	app.Delete("/api/b2c/users/:id/unfollow", authMiddleware.Authenticate, userFollowHandler.Unfollow)
 	app.Get("/api/b2c/users/:id/follow-status", authMiddleware.Authenticate, userFollowHandler.FollowStatus)
+	app.Post("/api/b2c/feedback", authMiddleware.Authenticate, feedbackHandler.Create)
+	app.Get("/api/b2c/invitations", authMiddleware.Authenticate, b2cInvitationHandler.GetMyInvitations)
+	app.Post("/api/b2c/invitations/:id/respond", authMiddleware.Authenticate, b2cInvitationHandler.Respond)
 
 	// RBAC Test Endpoints
 	app.Get("/api/test/player", authMiddleware.Authenticate, authMiddleware.RequirePermission("edit_portfolio"), func(c *fiber.Ctx) error {
@@ -419,6 +433,8 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		&postgres.PlayerVoteModel{},
 		&postgres.CurrencyModel{},
 		&postgres.UserFollowModel{},
+		&postgres.FeedbackModel{},
+		&postgres.TeamInvitationModel{},
 	)
 	if err != nil {
 		return err

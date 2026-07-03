@@ -25,12 +25,13 @@ const (
 // TransferMarket represents a player listed in the transfer market.
 // A player is automatically listed when they register and belong to the Free Agent club.
 type TransferMarket struct {
-	ID        int64
-	UserID    int64
-	User      *User // Enriched player data
-	Status    string // "available" | "transferred"
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID                   int64
+	UserID               int64
+	User                 *User  // Enriched player data
+	Status               string // "available" | "transferred"
+	HasPendingInvitation bool   // Whether the caller's club has already sent an invitation
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 }
 
 // TransferMarketFilter defines the query parameters for filtering the transfer market list.

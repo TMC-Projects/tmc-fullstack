@@ -26,6 +26,7 @@ interface TransferMarketEntry {
   id: number;
   user_id: number;
   status: string;
+  has_pending_invitation?: boolean;
   listed_at: string;
   player: TransferMarketPlayer;
 }
@@ -46,6 +47,26 @@ export default function TransferMarketPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+  const [requestedIds, setRequestedIds] = useState<number[]>([]);
+
+  // Load from local storage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('transfer_market_requested_ids');
+      if (stored) {
+        setRequestedIds(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error('Failed to parse requested ids', e);
+    }
+  }, []);
+
+  // Update local storage when it changes
+  useEffect(() => {
+    if (requestedIds.length > 0) {
+      localStorage.setItem('transfer_market_requested_ids', JSON.stringify(requestedIds));
+    }
+  }, [requestedIds]);
 
   const fetchTransferMarket = useCallback(async () => {
     if (!token) return;
@@ -114,10 +135,16 @@ export default function TransferMarketPage() {
         const data = await res.json();
 
         if (!res.ok) {
+          if (data.message && data.message.includes('already sent a pending invitation')) {
+            showAlert('Anda sudah pernah mengirim undangan ke pemain ini.', 'info');
+            setRequestedIds(prev => prev.includes(talentId) ? prev : [...prev, talentId]);
+            return;
+          }
           throw new Error(data.message || 'Failed to sign free agent');
         }
 
         showAlert(`Berhasil sign in ${fullName}!`, 'success');
+        setRequestedIds(prev => prev.includes(talentId) ? prev : [...prev, talentId]);
         fetchTransferMarket(); // refresh the list
       } catch (err) {
         showAlert(`Error: ${(err as Error).message}`, 'error');
@@ -259,15 +286,23 @@ export default function TransferMarketPage() {
                             <UserCircle className="w-3.5 h-3.5" />
                             <span className="hidden sm:inline">Detail</span>
                           </Link>
-                          {entry.status === 'free' ? (
-                            <button
-                              onClick={() => handleSignFreeAgent(entry.player.id, entry.player.full_name)}
-                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-lg transition-colors text-sm font-medium"
-                            >
-                              <Handshake className="w-4 h-4" />
-                              {t('sign_in')}
-                            </button>
-                          ) : (
+                          {entry.status === 'free' ? (() => {
+                            const isRequested = entry.has_pending_invitation || requestedIds.includes(entry.player.id);
+                            return (
+                              <button
+                                onClick={() => handleSignFreeAgent(entry.player.id, entry.player.full_name)}
+                                disabled={isRequested}
+                                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium ${
+                                  isRequested
+                                    ? 'bg-slate-500/10 text-slate-500 cursor-not-allowed'
+                                    : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
+                                }`}
+                              >
+                                <Handshake className="w-4 h-4" />
+                                {isRequested ? 'Requested' : t('sign_in')}
+                              </button>
+                            );
+                          })() : (
                             <button
                               onClick={() => showAlert('Fitur Penawaran belum diimplementasikan.', 'info')}
                               className="flex items-center gap-2 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-lg transition-colors shadow-lg shadow-amber-900/20"
