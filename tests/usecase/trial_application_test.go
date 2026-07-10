@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"njara-platform/internal/usecase" 
+	"njara-platform/internal/usecase"
 
 	"njara-platform/internal/domain"
 )
@@ -13,11 +13,11 @@ import (
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 type mockAppRepo struct {
-	app           *domain.TrialApplication
-	apps          []*domain.TrialApplication
-	count         int64
-	createErr     error
-	updateErr     error
+	app       *domain.TrialApplication
+	apps      []*domain.TrialApplication
+	count     int64
+	createErr error
+	updateErr error
 }
 
 func (m *mockAppRepo) Create(ctx context.Context, a *domain.TrialApplication) error {
@@ -89,16 +89,36 @@ type mockB2CSubscriptionRepo struct {
 	isPremium bool
 }
 
-func (m *mockB2CSubscriptionRepo) GetAllPlans(ctx context.Context) ([]*domain.B2CSubscriptionPlan, error) { return nil, nil }
-func (m *mockB2CSubscriptionRepo) GetPlanByID(ctx context.Context, id int64) (*domain.B2CSubscriptionPlan, error) { return nil, nil }
-func (m *mockB2CSubscriptionRepo) CreatePlan(ctx context.Context, plan *domain.B2CSubscriptionPlan) error { return nil }
-func (m *mockB2CSubscriptionRepo) CreateSubscription(ctx context.Context, sub *domain.B2CSubscription) error { return nil }
-func (m *mockB2CSubscriptionRepo) GetSubscriptionByID(ctx context.Context, id int64) (*domain.B2CSubscription, error) { return nil, nil }
-func (m *mockB2CSubscriptionRepo) GetSubscriptionByOrderID(ctx context.Context, orderID string) (*domain.B2CSubscription, error) { return nil, nil }
-func (m *mockB2CSubscriptionRepo) GetActiveSubscriptionByUserID(ctx context.Context, userID int64) (*domain.B2CSubscription, error) { return nil, nil }
-func (m *mockB2CSubscriptionRepo) GetSubscriptionsByUserID(ctx context.Context, userID int64) ([]*domain.B2CSubscription, error) { return nil, nil }
-func (m *mockB2CSubscriptionRepo) UpdateSubscription(ctx context.Context, sub *domain.B2CSubscription) error { return nil }
-func (m *mockB2CSubscriptionRepo) IsUserPremium(ctx context.Context, userID int64) (bool, error) { return m.isPremium, nil }
+func (m *mockB2CSubscriptionRepo) GetAllPlans(ctx context.Context) ([]*domain.B2CSubscriptionPlan, error) {
+	return nil, nil
+}
+func (m *mockB2CSubscriptionRepo) GetPlanByID(ctx context.Context, id int64) (*domain.B2CSubscriptionPlan, error) {
+	return nil, nil
+}
+func (m *mockB2CSubscriptionRepo) CreatePlan(ctx context.Context, plan *domain.B2CSubscriptionPlan) error {
+	return nil
+}
+func (m *mockB2CSubscriptionRepo) CreateSubscription(ctx context.Context, sub *domain.B2CSubscription) error {
+	return nil
+}
+func (m *mockB2CSubscriptionRepo) GetSubscriptionByID(ctx context.Context, id int64) (*domain.B2CSubscription, error) {
+	return nil, nil
+}
+func (m *mockB2CSubscriptionRepo) GetSubscriptionByOrderID(ctx context.Context, orderID string) (*domain.B2CSubscription, error) {
+	return nil, nil
+}
+func (m *mockB2CSubscriptionRepo) GetActiveSubscriptionByUserID(ctx context.Context, userID int64) (*domain.B2CSubscription, error) {
+	return nil, nil
+}
+func (m *mockB2CSubscriptionRepo) GetSubscriptionsByUserID(ctx context.Context, userID int64) ([]*domain.B2CSubscription, error) {
+	return nil, nil
+}
+func (m *mockB2CSubscriptionRepo) UpdateSubscription(ctx context.Context, sub *domain.B2CSubscription) error {
+	return nil
+}
+func (m *mockB2CSubscriptionRepo) IsUserPremium(ctx context.Context, userID int64) (bool, error) {
+	return m.isPremium, nil
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
