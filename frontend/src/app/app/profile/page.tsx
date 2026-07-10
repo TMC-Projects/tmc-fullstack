@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LogOut, RefreshCw, LayoutDashboard } from 'lucide-react';
+import { LogOut, RefreshCw, LayoutDashboard , CreditCard } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';

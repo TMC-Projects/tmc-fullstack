@@ -93,6 +93,7 @@ type AuthUsecase interface {
 	Register(ctx context.Context, input RegisterInput) (*AuthResponse, error)
 	Login(ctx context.Context, input LoginInput) (*AuthResponse, error)
 	GetProfile(ctx context.Context, userID int64) (*User, error)
+	GetProfileByUsername(ctx context.Context, username string) (*User, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*AuthResponse, error)
 	Logout(ctx context.Context, token string) error
 	IsTokenBlocked(ctx context.Context, token string) bool

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Shield, Calendar, Activity, Edit2, X, Save, Copy } from 'lucide-react';
+import { User, Shield, Calendar, Activity, Edit2, X, Save, Copy, Share2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { User as AuthUser, useAuthStore } from '@/store/auth';
 import { useAlertStore } from '@/store/alertStore';
@@ -224,13 +224,26 @@ export default function ProfileHeader({
           </div>
 
           {isEditable && (
-            <button
-              onClick={() => setIsEditModalOpen(true)}
-              className="absolute top-4 right-4 md:static md:top-auto md:right-auto bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-2 rounded-xl transition-colors"
-              title="Edit Profile"
-            >
-              <Edit2 className="w-5 h-5" />
-            </button>
+            <div className="absolute top-4 right-4 md:static md:top-auto md:right-auto flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}/p/${user.username}`;
+                  navigator.clipboard.writeText(url);
+                  showAlert(t('link_copied'), 'success');
+                }}
+                className="bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30 text-violet-400 hover:text-violet-300 p-2 rounded-xl transition-all"
+                title={t('share_profile')}
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-2 rounded-xl transition-colors"
+                title="Edit Profile"
+              >
+                <Edit2 className="w-5 h-5" />
+              </button>
+            </div>
           )}
         </div>
 

@@ -12,6 +12,7 @@ type trialApplicationUsecase struct {
 	trialRepo       domain.TrialRepository
 	participantRepo domain.TrialParticipantRepository
 	userRepo        domain.UserRepository
+	b2cSubRepo      domain.B2CSubscriptionRepository
 }
 
 func NewTrialApplicationUsecase(
@@ -19,10 +20,12 @@ func NewTrialApplicationUsecase(
 	trialRepo domain.TrialRepository,
 	participantRepo domain.TrialParticipantRepository,
 	userRepo domain.UserRepository,
+	b2cSubRepo domain.B2CSubscriptionRepository,
 ) domain.TrialApplicationUsecase {
 	return &trialApplicationUsecase{
 		appRepo: appRepo, trialRepo: trialRepo,
 		participantRepo: participantRepo, userRepo: userRepo,
+		b2cSubRepo: b2cSubRepo,
 	}
 }
 
@@ -60,6 +63,29 @@ func (u *trialApplicationUsecase) Apply(ctx context.Context, trialID int64, call
 	}
 	if existing != nil {
 		return nil, domain.NewAppError(domain.ErrCodeConflict, "you have already applied to this trial", nil)
+	}
+
+	// Enforce limit for free users (max 3 active applications)
+	if u.b2cSubRepo != nil {
+		isPremium, err := u.b2cSubRepo.IsUserPremium(ctx, callerUserID)
+		if err != nil {
+			return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to check premium status", err)
+		}
+		if !isPremium {
+			myApps, err := u.appRepo.GetByPlayerID(ctx, callerUserID)
+			if err != nil {
+				return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to check existing applications", err)
+			}
+			activeCount := 0
+			for _, a := range myApps {
+				if a.Status != domain.ApplicationStatusRejected && a.Status != domain.ApplicationStatusWithdrawn {
+					activeCount++
+				}
+			}
+			if activeCount >= 3 {
+				return nil, domain.NewAppError(domain.ErrCodeForbidden, "free users can only have up to 3 active trial applications. Please upgrade to premium.", nil)
+			}
+		}
 	}
 
 	// Check max_participants via shortlisted count

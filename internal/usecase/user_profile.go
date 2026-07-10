@@ -10,10 +10,11 @@ import (
 type userProfileUsecase struct {
 	repo      domain.UserProfileRepository
 	cacheRepo domain.CacheRepository
+	b2cSubRepo domain.B2CSubscriptionRepository
 }
 
-func NewUserProfileUsecase(repo domain.UserProfileRepository, cacheRepo domain.CacheRepository) domain.UserProfileUsecase {
-	return &userProfileUsecase{repo: repo, cacheRepo: cacheRepo}
+func NewUserProfileUsecase(repo domain.UserProfileRepository, cacheRepo domain.CacheRepository, b2cSubRepo domain.B2CSubscriptionRepository) domain.UserProfileUsecase {
+	return &userProfileUsecase{repo: repo, cacheRepo: cacheRepo, b2cSubRepo: b2cSubRepo}
 }
 
 func (u *userProfileUsecase) invalidateCache(ctx context.Context, userID int64) {
@@ -130,6 +131,23 @@ func (u *userProfileUsecase) DeleteSocialMedia(ctx context.Context, userID, id i
 // ─── Achievements ────────────────────────────────────────────────────────────
 
 func (u *userProfileUsecase) CreateAchievement(ctx context.Context, userID int64, input domain.UserAchievement) (*domain.UserAchievement, error) {
+	// Enforce limit for free users (max 3 achievements)
+	if u.b2cSubRepo != nil {
+		isPremium, err := u.b2cSubRepo.IsUserPremium(ctx, userID)
+		if err != nil {
+			return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to check premium status", err)
+		}
+		if !isPremium {
+			achievements, err := u.repo.GetAchievementsByUserID(ctx, userID)
+			if err != nil {
+				return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to fetch achievements", err)
+			}
+			if len(achievements) >= 3 {
+				return nil, domain.NewAppError(domain.ErrCodeForbidden, "free users can only have up to 3 achievements. Please upgrade to premium.", nil)
+			}
+		}
+	}
+
 	input.UserID = userID
 	if err := u.repo.CreateAchievement(ctx, &input); err != nil {
 		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to create achievement", err)
@@ -183,6 +201,23 @@ func (u *userProfileUsecase) DeleteAchievement(ctx context.Context, userID, id i
 // ─── Highlights ──────────────────────────────────────────────────────────────
 
 func (u *userProfileUsecase) CreateHighlight(ctx context.Context, userID int64, input domain.UserHighlight) (*domain.UserHighlight, error) {
+	// Enforce limit for free users (max 2 highlights)
+	if u.b2cSubRepo != nil {
+		isPremium, err := u.b2cSubRepo.IsUserPremium(ctx, userID)
+		if err != nil {
+			return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to check premium status", err)
+		}
+		if !isPremium {
+			highlights, err := u.repo.GetHighlightsByUserID(ctx, userID)
+			if err != nil {
+				return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to fetch highlights", err)
+			}
+			if len(highlights) >= 2 {
+				return nil, domain.NewAppError(domain.ErrCodeForbidden, "free users can only have up to 2 highlights. Please upgrade to premium.", nil)
+			}
+		}
+	}
+
 	input.UserID = userID
 	if err := u.repo.CreateHighlight(ctx, &input); err != nil {
 		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to create highlight", err)

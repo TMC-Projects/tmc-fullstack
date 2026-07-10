@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { 
   ChevronLeft, Calendar, MessageSquare, ShieldAlert, Building2, CheckCircle2, XCircle, Clock
-} from 'lucide-react';
+, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 

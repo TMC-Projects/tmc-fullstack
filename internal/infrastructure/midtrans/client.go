@@ -33,6 +33,28 @@ type VANumber struct {
 	VANumber string
 }
 
+// Action represents an action object (like Gopay deeplink).
+type Action struct {
+	Name   string
+	Method string
+	URL    string
+}
+
+// CoreChargeResult holds the result of a Core API charge.
+type CoreChargeResult struct {
+	TransactionID   string
+	OrderID         string
+	GrossAmount     string
+	TransactionTime string
+	ExpiryTime      string
+	VANumbers       []VANumber
+	Actions         []Action
+	QRISUrl         string
+	PaymentCode     string
+	PaymentType     string
+	StatusCode      string
+}
+
 // NewClient creates a new Midtrans Core API client configured for Sandbox.
 func NewClient(serverKey, merchantID string) *Client {
 	c := coreapi.Client{}
@@ -128,6 +150,115 @@ func (c *Client) ChargeBankTransfer(orderID string, amount int64, bank string) (
 			Bank:     va.Bank,
 			VANumber: va.VANumber,
 		})
+	}
+
+	return result, nil
+}
+
+// ChargeCoreAPI is a generalized method to charge via Midtrans Core API (VA, QRIS, Gopay, OVO, CC).
+func (c *Client) ChargeCoreAPI(orderID string, amount int64, paymentType string, bank string, user interface{}) (*CoreChargeResult, error) {
+	var chargeReq *coreapi.ChargeReq
+
+	switch paymentType {
+	case "bank_transfer":
+		// Re-use logic for Bank Transfer
+		btRes, err := c.ChargeBankTransfer(orderID, amount, bank)
+		if err != nil {
+			return nil, err
+		}
+		var vaNums []VANumber
+		var paymentCode string
+		for _, va := range btRes.VANumbers {
+			if va.Bank == "mandiri" {
+				paymentCode = va.VANumber
+			} else {
+				vaNums = append(vaNums, VANumber{Bank: va.Bank, VANumber: va.VANumber})
+			}
+		}
+		return &CoreChargeResult{
+			TransactionID:   btRes.TransactionID,
+			OrderID:         btRes.OrderID,
+			GrossAmount:     btRes.GrossAmount,
+			TransactionTime: btRes.TransactionTime,
+			ExpiryTime:      btRes.ExpiryTime,
+			VANumbers:       vaNums,
+			PaymentCode:     paymentCode,
+			PaymentType:     btRes.PaymentType,
+			StatusCode:      btRes.StatusCode,
+		}, nil
+
+	case "qris":
+		chargeReq = &coreapi.ChargeReq{
+			PaymentType: coreapi.PaymentTypeQris,
+			TransactionDetails: midtrans.TransactionDetails{
+				OrderID:  orderID,
+				GrossAmt: amount,
+			},
+		}
+
+	case "gopay":
+		chargeReq = &coreapi.ChargeReq{
+			PaymentType: coreapi.PaymentTypeGopay,
+			TransactionDetails: midtrans.TransactionDetails{
+				OrderID:  orderID,
+				GrossAmt: amount,
+			},
+		}
+
+	case "echannel":
+		chargeReq = &coreapi.ChargeReq{
+			PaymentType: coreapi.PaymentTypeEChannel,
+			TransactionDetails: midtrans.TransactionDetails{
+				OrderID:  orderID,
+				GrossAmt: amount,
+			},
+			EChannel: &coreapi.EChannelDetail{
+				BillInfo1: "Payment for Njara",
+				BillInfo2: orderID,
+			},
+		}
+
+	case "credit_card":
+		// NOTE: Credit Card usually requires a front-end token.
+		// If used without token, it will fail unless standard setup is provided.
+		// For basic implementation, we just pass the payment type.
+		chargeReq = &coreapi.ChargeReq{
+			PaymentType: coreapi.PaymentTypeCreditCard,
+			TransactionDetails: midtrans.TransactionDetails{
+				OrderID:  orderID,
+				GrossAmt: amount,
+			},
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported payment type: %s", paymentType)
+	}
+
+	resp, err := c.core.ChargeTransaction(chargeReq)
+	if err != nil {
+		return nil, fmt.Errorf("midtrans core api charge error: %w", err)
+	}
+
+	result := &CoreChargeResult{
+		TransactionID:   resp.TransactionID,
+		OrderID:         resp.OrderID,
+		GrossAmount:     resp.GrossAmount,
+		TransactionTime: resp.TransactionTime,
+		ExpiryTime:      resp.ExpiryTime,
+		PaymentType:     string(resp.PaymentType),
+		StatusCode:      resp.StatusCode,
+	}
+
+	// For QRIS
+	for _, action := range resp.Actions {
+		result.Actions = append(result.Actions, Action{
+			Name:   action.Name,
+			Method: action.Method,
+			URL:    action.URL,
+		})
+		if action.Name == "generate-qr-code" {
+			result.QRISUrl = action.URL
+		}
 	}
 
 	return result, nil

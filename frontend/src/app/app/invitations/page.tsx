@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, User, ClipboardList, Shield, ChevronLeft } from 'lucide-react';
+import { LogOut, User, ClipboardList, Shield, ChevronLeft , CreditCard } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -69,6 +69,14 @@ export default function InvitationsPage() {
               <Shield className="w-4 h-4" />
               <span className="hidden sm:inline">Invitations</span>
             </Link>
+            <Link
+              href="/app/subscription"
+              className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 hover:text-amber-400 transition-colors bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-800"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span className="hidden sm:inline">Subscription</span>
+            </Link>
+
             <Link
               href="/app/profile"
               className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 hover:text-amber-400 transition-colors bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-800"

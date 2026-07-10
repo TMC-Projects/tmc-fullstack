@@ -139,13 +139,15 @@ func main() {
 	teamUsecase := usecase.NewTeamUsecase(teamRepo, userRepo)
 
 	// Trial Management Usecases
+	b2cSubRepo := postgres.NewB2CSubscriptionRepository(db)
+	
 	trialUsecase := usecase.NewTrialUsecase(trialRepo, userRepo, clubRepo)
-	trialAppUsecase := usecase.NewTrialApplicationUsecase(trialAppRepo, trialRepo, trialParticipantRepo, userRepo)
+	trialAppUsecase := usecase.NewTrialApplicationUsecase(trialAppRepo, trialRepo, trialParticipantRepo, userRepo, b2cSubRepo)
 	trialParticipantUsecase := usecase.NewTrialParticipantUsecase(trialParticipantRepo, trialRepo, userRepo)
 	assessmentResultUsecase := usecase.NewAssessmentResultUsecase(assessmentResultRepo, trialParticipantRepo, trialRepo, userRepo)
 	assessmentScoreUsecase := usecase.NewAssessmentScoreUsecase(assessmentScoreRepo, assessmentResultRepo, assessmentCriteriaRepo, userRepo)
 	recruitmentDecisionUsecase := usecase.NewRecruitmentDecisionUsecase(recruitmentDecisionRepo, trialParticipantRepo, trialRepo, userRepo, trialAppRepo)
-	userProfileUsecase := usecase.NewUserProfileUsecase(userProfileRepo, cacheRepo)
+	userProfileUsecase := usecase.NewUserProfileUsecase(userProfileRepo, cacheRepo, b2cSubRepo)
 	playerVoteUsecase := usecase.NewPlayerVoteUsecase(userRepo, cacheRepo)
 
 	// Follow System
@@ -160,6 +162,10 @@ func main() {
 	subRepo := postgres.NewSubscriptionRepository(db)
 	subUsecase := usecase.NewSubscriptionUsecase(subRepo, subPlanRepo, clubRepo, userRepo, midtransClient)
 	subHandler := domainhttp.NewSubscriptionHandler(subUsecase)
+
+	// B2C Subscription
+	b2cSubUsecase := usecase.NewB2CSubscriptionUsecase(b2cSubRepo, userRepo, midtransClient)
+	b2cSubHandler := domainhttp.NewB2CSubscriptionHandler(b2cSubUsecase)
 
 	authHandler := domainhttp.NewAuthHandler(authUsecase)
 	gameHandler := domainhttp.NewGameHandler(gameUsecase)
@@ -366,6 +372,16 @@ func main() {
 	app.Get("/api/b2c/invitations", authMiddleware.Authenticate, b2cInvitationHandler.GetMyInvitations)
 	app.Post("/api/b2c/invitations/:id/respond", authMiddleware.Authenticate, b2cInvitationHandler.Respond)
 
+	// B2C Subscription Endpoints
+	b2cSubGroup := app.Group("/api/b2c/subscription", authMiddleware.Authenticate)
+	b2cSubGroup.Get("/plans", b2cSubHandler.GetPlans)
+	b2cSubGroup.Post("/", b2cSubHandler.CreateSubscription)
+	b2cSubGroup.Post("/:id/pay", b2cSubHandler.ChargePayment)
+	b2cSubGroup.Get("/me", b2cSubHandler.GetMySubscription)
+
+	app.Post("/api/b2c/subscription/callback", b2cSubHandler.HandleMidtransCallback)
+	app.Get("/api/b2c/subscription/plans", b2cSubHandler.GetPlans) // Public access if needed
+
 	// RBAC Test Endpoints
 	app.Get("/api/test/player", authMiddleware.Authenticate, authMiddleware.RequirePermission("edit_portfolio"), func(c *fiber.Ctx) error {
 		return domainhttp.SendSuccess(c, fiber.StatusOK, "Welcome Player! You have 'edit_portfolio' permission.", nil)
@@ -435,6 +451,8 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		&postgres.UserFollowModel{},
 		&postgres.FeedbackModel{},
 		&postgres.TeamInvitationModel{},
+		&postgres.B2CSubscriptionPlanModel{},
+		&postgres.B2CSubscriptionModel{},
 	)
 	if err != nil {
 		return err
@@ -571,6 +589,39 @@ func migrateAndSeedDB(db *gorm.DB) error {
 				return err
 			}
 			log.Info().Msgf("Subscription plan '%s' seeded successfully.", sp.Name)
+		}
+	}
+
+	// Seeding of B2C Subscription Plans
+	b2cSubPlans := []struct {
+		Name           string
+		DurationMonths int
+		Price          int64
+		Description    string
+	}{
+		{"Monthly", 1, 9000, "Akses premium B2C: Apply trial tanpa batas, highlight tanpa batas, dan achievement tanpa batas selama 1 bulan."},
+		{"Quarterly", 3, 20000, "Akses premium B2C selama 3 bulan. Hemat Rp7.000!"},
+	}
+
+	for _, sp := range b2cSubPlans {
+		var spCount int64
+		err = db.Model(&postgres.B2CSubscriptionPlanModel{}).Where("name = ?", sp.Name).Count(&spCount).Error
+		if err != nil {
+			return err
+		}
+		if spCount == 0 {
+			plan := postgres.B2CSubscriptionPlanModel{
+				Name:           sp.Name,
+				DurationMonths: sp.DurationMonths,
+				Price:          sp.Price,
+				Description:    sp.Description,
+				IsActive:       true,
+			}
+			err = db.Create(&plan).Error
+			if err != nil {
+				return err
+			}
+			log.Info().Msgf("B2C Subscription plan '%s' seeded successfully.", sp.Name)
 		}
 	}
 

@@ -247,6 +247,20 @@ func (u *authUsecase) InvalidateProfileCache(ctx context.Context, userID int64) 
 	return u.cacheRepo.Delete(ctx, fmt.Sprintf("user:profile:%d", userID))
 }
 
+func (u *authUsecase) GetProfileByUsername(ctx context.Context, username string) (*domain.User, error) {
+	user, err := u.userRepo.GetByUsername(ctx, username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by username: %w", err)
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	// Also load full profile (stats, achievements, etc.) via GetByID for consistent response
+	return u.GetProfile(ctx, user.ID)
+}
+
+
 func (u *authUsecase) Logout(ctx context.Context, token string) error {
 	cacheKey := "blocked_token:" + token
 	// Refresh tokens are valid for 7 days, access tokens for less.
