@@ -396,6 +396,7 @@ func main() {
 	b2cSubGroup.Post("/", b2cSubHandler.CreateSubscription)
 	b2cSubGroup.Post("/:id/pay", b2cSubHandler.ChargePayment)
 	b2cSubGroup.Get("/me", b2cSubHandler.GetMySubscription)
+	b2cSubGroup.Get("/history", b2cSubHandler.GetMyHistory)
 
 	app.Post("/api/b2c/subscription/callback", b2cSubHandler.HandleMidtransCallback)
 	app.Get("/api/b2c/subscription/plans", b2cSubHandler.GetPlans) // Public access if needed

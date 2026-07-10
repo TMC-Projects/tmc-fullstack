@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CreditCard, Check, AlertTriangle, ArrowLeft, Loader2, QrCode, Banknote, Shield, ClipboardList, User, LogOut } from 'lucide-react';
+import { CreditCard, Check, AlertTriangle, ArrowLeft, Loader2, QrCode, Banknote, Shield, ClipboardList, User, LogOut, Clock } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import Link from 'next/link';
 import B2CNavbar from '@/components/dashboard/B2CNavbar';
@@ -35,7 +35,8 @@ export default function SubscriptionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [activeSub, setActiveSub] = useState<Subscription | null>(null);
-  
+  const [history, setHistory] = useState<Subscription[]>([]);
+
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [pendingSub, setPendingSub] = useState<Subscription | null>(null);
 
@@ -51,9 +52,10 @@ export default function SubscriptionPage() {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const headers = { 'Authorization': `Bearer ${token}` };
 
-      const [plansRes, meRes] = await Promise.all([
+      const [plansRes, meRes, historyRes] = await Promise.all([
         fetch(`${baseUrl}/api/b2c/subscription/plans`, { headers }),
-        fetch(`${baseUrl}/api/b2c/subscription/me`, { headers })
+        fetch(`${baseUrl}/api/b2c/subscription/me`, { headers }),
+        fetch(`${baseUrl}/api/b2c/subscription/history`, { headers })
       ]);
 
       if (plansRes.ok) {
@@ -63,6 +65,10 @@ export default function SubscriptionPage() {
       if (meRes.ok) {
         const mData = await meRes.json();
         setActiveSub(mData.data || null);
+      }
+      if (historyRes.ok) {
+        const hData = await historyRes.json();
+        setHistory(hData.data || []);
       }
     } catch (err: any) {
       console.error(err);
@@ -108,7 +114,7 @@ export default function SubscriptionPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to create subscription');
-      
+
       setPendingSub(data.data);
       setSelectedPlan(plan);
     } catch (err: any) {
@@ -133,7 +139,7 @@ export default function SubscriptionPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Payment processing failed');
-      
+
       setPaymentResult(data.data);
     } catch (err: any) {
       setError(err.message);
@@ -208,7 +214,7 @@ export default function SubscriptionPage() {
                 <p className="text-2xl font-mono font-bold tracking-wider">{paymentResult.va_numbers[0].va_number}</p>
               </div>
             )}
-            
+
             {paymentResult.payment_type === 'echannel' && paymentResult.payment_code && (
               <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl text-center mb-6 border border-slate-200 dark:border-slate-700">
                 <p className="text-sm text-slate-500 mb-2">Mandiri Bill Payment Code</p>
@@ -222,7 +228,7 @@ export default function SubscriptionPage() {
                 <img src={paymentResult.qris_url} alt="QRIS" className="w-48 h-48 rounded-lg bg-white p-2" />
               </div>
             )}
-            
+
             {['gopay', 'credit_card'].includes(paymentResult.payment_type) && paymentResult.actions?.length > 0 && (
               <div className="flex flex-col items-center bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl mb-6 border border-slate-200 dark:border-slate-700">
                 <p className="text-sm text-slate-500 mb-4">Click to complete payment</p>
@@ -251,7 +257,7 @@ export default function SubscriptionPage() {
             className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 max-w-2xl mx-auto"
           >
             <h2 className="text-2xl font-bold mb-6">Select Payment Method</h2>
-            
+
             {error && (
               <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-xl flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -308,7 +314,7 @@ export default function SubscriptionPage() {
               <h2 className="text-4xl font-bold mb-4">Upgrade to Premium</h2>
               <p className="text-slate-600 dark:text-slate-400 text-lg">Unlock unlimited trial applications, highlights, and achievements.</p>
             </div>
-            
+
             {error && (
               <div className="mb-8 p-4 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-xl flex items-start gap-3 max-w-2xl mx-auto">
                 <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -330,11 +336,11 @@ export default function SubscriptionPage() {
                   )}
                   <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
                   <div className="flex items-baseline gap-1 mb-6">
-                    <span className="text-4xl font-bold text-amber-500">Rp {(plan.price/1000).toFixed(0)}k</span>
+                    <span className="text-4xl font-bold text-amber-500">Rp {(plan.price / 1000).toFixed(0)}k</span>
                     <span className="text-slate-500">/{plan.duration_months} mo</span>
                   </div>
                   <p className="text-slate-600 dark:text-slate-400 mb-8 flex-1">{plan.description}</p>
-                  
+
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start gap-3">
                       <div className="mt-0.5 p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500">
@@ -365,11 +371,10 @@ export default function SubscriptionPage() {
                   <button
                     onClick={() => handleCreateSubscription(plan)}
                     disabled={isProcessing}
-                    className={`w-full py-3 rounded-xl font-medium transition-colors flex justify-center items-center gap-2 ${
-                      idx === 1 
-                        ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20' 
+                    className={`w-full py-3 rounded-xl font-medium transition-colors flex justify-center items-center gap-2 ${idx === 1
+                        ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20'
                         : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white'
-                    }`}
+                      }`}
                   >
                     {isProcessing && selectedPlan?.id === plan.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -377,6 +382,51 @@ export default function SubscriptionPage() {
                   </button>
                 </motion.div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Transaction History Table */}
+        {history.length > 0 && (
+          <div className="mt-16 mb-8">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-amber-500" />
+              Transaction History
+            </h3>
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">Order ID</th>
+                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">Plan</th>
+                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">Amount</th>
+                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">Status</th>
+                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                    {history.map((sub) => (
+                      <tr key={sub.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="px-6 py-4 font-mono text-sm">{sub.payment_order_id}</td>
+                        <td className="px-6 py-4 font-medium">{sub.plan?.name || '-'}</td>
+                        <td className="px-6 py-4">Rp {sub.amount.toLocaleString('id-ID')}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${sub.status === 'paid' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                              sub.status === 'pending' ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400' :
+                                'bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400'
+                            }`}>
+                            {sub.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-500 text-sm">
+                          {sub.paid_at ? new Date(sub.paid_at).toLocaleDateString() : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

@@ -96,9 +96,9 @@ func (u *subscriptionUsecase) CreateSubscription(ctx context.Context, planID int
 	return sub, nil
 }
 
-// ChargePayment charges the subscription via Midtrans bank transfer.
+// ChargePayment charges the subscription via Midtrans.
 // Only the owner of the club that owns the subscription can trigger payment.
-func (u *subscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID int64, bank string, userID int64) (*domain.ChargeResult, error) {
+func (u *subscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID int64, paymentType string, bank string, userID int64) (*domain.ChargeResult, error) {
 	// Verify user
 	user, err := u.userRepo.GetByID(ctx, userID)
 	if err != nil || user == nil {
@@ -124,11 +124,14 @@ func (u *subscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID 
 	}
 
 	// Charge via Midtrans
-	if bank == "" {
+	if paymentType == "" {
+		paymentType = "bank_transfer"
+	}
+	if paymentType == "bank_transfer" && bank == "" {
 		bank = "bca"
 	}
 
-	result, err := u.midtrans.ChargeBankTransfer(sub.PaymentOrderID, sub.Amount, bank)
+	result, err := u.midtrans.ChargeCoreAPI(sub.PaymentOrderID, sub.Amount, paymentType, bank, user)
 	if err != nil {
 		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to charge payment via Midtrans", err)
 	}
@@ -136,6 +139,7 @@ func (u *subscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID 
 	// Persist the VA token and raw payload
 	payloadBytes, _ := json.Marshal(result)
 	sub.PaymentToken = result.TransactionID
+	sub.PaymentProvider = "midtrans"
 	sub.ProviderPayload = string(payloadBytes)
 
 	if err := u.subRepo.Update(ctx, sub); err != nil {
@@ -150,6 +154,15 @@ func (u *subscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID 
 			VANumber: va.VANumber,
 		}
 	}
+	
+	var actions []domain.MidtransAction
+	for _, act := range result.Actions {
+		actions = append(actions, domain.MidtransAction{
+			Name:   act.Name,
+			Method: act.Method,
+			URL:    act.URL,
+		})
+	}
 
 	return &domain.ChargeResult{
 		OrderID:         result.OrderID,
@@ -159,6 +172,9 @@ func (u *subscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID 
 		TransactionTime: result.TransactionTime,
 		ExpiryTime:      result.ExpiryTime,
 		VANumbers:       vaNumbers,
+		PaymentCode:     result.PaymentCode,
+		QRISUrl:         result.QRISUrl,
+		Actions:         actions,
 	}, nil
 }
 

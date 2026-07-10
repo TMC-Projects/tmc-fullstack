@@ -36,14 +36,14 @@ export default function SubscriptionsPage() {
       if (res.ok && data.data) {
         // Map data to handle PascalCase from backend just in case json tags are not applied
         const mappedPlans = data.data.map((p: any) => ({
-          id: p.id || p.ID,
-          name: p.name || p.Name,
-          duration_months: p.duration_months || p.DurationMonths,
-          price: p.price || p.Price,
-          discount: p.discount || p.Discount,
-          description: p.description || p.Description,
+          id: p.id ?? p.ID,
+          name: p.name ?? p.Name,
+          duration_months: p.duration_months ?? p.DurationMonths,
+          price: p.price ?? p.Price ?? 0,
+          discount: p.discount ?? p.Discount ?? 0,
+          description: p.description ?? p.Description,
           is_active: p.is_active ?? p.IsActive,
-          created_at: p.created_at || p.CreatedAt
+          created_at: p.created_at ?? p.CreatedAt
         }));
         setPlans(mappedPlans);
       }

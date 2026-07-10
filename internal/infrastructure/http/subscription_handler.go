@@ -55,7 +55,8 @@ func (h *SubscriptionHandler) CreateSubscription(c *fiber.Ctx) error {
 }
 
 type chargePaymentRequest struct {
-	Bank string `json:"bank"` // "bca", "bni", "bri", "permata", "mandiri"
+	PaymentType string `json:"payment_type"`
+	Bank        string `json:"bank"` // "bca", "bni", "bri", "permata", "mandiri"
 }
 
 // ChargePayment charges the subscription via Midtrans bank transfer.
@@ -73,13 +74,10 @@ func (h *SubscriptionHandler) ChargePayment(c *fiber.Ctx) error {
 	}
 
 	var req chargePaymentRequest
-	// Ignore parse error — bank defaults to "bca" if not provided
+	// Ignore parse error
 	_ = c.BodyParser(&req)
-	if req.Bank == "" {
-		req.Bank = "bca"
-	}
 
-	result, err := h.subUsecase.ChargePayment(c.UserContext(), int64(subscriptionID), req.Bank, userID)
+	result, err := h.subUsecase.ChargePayment(c.UserContext(), int64(subscriptionID), req.PaymentType, req.Bank, userID)
 	if err != nil {
 		return err
 	}

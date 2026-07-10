@@ -121,3 +121,20 @@ func (h *B2CSubscriptionHandler) GetMySubscription(c *fiber.Ctx) error {
 
 	return SendSuccess(c, fiber.StatusOK, "B2C subscription retrieved successfully", sub)
 }
+
+// GetMyHistory returns all subscriptions for the authenticated user.
+// GET /api/b2c/subscription/history
+func (h *B2CSubscriptionHandler) GetMyHistory(c *fiber.Ctx) error {
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	subs, err := h.subUsecase.GetMySubscriptions(c.UserContext(), userID)
+	if err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "B2C subscription history retrieved successfully", subs)
+}
