@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -359,8 +361,24 @@ func main() {
 	app.Get("/api/subscriptions/plans", subHandler.GetPlans)
 	app.Post("/api/subscriptions", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "team_owner"), subHandler.CreateSubscription)
 	app.Post("/api/subscriptions/:id/pay", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "team_owner"), subHandler.ChargePayment)
-	app.Post("/api/subscriptions/callback", subHandler.HandleMidtransCallback)
-	app.Post("/api/callback", subHandler.HandleMidtransCallback) // Alias for Midtrans notification URL
+	// Combined Midtrans Callback Handler
+	combinedCallbackHandler := func(c *fiber.Ctx) error {
+		var payload struct {
+			OrderID string `json:"order_id"`
+		}
+		// Try to parse order_id from body
+		if err := json.Unmarshal(c.Body(), &payload); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid payload"})
+		}
+
+		if strings.HasPrefix(payload.OrderID, "B2C-") {
+			return b2cSubHandler.HandleMidtransCallback(c)
+		}
+		return subHandler.HandleMidtransCallback(c)
+	}
+
+	app.Post("/api/subscriptions/callback", combinedCallbackHandler)
+	app.Post("/api/callback", combinedCallbackHandler) // Alias for Midtrans notification URL
 	app.Get("/api/subscriptions/my-club", authMiddleware.Authenticate, subHandler.GetMySubscriptions)
 
 	// B2C Player & Follow Endpoints
@@ -381,6 +399,9 @@ func main() {
 
 	app.Post("/api/b2c/subscription/callback", b2cSubHandler.HandleMidtransCallback)
 	app.Get("/api/b2c/subscription/plans", b2cSubHandler.GetPlans) // Public access if needed
+
+	// Public Endpoints
+	app.Get("/api/public/players/:username", b2cPlayerHandler.GetPublicPlayerProfile)
 
 	// RBAC Test Endpoints
 	app.Get("/api/test/player", authMiddleware.Authenticate, authMiddleware.RequirePermission("edit_portfolio"), func(c *fiber.Ctx) error {

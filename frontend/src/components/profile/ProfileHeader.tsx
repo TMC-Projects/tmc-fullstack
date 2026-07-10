@@ -224,7 +224,7 @@ export default function ProfileHeader({
           </div>
 
           {isEditable && (
-            <div className="absolute top-4 right-4 md:static md:top-auto md:right-auto flex items-center gap-2">
+            <div className="flex w-full justify-center md:w-auto md:justify-end items-center gap-2 mt-4 md:mt-0">
               <button
                 onClick={() => {
                   const url = `${window.location.origin}/p/${user.username}`;

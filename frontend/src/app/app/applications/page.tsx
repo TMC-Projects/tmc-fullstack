@@ -8,6 +8,7 @@ import {
 , CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import B2CNavbar from '@/components/dashboard/B2CNavbar';
 
 interface Trial {
   ID: number;
@@ -103,20 +104,7 @@ export default function MyApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-200 pb-20">
-      {/* Top Navbar */}
-      <nav className="sticky top-0 z-50 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-300 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center gap-4">
-          <Link 
-            href="/app/dashboard"
-            className="p-2 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-indigo-400 rounded-xl transition-colors border border-slate-300 dark:border-slate-800"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Link>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-            Trial Application
-          </h1>
-        </div>
-      </nav>
+      <B2CNavbar />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (

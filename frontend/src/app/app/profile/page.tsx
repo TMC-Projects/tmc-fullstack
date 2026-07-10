@@ -15,6 +15,7 @@ import AchievementList from '@/components/profile/AchievementList';
 import HighlightList from '@/components/profile/HighlightList';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import B2CNavbar from '@/components/dashboard/B2CNavbar';
 
 export default function B2CProfilePage() {
   const router = useRouter();
@@ -127,29 +128,7 @@ export default function B2CProfilePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 overflow-x-hidden">
-      {/* Top Navbar */}
-      <nav className="sticky top-0 z-50 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-300 dark:border-slate-800">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-          <h1 className="text-lg font-bold text-slate-800 dark:text-slate-200">{t('title')}</h1>
-          <div className="flex items-center gap-3">
-            <LanguageSwitcher />
-            <Link 
-              href="/app/dashboard"
-              className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 hover:text-amber-400 transition-colors bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-800"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span className="hidden sm:inline">Dashboard</span>
-            </Link>
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-rose-400 transition-colors bg-slate-100 dark:bg-slate-900 hover:bg-rose-500/10 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-800"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('logout')}</span>
-            </button>
-          </div>
-        </div>
-      </nav>
+      <B2CNavbar />
 
       <div className="max-w-5xl mx-auto px-4 md:px-8 mt-8 space-y-12">
         {/* Profile Header */}

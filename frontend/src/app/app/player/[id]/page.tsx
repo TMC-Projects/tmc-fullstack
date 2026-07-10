@@ -15,6 +15,7 @@ import SocialMediaList from '@/components/profile/SocialMediaList';
 import AchievementList from '@/components/profile/AchievementList';
 import HighlightList from '@/components/profile/HighlightList';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import B2CNavbar from '@/components/dashboard/B2CNavbar';
 
 export default function SharedPlayerProfilePage() {
   const router = useRouter();
@@ -143,24 +144,7 @@ export default function SharedPlayerProfilePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 overflow-x-hidden">
-      {/* Top Navbar */}
-      <nav className="sticky top-0 z-50 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-300 dark:border-slate-800">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 hover:text-violet-500 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </button>
-          
-          <h1 className="text-lg font-bold text-slate-800 dark:text-slate-200">Player Profile</h1>
-          <div className="flex items-center gap-3">
-            <LanguageSwitcher />
-          </div>
-
-        </div>
-      </nav>
+      <B2CNavbar />
 
       <div className="max-w-5xl mx-auto px-4 md:px-8 mt-8 space-y-12">
         {/* Profile Header */}
