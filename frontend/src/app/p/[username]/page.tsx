@@ -180,9 +180,9 @@ export default function PublicPlayerProfilePage() {
             </Link>
             <div className="h-5 w-px bg-slate-800" />
             <Link href="/" className="flex items-center gap-2 group">
-              <img src="/logo.png" alt="TMC" className="w-6 h-6 rounded object-contain opacity-80 group-hover:opacity-100 transition-opacity" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <img src="/logo.png" alt="EMC" className="w-6 h-6 rounded object-contain opacity-80 group-hover:opacity-100 transition-opacity" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               <span className="text-sm font-semibold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                TMC Platform
+                EMC Platform
               </span>
             </Link>
           </div>
@@ -557,7 +557,7 @@ export default function PublicPlayerProfilePage() {
 
         {/* Footer */}
         <div className="text-center py-4 text-slate-600 text-xs border-t border-white/5">
-          Powered by <span className="text-violet-400 font-semibold">TMC Platform</span>
+          Powered by <span className="text-violet-400 font-semibold">EMC Platform</span>
         </div>
       </main>
     </div>

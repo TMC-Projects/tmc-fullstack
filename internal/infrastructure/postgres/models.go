@@ -90,13 +90,21 @@ func ClubFromDomain(d *domain.Club) *ClubModel {
 
 // ClubAchievementModel represents the GORM schema for club_achievements table.
 type ClubAchievementModel struct {
-	ID          int64     `gorm:"primaryKey;autoIncrement"`
-	ClubID      int64     `gorm:"not null;index"`
-	Title       string    `gorm:"not null;type:varchar(255)"`
-	Description string    `gorm:"type:text;default:''"`
-	Date        time.Time `gorm:"not null"`
-	CreatedAt   time.Time `gorm:"not null"`
-	UpdatedAt   time.Time `gorm:"not null"`
+	ID                int64     `gorm:"primaryKey;autoIncrement"`
+	ClubID            int64     `gorm:"not null;index"`
+	Title             string    `gorm:"not null;type:varchar(255)"`
+	TournamentName    string    `gorm:"not null;type:varchar(255)"`
+	GameTitle         string    `gorm:"not null;type:varchar(100)"`
+	Placement         string    `gorm:"not null;type:varchar(50)"`
+	AchievementDate   time.Time `gorm:"not null"`
+	TournamentTier    string    `gorm:"type:varchar(50)"`
+	PrizePoolCurrency string    `gorm:"type:varchar(10);default:'IDR'"`
+	PrizePoolAmount   *float64  `gorm:"type:decimal(15,2)"`
+	EventScale        string    `gorm:"type:varchar(20)"`
+	ReferenceUrl      string    `gorm:"type:text"`
+	CertificateUrl    string    `gorm:"type:text"`
+	CreatedAt         time.Time `gorm:"not null"`
+	UpdatedAt         time.Time `gorm:"not null"`
 }
 
 // TableName overrides GORM default table naming conventions.
@@ -110,13 +118,21 @@ func (m *ClubAchievementModel) ToDomain() *domain.ClubAchievement {
 		return nil
 	}
 	return &domain.ClubAchievement{
-		ID:          m.ID,
-		ClubID:      m.ClubID,
-		Title:       m.Title,
-		Description: m.Description,
-		Date:        m.Date,
-		CreatedAt:   m.CreatedAt,
-		UpdatedAt:   m.UpdatedAt,
+		ID:                m.ID,
+		ClubID:            m.ClubID,
+		Title:             m.Title,
+		TournamentName:    m.TournamentName,
+		GameTitle:         m.GameTitle,
+		Placement:         m.Placement,
+		AchievementDate:   m.AchievementDate,
+		TournamentTier:    m.TournamentTier,
+		PrizePoolCurrency: m.PrizePoolCurrency,
+		PrizePoolAmount:   m.PrizePoolAmount,
+		EventScale:        m.EventScale,
+		ReferenceUrl:      m.ReferenceUrl,
+		CertificateUrl:    m.CertificateUrl,
+		CreatedAt:         m.CreatedAt,
+		UpdatedAt:         m.UpdatedAt,
 	}
 }
 
@@ -126,13 +142,21 @@ func ClubAchievementFromDomain(d *domain.ClubAchievement) *ClubAchievementModel 
 		return nil
 	}
 	return &ClubAchievementModel{
-		ID:          d.ID,
-		ClubID:      d.ClubID,
-		Title:       d.Title,
-		Description: d.Description,
-		Date:        d.Date,
-		CreatedAt:   d.CreatedAt,
-		UpdatedAt:   d.UpdatedAt,
+		ID:                d.ID,
+		ClubID:            d.ClubID,
+		Title:             d.Title,
+		TournamentName:    d.TournamentName,
+		GameTitle:         d.GameTitle,
+		Placement:         d.Placement,
+		AchievementDate:   d.AchievementDate,
+		TournamentTier:    d.TournamentTier,
+		PrizePoolCurrency: d.PrizePoolCurrency,
+		PrizePoolAmount:   d.PrizePoolAmount,
+		EventScale:        d.EventScale,
+		ReferenceUrl:      d.ReferenceUrl,
+		CertificateUrl:    d.CertificateUrl,
+		CreatedAt:         d.CreatedAt,
+		UpdatedAt:         d.UpdatedAt,
 	}
 }
 

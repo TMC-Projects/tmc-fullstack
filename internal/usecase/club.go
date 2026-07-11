@@ -189,8 +189,16 @@ func (u *clubUsecase) UpdateAchievement(ctx context.Context, clubID int64, achID
 	}
 
 	existing.Title = input.Title
-	existing.Description = input.Description
-	existing.Date = input.Date
+	existing.TournamentName = input.TournamentName
+	existing.GameTitle = input.GameTitle
+	existing.Placement = input.Placement
+	existing.AchievementDate = input.AchievementDate
+	existing.TournamentTier = input.TournamentTier
+	existing.PrizePoolCurrency = input.PrizePoolCurrency
+	existing.PrizePoolAmount = input.PrizePoolAmount
+	existing.EventScale = input.EventScale
+	existing.ReferenceUrl = input.ReferenceUrl
+	existing.CertificateUrl = input.CertificateUrl
 
 	if err := u.clubRepo.UpdateAchievement(ctx, existing); err != nil {
 		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to update achievement", err)

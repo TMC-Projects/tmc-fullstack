@@ -239,9 +239,17 @@ func (h *ClubHandler) GetByID(c *fiber.Ctx) error {
 // ─── Achievements ────────────────────────────────────────────────────────────
 
 type clubAchievementRequest struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Date        string `json:"date"` // format: YYYY-MM-DD
+	Title             string   `json:"title"`
+	TournamentName    string   `json:"tournament_name"`
+	GameTitle         string   `json:"game_title"`
+	Placement         string   `json:"placement"`
+	AchievementDate   string   `json:"achievement_date"` // format: YYYY-MM-DD
+	TournamentTier    string   `json:"tournament_tier"`
+	PrizePoolCurrency string   `json:"prize_pool_currency"`
+	PrizePoolAmount   *float64 `json:"prize_pool_amount"`
+	EventScale        string   `json:"event_scale"`
+	ReferenceUrl      string   `json:"reference_url"`
+	CertificateUrl    string   `json:"certificate_url"`
 }
 
 func (h *ClubHandler) AddAchievement(c *fiber.Ctx) error {
@@ -262,19 +270,27 @@ func (h *ClubHandler) AddAchievement(c *fiber.Ctx) error {
 		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid request body", err)
 	}
 
-	if req.Title == "" || req.Date == "" {
-		return domain.NewAppError(domain.ErrCodeValidation, "title and date are required", nil)
+	if req.Title == "" || req.TournamentName == "" || req.GameTitle == "" || req.Placement == "" || req.AchievementDate == "" {
+		return domain.NewAppError(domain.ErrCodeValidation, "title, tournament_name, game_title, placement, and achievement_date are required", nil)
 	}
 
-	date, err := time.Parse("2006-01-02", req.Date)
+	date, err := time.Parse("2006-01-02", req.AchievementDate)
 	if err != nil {
-		return domain.NewAppError(domain.ErrCodeValidation, "invalid date format, must be YYYY-MM-DD", err)
+		return domain.NewAppError(domain.ErrCodeValidation, "invalid achievement_date format, must be YYYY-MM-DD", err)
 	}
 
 	input := domain.ClubAchievement{
-		Title:       req.Title,
-		Description: req.Description,
-		Date:        date,
+		Title:             req.Title,
+		TournamentName:    req.TournamentName,
+		GameTitle:         req.GameTitle,
+		Placement:         req.Placement,
+		AchievementDate:   date,
+		TournamentTier:    req.TournamentTier,
+		PrizePoolCurrency: req.PrizePoolCurrency,
+		PrizePoolAmount:   req.PrizePoolAmount,
+		EventScale:        req.EventScale,
+		ReferenceUrl:      req.ReferenceUrl,
+		CertificateUrl:    req.CertificateUrl,
 	}
 
 	ach, err := h.clubUsecase.AddAchievement(c.UserContext(), clubID, input, userID)
@@ -309,19 +325,27 @@ func (h *ClubHandler) UpdateAchievement(c *fiber.Ctx) error {
 		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid request body", err)
 	}
 
-	if req.Title == "" || req.Date == "" {
-		return domain.NewAppError(domain.ErrCodeValidation, "title and date are required", nil)
+	if req.Title == "" || req.TournamentName == "" || req.GameTitle == "" || req.Placement == "" || req.AchievementDate == "" {
+		return domain.NewAppError(domain.ErrCodeValidation, "title, tournament_name, game_title, placement, and achievement_date are required", nil)
 	}
 
-	date, err := time.Parse("2006-01-02", req.Date)
+	date, err := time.Parse("2006-01-02", req.AchievementDate)
 	if err != nil {
-		return domain.NewAppError(domain.ErrCodeValidation, "invalid date format, must be YYYY-MM-DD", err)
+		return domain.NewAppError(domain.ErrCodeValidation, "invalid achievement_date format, must be YYYY-MM-DD", err)
 	}
 
 	input := domain.ClubAchievement{
-		Title:       req.Title,
-		Description: req.Description,
-		Date:        date,
+		Title:             req.Title,
+		TournamentName:    req.TournamentName,
+		GameTitle:         req.GameTitle,
+		Placement:         req.Placement,
+		AchievementDate:   date,
+		TournamentTier:    req.TournamentTier,
+		PrizePoolCurrency: req.PrizePoolCurrency,
+		PrizePoolAmount:   req.PrizePoolAmount,
+		EventScale:        req.EventScale,
+		ReferenceUrl:      req.ReferenceUrl,
+		CertificateUrl:    req.CertificateUrl,
 	}
 
 	ach, err := h.clubUsecase.UpdateAchievement(c.UserContext(), clubID, achID, input, userID)

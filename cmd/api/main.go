@@ -47,6 +47,10 @@ func main() {
 		fmt.Printf("failed to create uploads/clubs directory: %v\n", err)
 		os.Exit(1)
 	}
+	if err := os.MkdirAll("./uploads/teams", 0755); err != nil {
+		fmt.Printf("failed to create uploads/teams directory: %v\n", err)
+		os.Exit(1)
+	}
 
 	// Create daily log file
 	logFileName := fmt.Sprintf("logs/%s.log", time.Now().Format("2006-01-02"))
@@ -305,6 +309,7 @@ func main() {
 	app.Delete("/api/teams/:id", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequirePermission("manage_teams"), teamHandler.Delete)
 	app.Post("/api/teams/:id/assign", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequirePermission("manage_teams"), teamHandler.AssignMember)
 	app.Post("/api/teams/:id/release", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequirePermission("manage_teams"), teamHandler.ReleaseMember)
+	app.Post("/api/teams/:id/upload-logo", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequirePermission("manage_teams"), teamHandler.UploadLogo)
 
 	// Trial Management Endpoints
 	// Module 1: Trial

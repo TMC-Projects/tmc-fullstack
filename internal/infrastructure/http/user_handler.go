@@ -55,11 +55,13 @@ func (h *UserHandler) GetListByCategory(category string) fiber.Handler {
 				"category":       u.Category,
 				"contract_until": u.ContractUntil,
 				"salary":         u.Salary,
-				"stats":          u.Stats,
-				"achievements":   u.Achievements,
-				"highlights":     u.Highlights,
-				"created_at":     u.CreatedAt,
-				"updated_at":     u.UpdatedAt,
+				"stats":               u.Stats,
+				"achievements":        u.Achievements,
+				"highlights":          u.Highlights,
+				"team_id":             u.TeamID,
+				"profile_picture_url": u.ProfilePictureUrl,
+				"created_at":          u.CreatedAt,
+				"updated_at":          u.UpdatedAt,
 			})
 		}
 

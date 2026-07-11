@@ -7,6 +7,7 @@ import { Shield, MapPin, Calendar, Building2, ChevronLeft, Flag , CreditCard } f
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import B2CNavbar from '@/components/dashboard/B2CNavbar';
+import { useTranslations } from 'next-intl';
 
 interface ClubDetail {
   id: number;
@@ -20,6 +21,7 @@ interface ClubDetail {
 }
 
 export default function ClubDetailPage() {
+  const t = useTranslations('ClubDetail');
   const params = useParams();
   const router = useRouter();
   const clubId = params.id as string;
@@ -41,7 +43,7 @@ export default function ClubDetailPage() {
         });
         const data = await res.json();
         if (!res.ok) {
-          throw new Error(data.message || 'Gagal memuat data klub');
+          throw new Error(data.message || t('error_load_club'));
         }
         setClub(data.data);
       } catch (err: any) {
@@ -66,10 +68,10 @@ export default function ClubDetailPage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
         <Shield className="w-16 h-16 text-slate-700 mb-4" />
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">Klub Tidak Ditemukan</h2>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">{error || 'Data klub tidak tersedia.'}</p>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">{t('club_not_found')}</h2>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">{error || t('club_unavailable')}</p>
         <Link href="/app/dashboard" className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl transition-colors">
-          Kembali ke Dashboard
+          {t('back_to_dashboard')}
         </Link>
       </div>
     );
@@ -119,19 +121,19 @@ export default function ClubDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-300 dark:border-slate-800">
                 <div className="flex items-center justify-center sm:justify-start gap-3 text-slate-600 dark:text-slate-400">
                   <MapPin className="w-5 h-5 text-slate-500 dark:text-slate-500" />
-                  <span>{club.address || 'Alamat tidak tersedia'}</span>
+                  <span>{club.address || t('address_unavailable')}</span>
                 </div>
                 <div className="flex items-center justify-center sm:justify-start gap-3 text-slate-600 dark:text-slate-400">
                   <Flag className="w-5 h-5 text-slate-500 dark:text-slate-500" />
-                  <span>{club.country || 'Negara tidak tersedia'}</span>
+                  <span>{club.country || t('country_unavailable')}</span>
                 </div>
                 <div className="flex items-center justify-center sm:justify-start gap-3 text-slate-600 dark:text-slate-400">
                   <Calendar className="w-5 h-5 text-slate-500 dark:text-slate-500" />
-                  <span>Berdiri tahun {club.established_year || '-'}</span>
+                  <span>{t('established_in')} {club.established_year || '-'}</span>
                 </div>
                 <div className="flex items-center justify-center sm:justify-start gap-3 text-slate-600 dark:text-slate-400">
                   <Building2 className="w-5 h-5 text-slate-500 dark:text-slate-500" />
-                  <span>Penyelenggara B2B Berizin</span>
+                  <span>{t('b2b_organizer')}</span>
                 </div>
               </div>
             </div>

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	"njara-platform/internal/domain"
 )
@@ -213,4 +214,23 @@ func (u *teamUsecase) ReleaseUser(ctx context.Context, teamID int64, targetUserI
 	}
 
 	return u.userRepo.UpdateTeamID(ctx, targetUserID, nil)
+}
+
+func (u *teamUsecase) UploadLogo(ctx context.Context, teamID int64, url string, userID int64) error {
+	// First, verify the user has access to this team
+	team, err := u.GetTeamByID(ctx, teamID, userID)
+	if err != nil {
+		return err
+	}
+
+	// Update the logo URL
+	team.LogoUrl = url
+	team.UpdatedAt = time.Now()
+
+	err = u.teamRepo.Update(ctx, team)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to update team logo", err)
+	}
+
+	return nil
 }

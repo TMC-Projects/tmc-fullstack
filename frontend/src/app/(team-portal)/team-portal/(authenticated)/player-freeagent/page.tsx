@@ -938,7 +938,7 @@ function TalentCard({
       <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3 z-10">
         {/* Logo */}
         <div className="w-14 h-14 rounded-full border-2 border-white flex items-center justify-center bg-transparent backdrop-blur-md shrink-0 shadow-[0_0_10px_rgba(0,0,0,0.5)]">
-          <span className="text-white font-black text-sm tracking-tighter">TMC</span>
+          <span className="text-white font-black text-sm tracking-tighter">EMC</span>
         </div>
 
         {/* Info */}

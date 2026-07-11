@@ -25,9 +25,11 @@ export default function SubscriptionsPage() {
   
   const [plans, setPlans] = useState<Plan[]>([]);
   const [activeSub, setActiveSub] = useState<ActiveSubscription | null>(null);
+  const [transactions, setTransactions] = useState<ActiveSubscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [clubStatus, setClubStatus] = useState<string>('trial');
 
   const fetchPlans = useCallback(async () => {
     try {
@@ -79,17 +81,33 @@ export default function SubscriptionsPage() {
                     || mappedSubs.find((s: ActiveSubscription) => s.status === 'pending')
                     || mappedSubs[0];
         setActiveSub(active);
+        setTransactions(mappedSubs);
       }
     } catch (err) {
       console.error("Failed to fetch my subscription", err);
     }
   }, [token]);
 
+  const fetchClubStatus = useCallback(async () => {
+    if (!token || !user?.club_id) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clubs/${user.club_id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.data) {
+        setClubStatus(data.data.status || data.data.Status || 'trial');
+      }
+    } catch (err) {
+      console.error("Failed to fetch club status", err);
+    }
+  }, [token, user]);
+
   const loadData = useCallback(async () => {
     setIsLoading(true);
-    await Promise.all([fetchPlans(), fetchMySub()]);
+    await Promise.all([fetchPlans(), fetchMySub(), fetchClubStatus()]);
     setIsLoading(false);
-  }, [fetchPlans, fetchMySub]);
+  }, [fetchPlans, fetchMySub, fetchClubStatus]);
 
   useEffect(() => {
     if (_hasHydrated) {
@@ -218,31 +236,82 @@ export default function SubscriptionsPage() {
           </div>
         )}
 
-        {/* Pricing Plans */}
-        <div>
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('choose_plan_title')}</h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-2">{t('choose_plan_subtitle')}</p>
+        {/* Pricing Plans or Transaction History */}
+        {clubStatus === 'full' ? (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('transaction_history')}</h2>
+              <p className="text-slate-500 dark:text-slate-400 mt-2">{t('transaction_history_subtitle')}</p>
+            </div>
+            
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                      <th className="py-4 px-6 font-semibold text-slate-900 dark:text-white">{t('col_plan')}</th>
+                      <th className="py-4 px-6 font-semibold text-slate-900 dark:text-white">{t('col_status')}</th>
+                      <th className="py-4 px-6 font-semibold text-slate-900 dark:text-white">{t('col_paid_date')}</th>
+                      <th className="py-4 px-6 font-semibold text-slate-900 dark:text-white">{t('col_expired_date')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                    {transactions.map((trx) => (
+                      <tr key={trx.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                        <td className="py-4 px-6 font-medium text-slate-900 dark:text-white">
+                          {trx.plan?.name || 'Unknown Plan'}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            trx.status === 'paid' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                            trx.status === 'pending' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' :
+                            trx.status === 'failed' ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400' :
+                            'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400'
+                          }`}>
+                            {trx.status === 'paid' ? t('status_active') :
+                             trx.status === 'pending' ? t('status_pending') :
+                             trx.status === 'expired' ? t('status_expired') : t('status_failed')}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-slate-600 dark:text-slate-400">
+                          {trx.paid_at ? formatDate(trx.paid_at) : '-'}
+                        </td>
+                        <td className="py-4 px-6 text-slate-600 dark:text-slate-400">
+                          {trx.expired_at ? formatDate(trx.expired_at) : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-          
-          {plans.length === 0 ? (
-            <div className="text-center text-slate-500 py-10">
-              {t('no_plans')}
+        ) : (
+          <div>
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('choose_plan_title')}</h2>
+              <p className="text-slate-500 dark:text-slate-400 mt-2">{t('choose_plan_subtitle')}</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-              {plans.map((plan, index) => (
-                <div key={plan.id} className={index === 1 ? 'md:-mt-4 md:mb-4 relative z-10' : ''}>
-                  <SubscriptionCard 
-                    plan={plan} 
-                    onSelect={handleSelectPlan}
-                    isPopular={index === 1} // The middle one is usually the most popular
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+            
+            {plans.length === 0 ? (
+              <div className="text-center text-slate-500 py-10">
+                {t('no_plans')}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+                {plans.map((plan, index) => (
+                  <div key={plan.id} className={index === 1 ? 'md:-mt-4 md:mb-4 relative z-10' : ''}>
+                    <SubscriptionCard 
+                      plan={plan} 
+                      onSelect={handleSelectPlan}
+                      isPopular={index === 1} // The middle one is usually the most popular
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       {/* Loading Overlay when processing */}

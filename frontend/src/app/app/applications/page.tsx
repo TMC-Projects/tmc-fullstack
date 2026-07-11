@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
+import { useTranslations } from 'next-intl';
 import { 
   ChevronLeft, Calendar, MessageSquare, ShieldAlert, Building2, CheckCircle2, XCircle, Clock
 , CreditCard } from 'lucide-react';
@@ -32,6 +33,7 @@ interface Application {
 }
 
 export default function MyApplicationsPage() {
+  const t = useTranslations('MyApplications');
   const router = useRouter();
   const { token, _hasHydrated } = useAuthStore();
 
@@ -48,7 +50,7 @@ export default function MyApplicationsPage() {
       const data = await res.json();
       
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to fetch applications');
+        throw new Error(data.message || t('error_fetch'));
       }
       setApplications(data.data || []);
     } catch (err) {
@@ -92,10 +94,10 @@ export default function MyApplicationsPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'APPLIED': return 'Menunggu Ulasan';
-      case 'SHORTLISTED': return 'Diterima / Lolos';
-      case 'REJECTED': return 'Ditolak';
-      case 'WITHDRAWN': return 'Ditarik';
+      case 'APPLIED': return t('status_applied');
+      case 'SHORTLISTED': return t('status_shortlisted');
+      case 'REJECTED': return t('status_rejected');
+      case 'WITHDRAWN': return t('status_withdrawn');
       default: return status;
     }
   };
@@ -118,8 +120,8 @@ export default function MyApplicationsPage() {
             <div className="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
               <Calendar className="w-8 h-8 text-slate-500 dark:text-slate-500" />
             </div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">Belum Ada Lamaran</h3>
-            <p className="text-slate-600 dark:text-slate-400 max-w-md">Anda belum pernah melamar ke trial manapun. Temukan trial yang cocok dan mulai perjalanan karier Anda!</p>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">{t('no_applications_title')}</h3>
+            <p className="text-slate-600 dark:text-slate-400 max-w-md">{t('no_applications_desc')}</p>
             <Link 
               href="/app/dashboard"
               className="mt-6 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold rounded-xl transition-colors"
@@ -143,22 +145,22 @@ export default function MyApplicationsPage() {
                   <div className="space-y-3">
                     <div>
                       <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-amber-400 transition-colors">
-                        {app.Trial?.Title || 'Trial Tidak Diketahui'}
+                        {app.Trial?.Title || t('unknown_trial')}
                       </h3>
                       <div className="flex items-center gap-2 mt-1.5 text-sm text-slate-600 dark:text-slate-400">
                         <Building2 className="w-4 h-4 text-slate-500 dark:text-slate-500" />
-                        {app.Trial?.Club?.Name || 'Klub Tidak Diketahui'}
+                        {app.Trial?.Club?.Name || t('unknown_club')}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-500 flex-wrap mt-2">
                       <div className="flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-950/50 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-800">
                         <Calendar className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-                        <span>Pelaksanaan: <span className="text-slate-700 dark:text-slate-300 font-medium">{formatDate(app.Trial?.StartDate)}</span> s/d <span className="text-slate-700 dark:text-slate-300 font-medium">{formatDate(app.Trial?.EndDate)}</span></span>
+                        <span>{t('execution')} <span className="text-slate-700 dark:text-slate-300 font-medium">{formatDate(app.Trial?.StartDate)}</span> {t('to')} <span className="text-slate-700 dark:text-slate-300 font-medium">{formatDate(app.Trial?.EndDate)}</span></span>
                       </div>
                       <div className="flex items-center gap-1.5 px-2.5 py-1">
                         <Clock className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-                        <span>Dilamar pada: {formatDate(app.AppliedAt)}</span>
+                        <span>{t('applied_on')} {formatDate(app.AppliedAt)}</span>
                       </div>
                     </div>
                   </div>
@@ -176,7 +178,7 @@ export default function MyApplicationsPage() {
                     <div className="flex items-start gap-2 bg-slate-50/50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-300/50 dark:border-slate-800/50">
                       <MessageSquare className="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0 mt-0.5" />
                       <div>
-                        <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Catatan dari Klub:</div>
+                        <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">{t('club_notes')}</div>
                         <p className="text-sm text-slate-600 dark:text-slate-400 italic">"{app.Remarks}"</p>
                       </div>
                     </div>

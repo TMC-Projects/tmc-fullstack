@@ -27,13 +27,21 @@ type Club struct {
 
 // ClubAchievement represents a notable achievement/award for a Club
 type ClubAchievement struct {
-	ID          int64     `json:"id"`
-	ClubID      int64     `json:"club_id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Date        time.Time `json:"date"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID                int64     `json:"id"`
+	ClubID            int64     `json:"club_id"`
+	Title             string    `json:"title"`
+	TournamentName    string    `json:"tournament_name"`
+	GameTitle         string    `json:"game_title"`
+	Placement         string    `json:"placement"`
+	AchievementDate   time.Time `json:"achievement_date"`
+	TournamentTier    string    `json:"tournament_tier,omitempty"`
+	PrizePoolCurrency string    `json:"prize_pool_currency,omitempty"`
+	PrizePoolAmount   *float64  `json:"prize_pool_amount,omitempty"`
+	EventScale        string    `json:"event_scale,omitempty"`
+	ReferenceUrl      string    `json:"reference_url,omitempty"`
+	CertificateUrl    string    `json:"certificate_url,omitempty"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }
 
 // ClubOnboarding represents the request for a club to verify its data

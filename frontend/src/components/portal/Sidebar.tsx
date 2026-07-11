@@ -22,7 +22,8 @@ import {
   Globe,
   Check,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Trophy
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -89,6 +90,12 @@ export default function Sidebar() {
       href: '/portal/teams',
       icon: Shield,
       roles: ['owner', 'manager', 'coach']
+    },
+    {
+      name: 'Achievements',
+      href: '/portal/club/achievements',
+      icon: Trophy,
+      roles: ['owner', 'manager']
     }
   ];
 
@@ -111,11 +118,11 @@ export default function Sidebar() {
           {user?.club_logo_url ? (
             <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.club_logo_url}`} alt="Club Logo" className="w-8 h-8 rounded-xl object-cover bg-white shrink-0" />
           ) : (
-            <img src="/logo.png" alt="TMC Logo" className="w-8 h-8 rounded-xl object-contain shrink-0" />
+            <img src="/logo.png" alt="EMC Logo" className="w-8 h-8 rounded-xl object-contain shrink-0" />
           )}
           {!collapsed && (
             <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent tracking-wide truncate transition-opacity duration-300">
-              {user?.club_name || 'TMC PORTAL'}
+              {user?.club_name || 'EMC PORTAL'}
             </span>
           )}
         </Link>
@@ -260,9 +267,9 @@ export default function Sidebar() {
       {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-300 dark:border-slate-800 z-40 flex items-center justify-between px-4">
         <Link href="/portal/dashboard" className="flex items-center gap-2">
-          <img src="/logo.png" alt="TMC Logo" className="w-6 h-6 rounded-lg object-contain" />
+          <img src="/logo.png" alt="EMC Logo" className="w-6 h-6 rounded-lg object-contain" />
           <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent tracking-wide">
-            TMC
+            EMC
           </span>
         </Link>
         <button

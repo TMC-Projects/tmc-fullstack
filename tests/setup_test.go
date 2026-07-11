@@ -143,6 +143,11 @@ func TestMain(m *testing.M) {
 
 	app.Post("/api/clubs", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner"), clubHandler.Create)
 	app.Put("/api/clubs/:id", authMiddleware.Authenticate, clubHandler.Update)
+	app.Get("/api/clubs/:id", authMiddleware.Authenticate, clubHandler.GetByID)
+	app.Post("/api/clubs/:id/achievements", authMiddleware.Authenticate, clubHandler.AddAchievement)
+	app.Put("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, clubHandler.UpdateAchievement)
+	app.Delete("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, clubHandler.DeleteAchievement)
+
 
 	app.Get("/api/players", authMiddleware.Authenticate, userHandler.GetListByCategory("player"))
 	app.Get("/api/coaches", authMiddleware.Authenticate, userHandler.GetListByCategory("coach"))
@@ -186,12 +191,14 @@ func TestMain(m *testing.M) {
 // migrateAndSeedDB runs GORM auto-migrations and seeds required data.
 // This mirrors the migrateAndSeedDB function in main.go exactly.
 func migrateAndSeedDB(db *gorm.DB) error {
-	db.Exec("TRUNCATE TABLE transfer_market, role_permissions, users CASCADE;")
+	db.Exec("DROP TABLE IF EXISTS club_achievements CASCADE;")
+	db.Exec("TRUNCATE TABLE transfer_market, role_permissions, users, club_achievements CASCADE;")
 	if testRedis != nil {
 		testRedis.FlushAll(context.Background())
 	}
 	err := db.AutoMigrate(
 		&postgres.ClubModel{},
+		&postgres.ClubAchievementModel{},
 		&postgres.UserModel{},
 		&postgres.GameModel{},
 		&postgres.RolePermissionModel{},
@@ -269,7 +276,8 @@ func cleanupTestUsers() {
 	if testDB == nil {
 		return
 	}
-	testDB.Exec("TRUNCATE TABLE transfer_market, role_permissions, users CASCADE;")
+	testDB.Exec("DROP TABLE IF EXISTS club_achievements CASCADE;")
+	testDB.Exec("TRUNCATE TABLE transfer_market, role_permissions, users, club_achievements CASCADE;")
 }
 
 // trackTestUser registers an email to be deleted in teardown.

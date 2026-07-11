@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/auth';
-import { Shield, Plus, Edit, Trash2, X, Search, UserPlus, Users } from 'lucide-react';
+import { Shield, Plus, Edit, Trash2, X, Search, UserPlus, Users, UserCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useAlertStore } from '@/store/alertStore';
@@ -19,6 +19,7 @@ interface Team {
   name: string;
   description: string;
   status: string;
+  logo_url?: string;
   game?: Game;
 }
 
@@ -26,6 +27,7 @@ interface Coach {
   id: number;
   full_name: string;
   team_id?: number | null;
+  profile_picture_url?: string;
 }
 
 export default function TeamsPage() {
@@ -258,8 +260,16 @@ export default function TeamsPage() {
               <div key={team.id} className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow relative group">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
-                      <Shield className="w-6 h-6" />
+                    <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 flex-shrink-0 overflow-hidden">
+                      {team.logo_url ? (
+                        <img 
+                          src={team.logo_url.startsWith('http') ? team.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${team.logo_url}`} 
+                          alt={team.name} 
+                          className="w-full h-full object-cover" 
+                        />
+                      ) : (
+                        <Shield className="w-6 h-6" />
+                      )}
                     </div>
                     <div>
                       <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">{team.name}</h3>
@@ -286,13 +296,34 @@ export default function TeamsPage() {
                       <Users className="w-4 h-4" />
                       {t('view_members')}
                     </Link>
-                    <button
-                      onClick={() => handleOpenAssignModal(team.id)}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 rounded-lg transition-colors"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      {t('assign_coach')}
-                    </button>
+                    {(() => {
+                      const coach = coaches.find(c => c.team_id === team.id);
+                      if (coach) {
+                        return (
+                          <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 bg-slate-50 dark:text-slate-300 dark:bg-slate-800 rounded-lg" title={`Coach: ${coach.full_name}`}>
+                            {coach.profile_picture_url ? (
+                              <img 
+                                src={coach.profile_picture_url.startsWith('http') ? coach.profile_picture_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${coach.profile_picture_url}`} 
+                                alt={coach.full_name} 
+                                className="w-5 h-5 rounded-full object-cover" 
+                              />
+                            ) : (
+                              <UserCircle className="w-4 h-4 text-slate-400" />
+                            )}
+                            <span className="truncate max-w-[100px]">{coach.full_name}</span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <button
+                          onClick={() => handleOpenAssignModal(team.id)}
+                          className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 rounded-lg transition-colors"
+                        >
+                          <UserPlus className="w-4 h-4" />
+                          {t('assign_coach')}
+                        </button>
+                      );
+                    })()}
                   </div>
                   <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
                     <button

@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAlertStore } from '@/store/alertStore';
+import { useTranslations } from 'next-intl';
 
 interface PlayerDetail {
   ID: number;
@@ -51,6 +52,7 @@ export default function PlayerDetailPage() {
   const playerId = params.id as string;
   const { token, _hasHydrated } = useAuthStore();
   const { showAlert } = useAlertStore();
+  const t = useTranslations('PlayerDetail');
 
   const appId = searchParams.get('appId');
   const appStatus = searchParams.get('appStatus');
@@ -77,7 +79,7 @@ export default function PlayerDetailPage() {
         });
         const data = await res.json();
         if (!res.ok) {
-          throw new Error(data.message || 'Gagal memuat detail pemain');
+          throw new Error(data.message || t('error_load'));
         }
         setPlayer(data.data);
       } catch (err: any) {
@@ -120,12 +122,12 @@ export default function PlayerDetailPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || `Failed to ${actionType} application`);
+        throw new Error(errorData.message || t('error_failed_action'));
       }
 
       closeActionModal();
       router.back();
-      showAlert('Aksi berhasil', 'success');
+      showAlert(t('action_success'), 'success');
     } catch (err: any) {
       showAlert(err.message, 'error');
     } finally {
@@ -145,10 +147,10 @@ export default function PlayerDetailPage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
         <UserCircle className="w-16 h-16 text-slate-700 mb-4" />
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">Pemain Tidak Ditemukan</h2>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">{error || 'Data pemain tidak tersedia atau Anda tidak memiliki akses.'}</p>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">{t('not_found_title')}</h2>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">{error || t('not_found_desc')}</p>
         <button onClick={() => router.back()} className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl transition-colors">
-          Kembali
+          {t('back_btn')}
         </button>
       </div>
     );
@@ -166,7 +168,7 @@ export default function PlayerDetailPage() {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">Profil Pemain</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t('page_title')}</h1>
           </div>
 
           {appId && appStatus === 'APPLIED' && (
@@ -176,14 +178,14 @@ export default function PlayerDetailPage() {
                 className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-xl text-sm font-medium transition-colors"
               >
                 <Check className="w-4 h-4" />
-                <span className="hidden sm:inline">Terima</span>
+                <span className="hidden sm:inline">{t('btn_accept')}</span>
               </button>
               <button
                 onClick={() => openActionModal('reject')}
                 className="flex items-center gap-1.5 px-4 py-2 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl text-sm font-medium transition-colors"
               >
                 <XIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Tolak</span>
+                <span className="hidden sm:inline">{t('btn_reject')}</span>
               </button>
             </div>
           )}
@@ -233,7 +235,7 @@ export default function PlayerDetailPage() {
                   ) : (
                     <Shield className="w-5 h-5 text-slate-500 dark:text-slate-500" />
                   )}
-                  <span className="text-slate-700 dark:text-slate-300 font-semibold">{player.Club?.name || player.Club?.Name || 'Free Agent'}</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-semibold">{player.Club?.name || player.Club?.Name || t('free_agent')}</span>
                 </div>
               </div>
 
@@ -259,40 +261,40 @@ export default function PlayerDetailPage() {
           <div className="lg:col-span-2 flex flex-col gap-6 lg:gap-8">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl p-6">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <UserCircle className="w-5 h-5 text-indigo-400" /> Biodata & Informasi Profesional
+                <UserCircle className="w-5 h-5 text-indigo-400" /> {t('section_bio')}
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="space-y-3">
                   <div>
-                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">ID Pengguna</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">{t('label_id')}</div>
                     <div className="text-slate-700 dark:text-slate-300 font-medium">#{player.ID}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">Email</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">{t('label_email')}</div>
                     <div className="text-slate-700 dark:text-slate-300 font-medium">{player.Email || '-'}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">Kategori</div>
-                    <div className="text-slate-700 dark:text-slate-300 font-medium capitalize">{player.Category || 'Player'}</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">{t('label_category')}</div>
+                    <div className="text-slate-700 dark:text-slate-300 font-medium capitalize">{player.Category || t('val_player')}</div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">Kontrak (Berlaku Hingga)</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">{t('label_contract')}</div>
                     <div className="text-slate-700 dark:text-slate-300 font-medium">
-                      {player.ContractUntil ? new Date(player.ContractUntil).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Unavailable'}
+                      {player.ContractUntil ? new Date(player.ContractUntil).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : t('val_unavailable')}
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">Nilai Pasar (Market Value)</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">{t('label_market_value')}</div>
                     <div className="text-slate-700 dark:text-slate-300 font-medium">
-                      {player.MarketValue ? `Rp ${player.MarketValue.toLocaleString('id-ID')}` : 'Unavailable'}
+                      {player.MarketValue ? `Rp ${player.MarketValue.toLocaleString('id-ID')}` : t('val_unavailable')}
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">Total Vote</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-500 mb-1">{t('label_vote')}</div>
                     <div className="text-slate-700 dark:text-slate-300 font-medium flex items-center gap-1">
                       <Star className="w-4 h-4 text-amber-400" /> {player.VoteCount || 0}
                     </div>
@@ -301,15 +303,15 @@ export default function PlayerDetailPage() {
               </div>
 
               <div className="pt-4 border-t border-slate-300/50 dark:border-slate-800/50">
-                <div className="text-sm text-slate-500 dark:text-slate-500 mb-2">Tentang</div>
-                <p className="text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">{player.Bio || 'Pemain ini belum menuliskan biodatanya.'}</p>
+                <div className="text-sm text-slate-500 dark:text-slate-500 mb-2">{t('label_about')}</div>
+                <p className="text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">{player.Bio || t('empty_bio')}</p>
               </div>
             </motion.div>
 
             {player.Achievements && player.Achievements.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl p-6">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-amber-400" /> Pencapaian
+                  <Trophy className="w-5 h-5 text-amber-400" /> {t('section_achievements')}
                 </h3>
                 <div className="space-y-3">
                   {player.Achievements.map((ach, idx) => (
@@ -319,7 +321,7 @@ export default function PlayerDetailPage() {
                       </div>
                       <div>
                         <h4 className="font-semibold text-slate-800 dark:text-slate-200">{ach.Title}</h4>
-                        <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">{ach.Description || 'Tidak ada deskripsi'}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">{ach.Description || t('empty_desc')}</p>
                       </div>
                     </div>
                   ))}
@@ -330,7 +332,7 @@ export default function PlayerDetailPage() {
             {player.Highlights && player.Highlights.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl p-6">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-indigo-400" /> Video Sorotan (Highlights)
+                  <Star className="w-5 h-5 text-indigo-400" /> {t('section_highlights')}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {player.Highlights.map((hl, idx) => {
@@ -378,7 +380,7 @@ export default function PlayerDetailPage() {
           <div className="flex flex-col gap-6 lg:gap-8">
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl p-6 lg:sticky lg:top-24">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-emerald-400" /> Statistik Permainan
+                <BarChart3 className="w-5 h-5 text-emerald-400" /> {t('section_stats')}
               </h3>
 
               {player.Stats && player.Stats.length > 0 ? (
@@ -395,7 +397,7 @@ export default function PlayerDetailPage() {
                 </div>
               ) : (
                 <div className="text-center py-6 text-slate-500 dark:text-slate-500 text-sm">
-                  Belum ada data statistik.
+                  {t('empty_stats')}
                 </div>
               )}
             </motion.div>
@@ -412,9 +414,9 @@ export default function PlayerDetailPage() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-300 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
               <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 {actionType === 'shortlist' ? (
-                  <><Check className="w-5 h-5 text-emerald-400" /> Terima Pemain</>
+                  <><Check className="w-5 h-5 text-emerald-400" /> {t('modal_accept_title')}</>
                 ) : (
-                  <><XIcon className="w-5 h-5 text-rose-400" /> Tolak Pemain</>
+                  <><XIcon className="w-5 h-5 text-rose-400" /> {t('modal_reject_title')}</>
                 )}
               </h3>
               <button
@@ -427,17 +429,17 @@ export default function PlayerDetailPage() {
 
             <div className="p-5">
               <div className="mb-4 text-sm text-slate-700 dark:text-slate-300">
-                Anda akan <strong className={actionType === 'shortlist' ? 'text-emerald-400' : 'text-rose-400'}>
-                  {actionType === 'shortlist' ? 'menerima (shortlist)' : 'menolak'}
-                </strong> aplikasi dari <strong className="text-white">{player.FullName}</strong>.
+                {t('modal_msg_prefix')} <strong className={actionType === 'shortlist' ? 'text-emerald-400' : 'text-rose-400'}>
+                  {actionType === 'shortlist' ? t('modal_msg_accept') : t('modal_msg_reject')}
+                </strong>{t('modal_msg_suffix')}<strong className="text-white">{player.FullName}</strong>.
               </div>
 
               <form id="action-form" onSubmit={handleActionSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Catatan / Alasan (Opsional)</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('modal_label_remarks')}</label>
                   <textarea
                     rows={3}
-                    placeholder={actionType === 'shortlist' ? "Contoh: Lolos ke tahap seleksi tatap muka." : "Contoh: Belum memenuhi kriteria minimum."}
+                    placeholder={actionType === 'shortlist' ? t('modal_ph_accept') : t('modal_ph_reject')}
                     value={remarks} onChange={e => setRemarks(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors placeholder:text-slate-600"
                   />
@@ -450,14 +452,14 @@ export default function PlayerDetailPage() {
                 type="button" onClick={closeActionModal}
                 className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl transition-colors"
               >
-                Batal
+                {t('btn_cancel')}
               </button>
               <button
                 form="action-form" type="submit" disabled={isSubmitting}
                 className={`px-4 py-2 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-colors flex items-center justify-center min-w-[100px] ${actionType === 'shortlist' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'
                   }`}
               >
-                {isSubmitting ? 'Memproses...' : 'Konfirmasi'}
+                {isSubmitting ? t('btn_processing') : t('btn_confirm')}
               </button>
             </div>
           </div>

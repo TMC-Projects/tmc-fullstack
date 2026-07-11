@@ -42,9 +42,9 @@ export default function B2CNavbar() {
     <nav className="sticky top-0 z-50 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-300 dark:border-slate-800">
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
         <Link href="/app/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <img src="/logo.png" alt="TMC Platform Logo" className="h-8 w-auto" />
+          <img src="/logo.png" alt="EMC Platform Logo" className="h-8 w-auto" />
           <h1 className="text-xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent hidden sm:block">
-            {t('title') || 'TMC Platform'}
+            {t('title') || 'EMC Platform'}
           </h1>
         </Link>
         

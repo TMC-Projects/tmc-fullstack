@@ -7,7 +7,8 @@ import {
   Search, Filter, Plus, Edit2, Copy, Check, X,
   Shield, Activity, DollarSign, Calendar,
   ChevronLeft, ChevronRight, UserCircle, LogOut, Menu,
-  Settings, Trash2, Image as ImageIcon, Contact, Star, RefreshCw, UserMinus
+  Settings, Trash2, Image as ImageIcon, Contact, Star, RefreshCw, UserMinus,
+  LayoutGrid, List
 } from "lucide-react";
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -49,6 +50,19 @@ export default function TalentsPage() {
   const [category, setCategory] = useState('');
   const [transferStatus, setTransferStatus] = useState('');
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('talentsViewMode');
+    if (saved === 'grid' || saved === 'table') {
+      setViewMode(saved as 'grid' | 'table');
+    }
+  }, []);
+
+  const handleViewModeChange = (mode: 'grid' | 'table') => {
+    setViewMode(mode);
+    localStorage.setItem('talentsViewMode', mode);
+  };
 
   // Modal States
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -181,6 +195,22 @@ export default function TalentsPage() {
               <option value="loan">{t('loan_listed')}</option>
               <option value="free">{t('free_agent')}</option>
             </select>
+            <div className="flex gap-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-1">
+              <button
+                onClick={() => handleViewModeChange('grid')}
+                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+                title="Grid View"
+              >
+                <LayoutGrid className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => handleViewModeChange('table')}
+                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'table' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+                title="Table View"
+              >
+                <List className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -195,7 +225,7 @@ export default function TalentsPage() {
             <div className="bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-2xl py-20 text-center text-slate-500">
               {t('no_data')}
             </div>
-          ) : (
+          ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {talents.map((t) => (
                 <TalentCard
@@ -212,6 +242,37 @@ export default function TalentsPage() {
                   onViewDetail={(talent) => { router.push(`/portal/talents/${talent.id}`); }}
                 />
               ))}
+            </div>
+          ) : (
+            <div className="w-full overflow-x-auto md:overflow-visible bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl min-h-[400px] pb-48 md:pb-0">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50">
+                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Profil</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Nama / Username</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Peran</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  {talents.map(t => (
+                    <TalentTableRow
+                      key={t.id}
+                      talent={t}
+                      onEditBiodata={(talent) => { setSelectedTalent(talent); setIsBiodataOpen(true); }}
+                      onEditContract={(talent) => { setSelectedTalent(talent); setIsContractOpen(true); }}
+                      onEditMarketValue={(talent) => { setSelectedTalent(talent); setIsMarketValueOpen(true); }}
+                      onEditTransferStatus={(talent) => { setSelectedTalent(talent); setIsTransferOpen(true); }}
+                      onEditPhoto={(talent) => { setSelectedTalent(talent); setIsPhotoOpen(true); }}
+                      onAssignTeam={(talent) => { setSelectedTalent(talent); setIsAssignTeamOpen(true); }}
+                      onReleaseTeam={(talent) => { setSelectedTalent(talent); setIsReleaseTeamOpen(true); }}
+                      onEditStatus={(talent) => { setSelectedTalent(talent); setIsStatusOpen(true); }}
+                      onViewDetail={(talent) => { router.push(`/portal/talents/${talent.id}`); }}
+                    />
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
 
@@ -1011,7 +1072,7 @@ function TalentCard({
       <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3 z-10">
         {/* Logo */}
         <div className="w-14 h-14 rounded-full border-2 border-white flex items-center justify-center bg-transparent backdrop-blur-md shrink-0 shadow-[0_0_10px_rgba(0,0,0,0.5)]">
-          <span className="text-white font-black text-sm tracking-tighter">TMC</span>
+          <span className="text-white font-black text-sm tracking-tighter">EMC</span>
         </div>
 
         {/* Info */}
@@ -1037,6 +1098,139 @@ function TalentCard({
         </div>
       </div>
     </div>
+  );
+}
+
+function TalentTableRow({
+  talent,
+  onEditBiodata,
+  onEditContract,
+  onEditMarketValue,
+  onEditTransferStatus,
+  onEditPhoto,
+  onAssignTeam,
+  onReleaseTeam,
+  onEditStatus,
+  onViewDetail
+}: {
+  talent: TalentResult,
+  onEditBiodata: (t: TalentResult) => void,
+  onEditContract: (t: TalentResult) => void,
+  onEditMarketValue: (t: TalentResult) => void,
+  onEditTransferStatus: (t: TalentResult) => void,
+  onEditPhoto: (t: TalentResult) => void,
+  onAssignTeam: (t: TalentResult) => void,
+  onReleaseTeam: (t: TalentResult) => void,
+  onEditStatus: (t: TalentResult) => void,
+  onViewDetail: (t: TalentResult) => void,
+}) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { showAlert } = useAlertStore();
+
+  const getStatus = () => {
+    if (talent.status === 'inactive') return { text: 'INACTIVE', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400' };
+    if (talent.transfer_status === 'available') return { text: 'TRANSFER', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' };
+    if (talent.transfer_status === 'transferred') return { text: 'INACTIVE', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400' };
+    if (talent.contract_until && new Date(talent.contract_until) < new Date()) return { text: 'INACTIVE', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400' };
+    return { text: 'ACTIVE', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' };
+  };
+  const status = getStatus();
+
+  return (
+    <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+      <td className="px-6 py-4">
+        <div className="w-10 h-10 rounded-full bg-cyan-600 overflow-hidden flex items-center justify-center text-white font-bold shrink-0">
+          {talent.profile_picture_url ? (
+            <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${talent.profile_picture_url}`} alt={talent.full_name} className="w-full h-full object-cover" />
+          ) : (
+            (talent.full_name || talent.username || 'UN').substring(0, 2).toUpperCase()
+          )}
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="font-medium text-slate-900 dark:text-slate-100">{talent.full_name}</div>
+        <div className="text-sm text-slate-500">@{talent.username}</div>
+      </td>
+      <td className="px-6 py-4">
+        <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium uppercase">
+          {talent.category?.replace('_', ' ')}
+        </span>
+      </td>
+      <td className="px-6 py-4">
+        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${status.color}`}>{status.text}</span>
+      </td>
+      <td className="px-6 py-4 text-right">
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => showAlert('Fitur hapus belum tersedia', 'info')}
+            className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onEditPhoto(talent)}
+            className="p-2 text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+            title="Upload Photo"
+          >
+            <ImageIcon className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onEditBiodata(talent)}
+            className="p-2 text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+            title="Edit Biodata"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <div className="relative">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+              title="More"
+            >
+              <Contact className="w-4 h-4" />
+            </button>
+            {isMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200 text-left">
+                  <button onClick={() => { setIsMenuOpen(false); onEditContract(talent); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-amber-500" /> Contract & Salary
+                  </button>
+                  <button onClick={() => { setIsMenuOpen(false); onEditMarketValue(talent); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-amber-500" /> Market Value
+                  </button>
+                  <button onClick={() => { setIsMenuOpen(false); onEditTransferStatus(talent); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4 text-orange-500" /> Transfer Status
+                  </button>
+                  <button onClick={() => { setIsMenuOpen(false); onEditStatus(talent); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-purple-500" /> Account Status
+                  </button>
+                  {(talent.category === 'player' || talent.category === 'coach') && (
+                    talent.team_id ? (
+                      <button onClick={() => { setIsMenuOpen(false); onReleaseTeam(talent); }} className="w-full text-left px-4 py-2 text-sm text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
+                        <UserMinus className="w-4 h-4 text-rose-500" /> Release from Team
+                      </button>
+                    ) : (
+                      <button onClick={() => { setIsMenuOpen(false); onAssignTeam(talent); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-emerald-500" /> Assign to Team
+                      </button>
+                    )
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+          <button
+            onClick={() => onViewDetail(talent)}
+            className="px-3 py-1.5 ml-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            <UserCircle className="w-4 h-4" />
+            Detail
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }
 

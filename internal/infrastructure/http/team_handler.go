@@ -1,7 +1,10 @@
 package http
 
 import (
+	"fmt"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"njara-platform/internal/domain"
@@ -185,4 +188,48 @@ func (h *TeamHandler) ReleaseMember(c *fiber.Ctx) error {
 	}
 
 	return SendSuccess(c, fiber.StatusOK, "User released from team successfully", nil)
+}
+
+// UploadLogo handles uploading a team's logo
+func (h *TeamHandler) UploadLogo(c *fiber.Ctx) error {
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	teamID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "Invalid team ID", err)
+	}
+
+	file, err := c.FormFile("logo")
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "logo file is required", err)
+	}
+
+	// Validate file type
+	ext := filepath.Ext(file.Filename)
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid file type, only jpg/jpeg/png allowed", nil)
+	}
+
+	// Create unique filename
+	filename := fmt.Sprintf("%d_%d%s", teamID, time.Now().Unix(), ext)
+	filepath := fmt.Sprintf("./uploads/teams/%s", filename)
+	fileURL := fmt.Sprintf("/uploads/teams/%s", filename)
+
+	// Save file
+	if err := c.SaveFile(file, filepath); err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to save logo", err)
+	}
+
+	// Update team logo URL in database
+	if err := h.usecase.UploadLogo(c.UserContext(), teamID, fileURL, userID); err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Team logo uploaded successfully", map[string]string{
+		"logo_url": fileURL,
+	})
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CreditCard, Check, AlertTriangle, ArrowLeft, Loader2, QrCode, Banknote, Shield, ClipboardList, User, LogOut, Clock } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import B2CNavbar from '@/components/dashboard/B2CNavbar';
 
@@ -29,6 +30,7 @@ interface Subscription {
 }
 
 export default function SubscriptionPage() {
+  const t = useTranslations('Subscription');
   const router = useRouter();
   const { token, clearAuth, _hasHydrated } = useAuthStore();
 
@@ -113,7 +115,7 @@ export default function SubscriptionPage() {
         body: JSON.stringify({ plan_id: plan.id })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to create subscription');
+      if (!res.ok) throw new Error(data.message || t('error_create'));
 
       setPendingSub(data.data);
       setSelectedPlan(plan);
@@ -138,7 +140,7 @@ export default function SubscriptionPage() {
         body: JSON.stringify({ payment_type: paymentType, bank: bank })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Payment processing failed');
+      if (!res.ok) throw new Error(data.message || t('error_process'));
 
       setPaymentResult(data.data);
     } catch (err: any) {
@@ -172,17 +174,17 @@ export default function SubscriptionPage() {
                 <Shield className="w-8 h-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Premium Active</h2>
-                <p className="text-slate-600 dark:text-slate-400">You are subscribed to the {activeSub.plan?.name} plan.</p>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('title_active')}</h2>
+                <p className="text-slate-600 dark:text-slate-400">{t('desc_active_1')} {activeSub.plan?.name} {t('desc_active_2')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-                <p className="text-sm text-slate-500 mb-1">Status</p>
+                <p className="text-sm text-slate-500 mb-1">{t('label_status')}</p>
                 <p className="font-semibold text-emerald-500 uppercase">{activeSub.status}</p>
               </div>
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-                <p className="text-sm text-slate-500 mb-1">Valid Until</p>
+                <p className="text-sm text-slate-500 mb-1">{t('label_valid_until')}</p>
                 <p className="font-semibold text-slate-900 dark:text-white">
                   {activeSub.expired_at ? new Date(activeSub.expired_at).toLocaleDateString() : 'N/A'}
                 </p>
@@ -199,39 +201,39 @@ export default function SubscriptionPage() {
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Banknote className="w-8 h-8" />
               </div>
-              <h2 className="text-2xl font-bold">Complete your payment</h2>
+              <h2 className="text-2xl font-bold">{t('title_complete_payment')}</h2>
               <p className="text-slate-600 dark:text-slate-400 mt-2">
-                Order ID: <span className="font-mono text-sm">{paymentResult.order_id}</span>
+                {t('label_order_id')} <span className="font-mono text-sm">{paymentResult.order_id}</span>
               </p>
               <p className="text-slate-600 dark:text-slate-400">
-                Amount: <span className="font-bold text-slate-900 dark:text-white">Rp {parseInt(paymentResult.gross_amount).toLocaleString('id-ID')}</span>
+                {t('label_amount')} <span className="font-bold text-slate-900 dark:text-white">Rp {parseInt(paymentResult.gross_amount).toLocaleString('id-ID')}</span>
               </p>
             </div>
 
             {paymentResult.payment_type === 'bank_transfer' && paymentResult.va_numbers?.length > 0 && (
               <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl text-center mb-6 border border-slate-200 dark:border-slate-700">
-                <p className="text-sm text-slate-500 mb-2">Virtual Account ({paymentResult.va_numbers[0].bank.toUpperCase()})</p>
+                <p className="text-sm text-slate-500 mb-2">{t('label_va')} ({paymentResult.va_numbers[0].bank.toUpperCase()})</p>
                 <p className="text-2xl font-mono font-bold tracking-wider">{paymentResult.va_numbers[0].va_number}</p>
               </div>
             )}
 
             {paymentResult.payment_type === 'echannel' && paymentResult.payment_code && (
               <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl text-center mb-6 border border-slate-200 dark:border-slate-700">
-                <p className="text-sm text-slate-500 mb-2">Mandiri Bill Payment Code</p>
+                <p className="text-sm text-slate-500 mb-2">{t('label_mandiri_bill')}</p>
                 <p className="text-2xl font-mono font-bold tracking-wider">{paymentResult.payment_code}</p>
               </div>
             )}
 
             {paymentResult.payment_type === 'qris' && paymentResult.qris_url && (
               <div className="flex flex-col items-center bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl mb-6 border border-slate-200 dark:border-slate-700">
-                <p className="text-sm text-slate-500 mb-4">Scan QRIS to Pay</p>
+                <p className="text-sm text-slate-500 mb-4">{t('label_qris')}</p>
                 <img src={paymentResult.qris_url} alt="QRIS" className="w-48 h-48 rounded-lg bg-white p-2" />
               </div>
             )}
 
             {['gopay', 'credit_card'].includes(paymentResult.payment_type) && paymentResult.actions?.length > 0 && (
               <div className="flex flex-col items-center bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl mb-6 border border-slate-200 dark:border-slate-700">
-                <p className="text-sm text-slate-500 mb-4">Click to complete payment</p>
+                <p className="text-sm text-slate-500 mb-4">{t('label_click_pay')}</p>
                 {paymentResult.actions.map((act: any, idx: number) => (
                   <a key={idx} href={act.url} target="_blank" rel="noopener noreferrer" className="block w-full py-3 mb-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-xl text-center transition-colors">
                     {act.name.replace(/-/g, ' ').toUpperCase()}
@@ -256,7 +258,7 @@ export default function SubscriptionPage() {
             animate={{ opacity: 1, y: 0 }}
             className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 max-w-2xl mx-auto"
           >
-            <h2 className="text-2xl font-bold mb-6">Select Payment Method</h2>
+            <h2 className="text-2xl font-bold mb-6">{t('title_select_payment')}</h2>
 
             {error && (
               <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-xl flex items-start gap-3">
@@ -269,7 +271,7 @@ export default function SubscriptionPage() {
               <label className={`block p-4 border rounded-xl cursor-pointer transition-colors ${paymentType === 'bank_transfer' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'border-slate-200 dark:border-slate-700 hover:border-amber-300'}`}>
                 <div className="flex items-center gap-3">
                   <input type="radio" name="paymentType" value="bank_transfer" checked={paymentType === 'bank_transfer'} onChange={() => setPaymentType('bank_transfer')} className="w-4 h-4 text-amber-500" />
-                  <span className="font-medium">Virtual Account (Bank Transfer)</span>
+                  <span className="font-medium">{t('label_va_transfer')}</span>
                 </div>
                 {paymentType === 'bank_transfer' && (
                   <div className="mt-4 ml-7 grid grid-cols-2 gap-2">
@@ -286,14 +288,14 @@ export default function SubscriptionPage() {
               <label className={`block p-4 border rounded-xl cursor-pointer transition-colors ${paymentType === 'qris' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'border-slate-200 dark:border-slate-700 hover:border-amber-300'}`}>
                 <div className="flex items-center gap-3">
                   <input type="radio" name="paymentType" value="qris" checked={paymentType === 'qris'} onChange={() => setPaymentType('qris')} className="w-4 h-4 text-amber-500" />
-                  <span className="font-medium">QRIS</span>
+                  <span className="font-medium">{t('label_qris_method')}</span>
                 </div>
               </label>
 
               <label className={`block p-4 border rounded-xl cursor-pointer transition-colors ${paymentType === 'gopay' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'border-slate-200 dark:border-slate-700 hover:border-amber-300'}`}>
                 <div className="flex items-center gap-3">
                   <input type="radio" name="paymentType" value="gopay" checked={paymentType === 'gopay'} onChange={() => setPaymentType('gopay')} className="w-4 h-4 text-amber-500" />
-                  <span className="font-medium">GoPay</span>
+                  <span className="font-medium">{t('label_gopay')}</span>
                 </div>
               </label>
             </div>
@@ -304,15 +306,15 @@ export default function SubscriptionPage() {
               </button>
               <button onClick={handlePay} disabled={isProcessing} className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition-colors flex justify-center items-center gap-2 disabled:opacity-50">
                 {isProcessing && <Loader2 className="w-4 h-4 animate-spin" />}
-                Pay Rp {selectedPlan?.price.toLocaleString('id-ID')}
+                {t('btn_pay')} {selectedPlan?.price.toLocaleString('id-ID')}
               </button>
             </div>
           </motion.div>
         ) : (
           <div>
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold mb-4">Upgrade to Premium</h2>
-              <p className="text-slate-600 dark:text-slate-400 text-lg">Unlock unlimited trial applications, highlights, and achievements.</p>
+              <h2 className="text-4xl font-bold mb-4">{t('title_upgrade')}</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-lg">{t('desc_upgrade')}</p>
             </div>
 
             {error && (
@@ -337,7 +339,7 @@ export default function SubscriptionPage() {
                   <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
                   <div className="flex items-baseline gap-1 mb-6">
                     <span className="text-4xl font-bold text-amber-500">Rp {(plan.price / 1000).toFixed(0)}k</span>
-                    <span className="text-slate-500">/{plan.duration_months} mo</span>
+                    <span className="text-slate-500">/{plan.duration_months} {t('label_mo')}</span>
                   </div>
                   <p className="text-slate-600 dark:text-slate-400 mb-8 flex-1">{plan.description}</p>
 
@@ -346,25 +348,25 @@ export default function SubscriptionPage() {
                       <div className="mt-0.5 p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500">
                         <Check className="w-3 h-3" />
                       </div>
-                      <span className="text-sm font-medium">Unlimited Trial Applications</span>
+                      <span className="text-sm font-medium">{t('feature_trial')}</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="mt-0.5 p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500">
                         <Check className="w-3 h-3" />
                       </div>
-                      <span className="text-sm font-medium">Unlimited Highlights</span>
+                      <span className="text-sm font-medium">{t('feature_highlight')}</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="mt-0.5 p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500">
                         <Check className="w-3 h-3" />
                       </div>
-                      <span className="text-sm font-medium">Unlimited Achievements</span>
+                      <span className="text-sm font-medium">{t('feature_achievement')}</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="mt-0.5 p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500">
                         <Check className="w-3 h-3" />
                       </div>
-                      <span className="text-sm font-medium">Premium Badge on Profile</span>
+                      <span className="text-sm font-medium">{t('feature_badge')}</span>
                     </li>
                   </ul>
 
@@ -378,7 +380,7 @@ export default function SubscriptionPage() {
                   >
                     {isProcessing && selectedPlan?.id === plan.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : 'Select Plan'}
+                    ) : t('btn_select_plan')}
                   </button>
                 </motion.div>
               ))}
@@ -398,11 +400,11 @@ export default function SubscriptionPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
-                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">Order ID</th>
-                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">Plan</th>
-                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">Amount</th>
-                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">Status</th>
-                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">Date</th>
+                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">{t('th_order_id')}</th>
+                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">{t('th_plan')}</th>
+                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">{t('th_amount')}</th>
+                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">{t('label_status')}</th>
+                      <th className="px-6 py-4 font-semibold text-sm text-slate-600 dark:text-slate-400">{t('th_date')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800">

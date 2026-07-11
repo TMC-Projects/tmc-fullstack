@@ -12,6 +12,7 @@ import {
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAlertStore } from '@/store/alertStore';
+import { useTranslations } from 'next-intl';
 
 interface TalentResult {
   id: number;
@@ -31,6 +32,7 @@ interface TalentResult {
 }
 
 export default function TeamMembersPage() {
+  const t = useTranslations('TeamMembers');
   const params = useParams();
   const teamId = params.id;
   const router = useRouter();
@@ -88,7 +90,7 @@ export default function TeamMembersPage() {
           router.push('/team-portal/login');
           return;
         }
-        throw new Error(data.message || 'Failed to fetch talents');
+        throw new Error(data.message || t('error_fetch_talents'));
       }
 
       setTalents(data.data.data || []);
@@ -164,12 +166,12 @@ export default function TeamMembersPage() {
               className="px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm focus:border-emerald-500 outline-none"
             >
               <option value="">Semua Peran</option>
-              <option value="player">Player</option>
-              <option value="coach">Coach</option>
-              <option value="asst_coach">Asst. Coach</option>
-              <option value="manager">Manager</option>
-              <option value="staff">Staff</option>
-              <option value="ba">Brand Ambassador</option>
+              <option value="player">{t('role_player')}</option>
+              <option value="coach">{t('role_coach')}</option>
+              <option value="asst_coach">{t('role_asst_coach')}</option>
+              <option value="manager">{t('role_manager')}</option>
+              <option value="staff">{t('role_staff')}</option>
+              <option value="ba">{t('role_ba')}</option>
             </select>
             <select
               value={transferStatus}
@@ -189,7 +191,7 @@ export default function TeamMembersPage() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-500">
               <Activity className="w-8 h-8 animate-spin text-emerald-500 mb-4" />
-              <p>Memuat data talent...</p>
+              <p>{t('loading_talents')}</p>
             </div>
           ) : talents.length === 0 ? (
             <div className="bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-2xl py-20 text-center text-slate-500">
@@ -218,7 +220,7 @@ export default function TeamMembersPage() {
           {!isLoading && total > 0 && (
             <div className="flex items-center justify-between px-6 py-4 bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-2xl">
               <span className="text-sm text-slate-500 dark:text-slate-500">
-                Menampilkan halaman {page} dari {totalPages} (Total: {total})
+                {t('showing_page')} {page} {t('of')} {totalPages} ({t('total')}: {total})
               </span>
               <div className="flex gap-2">
                 <button
@@ -339,6 +341,7 @@ export default function TeamMembersPage() {
 ========================================= */
 
 function RegisterTalentModal({ onClose, onSuccess, token }: { onClose: () => void, onSuccess: () => void, token: string }) {
+  const t = useTranslations('TeamMembers');
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -386,7 +389,7 @@ function RegisterTalentModal({ onClose, onSuccess, token }: { onClose: () => voi
         body: JSON.stringify(formData)
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Gagal mendaftar talent');
+      if (!res.ok) throw new Error(data.message || t('error_register'));
       onSuccess();
     } catch (err: any) {
       setError(err.message);
@@ -399,7 +402,7 @@ function RegisterTalentModal({ onClose, onSuccess, token }: { onClose: () => voi
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center p-6 border-b border-slate-300 dark:border-slate-800">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Tambah Talent Baru</h3>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('modal_register_title')}</h3>
           <button onClick={onClose} className="text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
             <X className="w-5 h-5" />
           </button>
@@ -409,26 +412,26 @@ function RegisterTalentModal({ onClose, onSuccess, token }: { onClose: () => voi
           {error && <div className="p-3 bg-rose-500/10 text-rose-400 text-sm rounded-xl">{error}</div>}
 
           <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Nama Lengkap</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('label_fullname')}</label>
             <input required type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Username</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('label_username')}</label>
             <input required type="text" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Email</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('label_email')}</label>
             <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Peran</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('label_role')}</label>
             <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none">
-              <option value="player">Player</option>
-              <option value="coach">Coach</option>
-              <option value="asst_coach">Asst. Coach</option>
-              <option value="manager">Manager</option>
-              <option value="staff">Staff</option>
-              <option value="ba">Brand Ambassador</option>
+              <option value="player">{t('role_player')}</option>
+              <option value="coach">{t('role_coach')}</option>
+              <option value="asst_coach">{t('role_asst_coach')}</option>
+              <option value="manager">{t('role_manager')}</option>
+              <option value="staff">{t('role_staff')}</option>
+              <option value="ba">{t('role_ba')}</option>
             </select>
           </div>
 
@@ -445,18 +448,18 @@ function RegisterTalentModal({ onClose, onSuccess, token }: { onClose: () => voi
                   <div className={`block w-10 h-6 rounded-full transition-colors ${formData.release_clause_enable ? 'bg-emerald-500' : 'bg-slate-700'}`}></div>
                   <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.release_clause_enable ? 'translate-x-4' : 'translate-x-0'}`}></div>
                 </div>
-                <div className="text-sm font-medium text-slate-700 dark:text-slate-300">Aktifkan Release Clause</div>
+                <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('enable_rc')}</div>
               </label>
 
               {formData.release_clause_enable && (
                 <div className="pt-2">
-                  <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Nilai Release Clause (IDR)</label>
+                  <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('rc_value')}</label>
                   <input 
                     type="number" 
                     value={formData.release_clause_amount || ''} 
                     onChange={e => setFormData({ ...formData, release_clause_amount: parseInt(e.target.value) || 0 })} 
                     className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none" 
-                    placeholder="Contoh: 100000000"
+                    placeholder={t("rc_placeholder")}
                   />
                 </div>
               )}
@@ -464,20 +467,20 @@ function RegisterTalentModal({ onClose, onSuccess, token }: { onClose: () => voi
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Password Sementara</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('temp_pwd')}</label>
             <div className="flex gap-2">
               <input readOnly type="text" value={formData.password} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-600 dark:text-slate-400 font-mono" />
               <button type="button" onClick={handleCopy} className="p-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors shrink-0">
                 {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">Sandi dibuat otomatis. Salin dan berikan kepada talent untuk masuk.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">{t('pwd_desc')}</p>
           </div>
 
           <div className="pt-4 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors">Batal</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors">{t('btn_cancel')}</button>
             <button type="submit" disabled={isLoading} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-colors font-medium">
-              {isLoading ? 'Menyimpan...' : 'Daftarkan Talent'}
+              {isLoading ? t('btn_saving') : t('btn_register')}
             </button>
           </div>
         </form>
@@ -487,6 +490,7 @@ function RegisterTalentModal({ onClose, onSuccess, token }: { onClose: () => voi
 }
 
 function MarketValueModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
+  const t = useTranslations('TeamMembers');
   const [value, setValue] = useState(talent.market_value?.toString() || '');
   const [isLoading, setIsLoading] = useState(false);
   const { showAlert } = useAlertStore();
@@ -501,10 +505,10 @@ function MarketValueModal({ talent, onClose, onSuccess, token }: { talent: Talen
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ market_value: parsedValue })
       });
-      if (!res.ok) throw new Error('Gagal memperbarui');
+      if (!res.ok) throw new Error(t('error_update'));
       onSuccess();
     } catch (err) {
-      showAlert('Gagal memperbarui market value', 'error');
+      showAlert(t('error_update_mv'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -513,15 +517,15 @@ function MarketValueModal({ talent, onClose, onSuccess, token }: { talent: Talen
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Ubah Market Value</h3>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">{t('modal_mv_title')}</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Market Value (IDR)</label>
-            <input type="number" placeholder="Kosongkan jika tidak ada" value={value} onChange={e => setValue(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 outline-none" />
+            <input type="number" placeholder={t("ph_empty_none")} value={value} onChange={e => setValue(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 outline-none" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">Batal</button>
-            <button type="submit" disabled={isLoading} className="px-4 py-2 bg-emerald-600 text-white rounded-xl">{isLoading ? 'Loading...' : 'Simpan'}</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">{t('btn_cancel')}</button>
+            <button type="submit" disabled={isLoading} className="px-4 py-2 bg-emerald-600 text-white rounded-xl">{isLoading ? t('btn_loading') : t('btn_save')}</button>
           </div>
         </form>
       </div>
@@ -530,6 +534,7 @@ function MarketValueModal({ talent, onClose, onSuccess, token }: { talent: Talen
 }
 
 function ContractModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
+  const t = useTranslations('TeamMembers');
   // format YYYY-MM-DD
   const initDate = talent.contract_until ? new Date(talent.contract_until).toISOString().split('T')[0] : '';
   const [contractUntil, setContractUntil] = useState(initDate);
@@ -549,10 +554,10 @@ function ContractModal({ talent, onClose, onSuccess, token }: { talent: TalentRe
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ contract_until: parsedDate, salary: parsedSalary })
       });
-      if (!res.ok) throw new Error('Gagal memperbarui');
+      if (!res.ok) throw new Error(t('error_update'));
       onSuccess();
     } catch (err) {
-      showAlert('Gagal memperbarui kontrak & gaji', 'error');
+      showAlert(t('error_update_contract'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -561,19 +566,19 @@ function ContractModal({ talent, onClose, onSuccess, token }: { talent: TalentRe
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Ubah Kontrak & Gaji</h3>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">{t('modal_contract_title')}</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Kontrak Berakhir</label>
+            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">{t('label_contract_expires')}</label>
             <input type="date" value={contractUntil} onChange={e => setContractUntil(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 outline-none style-color-scheme-dark" style={{ colorScheme: 'dark' }} />
           </div>
           <div>
-            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Gaji (IDR/bulan)</label>
-            <input type="number" placeholder="Kosongkan jika tidak ada" value={salary} onChange={e => setSalary(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 outline-none" />
+            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">{t('label_salary')}</label>
+            <input type="number" placeholder={t("ph_empty_none")} value={salary} onChange={e => setSalary(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 outline-none" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">Batal</button>
-            <button type="submit" disabled={isLoading} className="px-4 py-2 bg-emerald-600 text-white rounded-xl">{isLoading ? 'Loading...' : 'Simpan'}</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">{t('btn_cancel')}</button>
+            <button type="submit" disabled={isLoading} className="px-4 py-2 bg-emerald-600 text-white rounded-xl">{isLoading ? t('btn_loading') : t('btn_save')}</button>
           </div>
         </form>
       </div>
@@ -582,6 +587,7 @@ function ContractModal({ talent, onClose, onSuccess, token }: { talent: TalentRe
 }
 
 export function EditBiodataModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
+  const t = useTranslations('TeamMembers');
   const [formData, setFormData] = useState({
     full_name: talent.full_name || '',
     username: talent.username || '',
@@ -607,7 +613,7 @@ export function EditBiodataModal({ talent, onClose, onSuccess, token }: { talent
         body: JSON.stringify(formData)
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Gagal memperbarui biodata');
+      if (!res.ok) throw new Error(data.message || t('error_update_bio'));
       onSuccess();
     } catch (err: any) {
       setError(err.message);
@@ -620,7 +626,7 @@ export function EditBiodataModal({ talent, onClose, onSuccess, token }: { talent
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center p-6 border-b border-slate-300 dark:border-slate-800">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Edit Biodata</h3>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('modal_bio_title')}</h3>
           <button onClick={onClose} className="text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
             <X className="w-5 h-5" />
           </button>
@@ -630,29 +636,29 @@ export function EditBiodataModal({ talent, onClose, onSuccess, token }: { talent
           {error && <div className="p-3 bg-rose-500/10 text-rose-400 text-sm rounded-xl">{error}</div>}
 
           <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Nama Lengkap</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('label_fullname')}</label>
             <input required type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Peran</label>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('label_role')}</label>
             <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none">
-              <option value="player">Player</option>
-              <option value="coach">Coach</option>
-              <option value="asst_coach">Asst. Coach</option>
-              <option value="manager">Manager</option>
-              <option value="staff">Staff</option>
-              <option value="ba">Brand Ambassador</option>
+              <option value="player">{t('role_player')}</option>
+              <option value="coach">{t('role_coach')}</option>
+              <option value="asst_coach">{t('role_asst_coach')}</option>
+              <option value="manager">{t('role_manager')}</option>
+              <option value="staff">{t('role_staff')}</option>
+              <option value="ba">{t('role_ba')}</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Bio</label>
-            <textarea rows={3} value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none" placeholder="Tuliskan biografi singkat..."></textarea>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('label_bio')}</label>
+            <textarea rows={3} value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none" placeholder={t("ph_bio")}></textarea>
           </div>
 
           <div className="pt-4 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors">Batal</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors">{t('btn_cancel')}</button>
             <button type="submit" disabled={isLoading} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-colors font-medium">
-              {isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
+              {isLoading ? t('btn_saving') : t('btn_save_changes')}
             </button>
           </div>
         </form>
@@ -662,6 +668,7 @@ export function EditBiodataModal({ talent, onClose, onSuccess, token }: { talent
 }
 
 function TransferStatusModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
+  const t = useTranslations('TeamMembers');
   const [status, setStatus] = useState('closed');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -681,7 +688,7 @@ function TransferStatusModal({ talent, onClose, onSuccess, token }: { talent: Ta
         body: JSON.stringify({ status })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Gagal memperbarui status transfer');
+      if (!res.ok) throw new Error(data.message || t('error_update_ts'));
       onSuccess();
     } catch (err: any) {
       setError(err.message);
@@ -693,23 +700,23 @@ function TransferStatusModal({ talent, onClose, onSuccess, token }: { talent: Ta
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Update Status Transfer</h3>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">{t('modal_ts_title')}</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <div className="p-3 bg-rose-500/10 text-rose-400 text-sm rounded-xl">{error}</div>}
 
           <div>
-            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Pilih Status</label>
+            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">{t('label_select_status')}</label>
             <select value={status} onChange={e => setStatus(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none">
-              <option value="closed">Tidak Dijual (Closed)</option>
-              <option value="transfer">Transfer Market</option>
-              <option value="loan">Pinjaman (Loan)</option>
-              <option value="free">Bebas Transfer (Free Agent)</option>
-              <option value="retired">Pensiun (Retired)</option>
+              <option value="closed">{t('ts_closed')}</option>
+              <option value="transfer">{t('ts_market')}</option>
+              <option value="loan">{t('ts_loan')}</option>
+              <option value="free">{t('ts_free')}</option>
+              <option value="retired">{t('ts_retired')}</option>
             </select>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">Batal</button>
-            <button type="submit" disabled={isLoading} className="px-4 py-2 bg-emerald-600 text-white rounded-xl">{isLoading ? 'Loading...' : 'Simpan'}</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">{t('btn_cancel')}</button>
+            <button type="submit" disabled={isLoading} className="px-4 py-2 bg-emerald-600 text-white rounded-xl">{isLoading ? t('btn_loading') : t('btn_save')}</button>
           </div>
         </form>
       </div>
@@ -718,6 +725,7 @@ function TransferStatusModal({ talent, onClose, onSuccess, token }: { talent: Ta
 }
 
 function UpdateStatusModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
+  const t = useTranslations('TeamMembers');
   const [status, setStatus] = useState(talent.status);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -737,7 +745,7 @@ function UpdateStatusModal({ talent, onClose, onSuccess, token }: { talent: Tale
         body: JSON.stringify({ status })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Gagal memperbarui status');
+      if (!res.ok) throw new Error(data.message || t('error_update_as'));
       onSuccess();
     } catch (err: any) {
       setError(err.message);
@@ -749,20 +757,20 @@ function UpdateStatusModal({ talent, onClose, onSuccess, token }: { talent: Tale
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Update Status Akun</h3>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">{t('modal_as_title')}</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <div className="p-3 bg-rose-500/10 text-rose-400 text-sm rounded-xl">{error}</div>}
 
           <div>
-            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Status</label>
+            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">{t('label_status')}</label>
             <select value={status} onChange={e => setStatus(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 focus:border-emerald-500 outline-none">
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">Batal</button>
-            <button type="submit" disabled={isLoading} className="px-4 py-2 bg-emerald-600 text-white rounded-xl">{isLoading ? 'Loading...' : 'Simpan'}</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">{t('btn_cancel')}</button>
+            <button type="submit" disabled={isLoading} className="px-4 py-2 bg-emerald-600 text-white rounded-xl">{isLoading ? t('btn_loading') : t('btn_save')}</button>
           </div>
         </form>
       </div>
@@ -771,6 +779,7 @@ function UpdateStatusModal({ talent, onClose, onSuccess, token }: { talent: Tale
 }
 
 function UploadPhotoModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
+  const t = useTranslations('TeamMembers');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(talent.profile_picture_url ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${talent.profile_picture_url}` : null);
   const [isLoading, setIsLoading] = useState(false);
@@ -780,7 +789,7 @@ function UploadPhotoModal({ talent, onClose, onSuccess, token }: { talent: Talen
     const selected = e.target.files?.[0];
     if (selected) {
       if (!selected.type.startsWith('image/')) {
-        setError('Harap pilih file gambar yang valid');
+        setError(t('error_invalid_image'));
         return;
       }
       setFile(selected);
@@ -792,7 +801,7 @@ function UploadPhotoModal({ talent, onClose, onSuccess, token }: { talent: Talen
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      setError('Silakan pilih foto terlebih dahulu');
+      setError(t('error_select_photo'));
       return;
     }
 
@@ -811,7 +820,7 @@ function UploadPhotoModal({ talent, onClose, onSuccess, token }: { talent: Talen
         body: formData
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Gagal mengupload foto');
+      if (!res.ok) throw new Error(data.message || t('error_upload_photo'));
       onSuccess();
     } catch (err: any) {
       setError(err.message);
@@ -824,7 +833,7 @@ function UploadPhotoModal({ talent, onClose, onSuccess, token }: { talent: Talen
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
         <div className="flex justify-between items-center p-6 border-b border-slate-300 dark:border-slate-800">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Upload Foto</h3>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('modal_photo_title')}</h3>
           <button onClick={onClose} className="text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
             <X className="w-5 h-5" />
           </button>
@@ -843,15 +852,15 @@ function UploadPhotoModal({ talent, onClose, onSuccess, token }: { talent: Talen
             </div>
             
             <label className="cursor-pointer px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors text-sm font-medium">
-              Pilih Gambar
+              {t('btn_choose_image')}
               <input type="file" accept="image/png, image/jpeg, image/jpg" onChange={handleFileChange} className="hidden" />
             </label>
           </div>
 
           <div className="pt-4 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">Batal</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">{t('btn_cancel')}</button>
             <button type="submit" disabled={isLoading || !file} className="px-4 py-2 bg-emerald-600 text-white rounded-xl disabled:opacity-50 font-medium">
-              {isLoading ? 'Mengupload...' : 'Simpan'}
+              {isLoading ? t('btn_uploading') : t('btn_save')}
             </button>
           </div>
         </form>
@@ -881,6 +890,7 @@ function TalentCard({
   onEditStatus: (t: TalentResult) => void,
   onViewDetail: (t: TalentResult) => void,
 }) {
+  const t = useTranslations('TeamMembers');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { showAlert } = useAlertStore();
   
@@ -917,7 +927,7 @@ function TalentCard({
       {/* Top Right Actions */}
       <div className="absolute top-4 right-4 flex flex-col gap-3 z-20">
         <button 
-          onClick={() => showAlert('Fitur hapus belum tersedia', 'info')}
+          onClick={() => showAlert(t('action_delete_unavailable'), 'info')}
           className="w-9 h-9 rounded-full bg-red-600/90 flex items-center justify-center hover:bg-red-500 transition-colors shadow-lg"
           title="Hapus Talent"
         >
@@ -956,19 +966,19 @@ function TalentCard({
                   onClick={() => { setIsMenuOpen(false); onEditContract(talent); }}
                   className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
                 >
-                  <Calendar className="w-4 h-4 text-amber-400" /> Kontrak & Gaji
+                  <Calendar className="w-4 h-4 text-amber-400" /> {t('action_contract')}
                 </button>
                 <button 
                   onClick={() => { setIsMenuOpen(false); onEditMarketValue(talent); }}
                   className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
                 >
-                  <DollarSign className="w-4 h-4 text-amber-400" /> Market Value
+                  <DollarSign className="w-4 h-4 text-amber-400" /> {t('action_mv')}
                 </button>
                 <button 
                   onClick={() => { setIsMenuOpen(false); onEditTransferStatus(talent); }}
                   className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
                 >
-                  <Activity className="w-4 h-4 text-amber-400" /> Status Transfer
+                  <Activity className="w-4 h-4 text-amber-400" /> {t('action_ts')}
                 </button>
                 {(talent.category === 'player' || talent.category === 'coach') && (
                   <button 
@@ -983,7 +993,7 @@ function TalentCard({
                   onClick={() => { setIsMenuOpen(false); onViewDetail(talent); }}
                   className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
                 >
-                  <UserCircle className="w-4 h-4 text-emerald-400" /> Detail
+                  <UserCircle className="w-4 h-4 text-emerald-400" /> {t('action_detail')}
                 </button>
               </div>
             </>
@@ -998,7 +1008,7 @@ function TalentCard({
       <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3 z-10">
         {/* Logo */}
         <div className="w-14 h-14 rounded-full border-2 border-white flex items-center justify-center bg-transparent backdrop-blur-md shrink-0 shadow-[0_0_10px_rgba(0,0,0,0.5)]">
-          <span className="text-white font-black text-sm tracking-tighter">TMC</span>
+          <span className="text-white font-black text-sm tracking-tighter">EMC</span>
         </div>
         
         {/* Info */}
@@ -1028,6 +1038,7 @@ function TalentCard({
 }
 
 function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
+  const t = useTranslations('TeamMembers');
   const [teams, setTeams] = useState<any[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -1106,8 +1117,8 @@ function AssignTeamModal({ talent, onClose, onSuccess, token }: { talent: Talent
             )}
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">Batal</button>
-            <button type="submit" disabled={isLoading || isFetching || teams.length === 0 || !selectedTeam} className="px-4 py-2 bg-emerald-600 text-white rounded-xl disabled:opacity-50">{isLoading ? 'Loading...' : 'Assign'}</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">{t('btn_cancel')}</button>
+            <button type="submit" disabled={isLoading || isFetching || teams.length === 0 || !selectedTeam} className="px-4 py-2 bg-emerald-600 text-white rounded-xl disabled:opacity-50">{isLoading ? t('btn_loading') : 'Assign'}</button>
           </div>
         </form>
       </div>

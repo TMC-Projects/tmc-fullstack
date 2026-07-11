@@ -4,9 +4,11 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 export default function TeamPortalDashboardPage() {
   const router = useRouter();
+  const t = useTranslations('TeamPortalDashboard');
   const { token, user, clearAuth, _hasHydrated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -83,29 +85,29 @@ export default function TeamPortalDashboardPage() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
-              Team Portal Dashboard
+              {t('title')}
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-2">
-              Welcome back, {user?.full_name || 'Owner'}
+              {t('welcome')} {user?.full_name || t('owner')}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-3xl p-6">
-                <h3 className="font-bold text-lg mb-4">Manage Teams</h3>
-                <p className="text-slate-500 mb-6">Create and manage your independent esports teams.</p>
-                <Link href="/team-portal/teams" className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium inline-block">View Teams</Link>
+                <h3 className="font-bold text-lg mb-4">{t('manage_teams')}</h3>
+                <p className="text-slate-500 mb-6">{t('manage_teams_desc')}</p>
+                <Link href="/team-portal/teams" className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium inline-block">{t('view_teams')}</Link>
             </div>
             <div className="bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-3xl p-6">
-                <h3 className="font-bold text-lg mb-4">Find Players</h3>
-                <p className="text-slate-500 mb-6">Browse and recruit free agents to join your teams.</p>
-                <Link href="/team-portal/player-freeagent" className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium inline-block">View Free Agents</Link>
+                <h3 className="font-bold text-lg mb-4">{t('find_players')}</h3>
+                <p className="text-slate-500 mb-6">{t('find_players_desc')}</p>
+                <Link href="/team-portal/player-freeagent" className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium inline-block">{t('view_players')}</Link>
             </div>
             <div className="bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-3xl p-6">
-                <h3 className="font-bold text-lg mb-4">Subscriptions</h3>
-                <p className="text-slate-500 mb-6">Manage your Team Portal subscriptions and billing.</p>
-                <Link href="/team-portal/subscriptions" className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-medium inline-block">View Subscriptions</Link>
+                <h3 className="font-bold text-lg mb-4">{t('subscriptions')}</h3>
+                <p className="text-slate-500 mb-6">{t('subscriptions_desc')}</p>
+                <Link href="/team-portal/subscriptions" className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-medium inline-block">{t('view_subscriptions')}</Link>
             </div>
         </div>
       </div>
