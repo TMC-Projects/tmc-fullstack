@@ -17,9 +17,12 @@ interface Trial {
   StartDate: string;
   EndDate: string;
   Club: {
-    ID: number;
-    Name: string;
-    LogoUrl: string;
+    ID?: number;
+    id?: number;
+    Name?: string;
+    name?: string;
+    LogoUrl?: string;
+    logo_url?: string;
   };
 }
 
@@ -149,7 +152,7 @@ export default function MyApplicationsPage() {
                       </h3>
                       <div className="flex items-center gap-2 mt-1.5 text-sm text-slate-600 dark:text-slate-400">
                         <Building2 className="w-4 h-4 text-slate-500 dark:text-slate-500" />
-                        {app.Trial?.Club?.Name || t('unknown_club')}
+                        {app.Trial?.Club?.Name || app.Trial?.Club?.name || t('unknown_club')}
                       </div>
                     </div>
 
