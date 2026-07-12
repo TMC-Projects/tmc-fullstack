@@ -14,12 +14,14 @@ import (
 // TalentHandler handles HTTP requests related to talent operations.
 type TalentHandler struct {
 	talentUsecase domain.TalentUsecase
+	storage       domain.StorageService
 }
 
 // NewTalentHandler creates a new instance of TalentHandler.
-func NewTalentHandler(talentUsecase domain.TalentUsecase) *TalentHandler {
+func NewTalentHandler(talentUsecase domain.TalentUsecase, storage domain.StorageService) *TalentHandler {
 	return &TalentHandler{
 		talentUsecase: talentUsecase,
+		storage:       storage,
 	}
 }
 
@@ -230,12 +232,21 @@ func (h *TalentHandler) UploadPhoto(c *fiber.Ctx) error {
 
 	// Generate a unique filename
 	fileNameWithID := fmt.Sprintf("talent_%d_%d%s", targetID, time.Now().UnixNano(), ext)
-	savePath := "./uploads/profiles/" + fileNameWithID
-	fileURL := "/uploads/profiles/" + fileNameWithID
+	objectName := "profiles/" + fileNameWithID
 
-	// Save the file
-	if err := c.SaveFile(file, savePath); err != nil {
-		return domain.NewAppError(domain.ErrCodeInternal, "failed to save photo", err)
+	fileContent, err := file.Open()
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to open photo file", err)
+	}
+	defer fileContent.Close()
+
+	if h.storage == nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "storage service is not configured", nil)
+	}
+
+	fileURL, err := h.storage.UploadFile(c.Context(), fileContent, file.Size, file.Header.Get("Content-Type"), objectName)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to upload photo to storage", err)
 	}
 
 	if err := h.talentUsecase.UpdateProfilePicture(c.UserContext(), int64(targetID), fileURL, callerID); err != nil {

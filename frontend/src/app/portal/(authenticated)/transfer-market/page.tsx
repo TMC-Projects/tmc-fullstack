@@ -238,7 +238,7 @@ export default function TransferMarketPage() {
                           {entry.player.profile_picture_url ? (
                             <div className="relative w-10 h-10 rounded-full overflow-hidden border border-amber-500/20">
                               <Image
-                                src={entry.player.profile_picture_url.startsWith('http') ? entry.player.profile_picture_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${entry.player.profile_picture_url}`}
+                                src={entry.player.profile_picture_url.startsWith('http') ? entry.player.profile_picture_url : (entry.player.profile_picture_url?.startsWith('http') ? entry.player.profile_picture_url : (entry.player.profile_picture_url?.startsWith('http') ? entry.player.profile_picture_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${entry.player.profile_picture_url}`))}
                                 alt={entry.player.full_name}
                                 fill
                                 className="object-cover"

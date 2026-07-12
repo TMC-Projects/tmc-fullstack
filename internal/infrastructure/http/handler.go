@@ -10,11 +10,12 @@ import (
 // AuthHandler coordinates presentation logic for auth and profiles.
 type AuthHandler struct {
 	authUsecase domain.AuthUsecase
+	storage     domain.StorageService
 }
 
 // NewAuthHandler creates a new AuthHandler.
-func NewAuthHandler(au domain.AuthUsecase) *AuthHandler {
-	return &AuthHandler{authUsecase: au}
+func NewAuthHandler(au domain.AuthUsecase, storage domain.StorageService) *AuthHandler {
+	return &AuthHandler{authUsecase: au, storage: storage}
 }
 
 type registerRequest struct {
@@ -293,12 +294,21 @@ func (h *AuthHandler) UploadProfilePhoto(c *fiber.Ctx) error {
 	// Construct filename and path
 	filename := strings.ReplaceAll(file.Filename, " ", "_")
 	fileNameWithID := time.Now().Format("20060102150405") + "_" + filename
-	savePath := "./uploads/profiles/" + fileNameWithID
-	fileURL := "/uploads/profiles/" + fileNameWithID
+	objectName := "profiles/" + fileNameWithID
 
-	// Save file to local disk
-	if err := c.SaveFile(file, savePath); err != nil {
-		return domain.NewAppError(domain.ErrCodeInternal, "failed to save photo", err)
+	fileContent, err := file.Open()
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to open photo file", err)
+	}
+	defer fileContent.Close()
+
+	if h.storage == nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "storage service is not configured", nil)
+	}
+
+	fileURL, err := h.storage.UploadFile(c.Context(), fileContent, file.Size, contentType, objectName)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to upload photo to storage", err)
 	}
 
 	// Update user profile picture URL in database

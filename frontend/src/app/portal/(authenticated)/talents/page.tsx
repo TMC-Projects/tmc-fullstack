@@ -834,7 +834,7 @@ function UpdateStatusModal({ talent, onClose, onSuccess, token }: { talent: Tale
 
 function UploadPhotoModal({ talent, onClose, onSuccess, token }: { talent: TalentResult, onClose: () => void, onSuccess: () => void, token: string }) {
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(talent.profile_picture_url ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${talent.profile_picture_url}` : null);
+  const [preview, setPreview] = useState<string | null>(talent.profile_picture_url ? (talent.profile_picture_url?.startsWith('http') ? talent.profile_picture_url : (talent.profile_picture_url?.startsWith('http') ? talent.profile_picture_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${talent.profile_picture_url}`)) : null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -966,7 +966,7 @@ function TalentCard({
       {/* Background */}
       {talent.profile_picture_url ? (
         <div className="absolute inset-0 bg-slate-900 rounded-xl overflow-hidden">
-          <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${talent.profile_picture_url}`} alt={talent.full_name} className="w-full h-full object-cover" />
+          <img src={(talent.profile_picture_url?.startsWith('http') ? talent.profile_picture_url : (talent.profile_picture_url?.startsWith('http') ? talent.profile_picture_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${talent.profile_picture_url}`))} alt={talent.full_name} className="w-full h-full object-cover" />
         </div>
       ) : (
         <div className="absolute inset-0 bg-cyan-600 flex items-center justify-center rounded-xl overflow-hidden">
@@ -1141,7 +1141,7 @@ function TalentTableRow({
       <td className="px-6 py-4">
         <div className="w-10 h-10 rounded-full bg-cyan-600 overflow-hidden flex items-center justify-center text-white font-bold shrink-0">
           {talent.profile_picture_url ? (
-            <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${talent.profile_picture_url}`} alt={talent.full_name} className="w-full h-full object-cover" />
+            <img src={(talent.profile_picture_url?.startsWith('http') ? talent.profile_picture_url : (talent.profile_picture_url?.startsWith('http') ? talent.profile_picture_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${talent.profile_picture_url}`))} alt={talent.full_name} className="w-full h-full object-cover" />
           ) : (
             (talent.full_name || talent.username || 'UN').substring(0, 2).toUpperCase()
           )}

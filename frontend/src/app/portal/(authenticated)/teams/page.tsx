@@ -263,7 +263,7 @@ export default function TeamsPage() {
                     <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 flex-shrink-0 overflow-hidden">
                       {team.logo_url ? (
                         <img 
-                          src={team.logo_url.startsWith('http') ? team.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${team.logo_url}`} 
+                          src={team.logo_url.startsWith('http') ? team.logo_url : (team.logo_url?.startsWith('http') ? team.logo_url : (team.logo_url?.startsWith('http') ? team.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${team.logo_url}`))} 
                           alt={team.name} 
                           className="w-full h-full object-cover" 
                         />
@@ -303,7 +303,7 @@ export default function TeamsPage() {
                           <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 bg-slate-50 dark:text-slate-300 dark:bg-slate-800 rounded-lg" title={`Coach: ${coach.full_name}`}>
                             {coach.profile_picture_url ? (
                               <img 
-                                src={coach.profile_picture_url.startsWith('http') ? coach.profile_picture_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${coach.profile_picture_url}`} 
+                                src={coach.profile_picture_url.startsWith('http') ? coach.profile_picture_url : (coach.profile_picture_url?.startsWith('http') ? coach.profile_picture_url : (coach.profile_picture_url?.startsWith('http') ? coach.profile_picture_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${coach.profile_picture_url}`))} 
                                 alt={coach.full_name} 
                                 className="w-5 h-5 rounded-full object-cover" 
                               />

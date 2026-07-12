@@ -116,7 +116,7 @@ export default function Sidebar() {
       <div className={`h-16 flex items-center ${collapsed ? 'justify-center px-0' : 'justify-between px-6'} border-b border-slate-300 dark:border-slate-800 shrink-0 overflow-hidden transition-all duration-300`}>
         <Link href="/portal/dashboard" className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
           {user?.club_logo_url ? (
-            <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.club_logo_url}`} alt="Club Logo" className="w-8 h-8 rounded-xl object-cover bg-white shrink-0" />
+            <img src={(user.club_logo_url?.startsWith('http') ? user.club_logo_url : (user.club_logo_url?.startsWith('http') ? user.club_logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.club_logo_url}`))} alt="Club Logo" className="w-8 h-8 rounded-xl object-cover bg-white shrink-0" />
           ) : (
             <img src="/logo.png" alt="EMC Logo" className="w-8 h-8 rounded-xl object-contain shrink-0" />
           )}

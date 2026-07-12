@@ -12,10 +12,11 @@ import (
 
 type TeamHandler struct {
 	usecase domain.TeamUsecase
+	storage domain.StorageService
 }
 
-func NewTeamHandler(usecase domain.TeamUsecase) *TeamHandler {
-	return &TeamHandler{usecase: usecase}
+func NewTeamHandler(usecase domain.TeamUsecase, storage domain.StorageService) *TeamHandler {
+	return &TeamHandler{usecase: usecase, storage: storage}
 }
 
 func (h *TeamHandler) Create(c *fiber.Ctx) error {
@@ -216,12 +217,21 @@ func (h *TeamHandler) UploadLogo(c *fiber.Ctx) error {
 
 	// Create unique filename
 	filename := fmt.Sprintf("%d_%d%s", teamID, time.Now().Unix(), ext)
-	filepath := fmt.Sprintf("./uploads/teams/%s", filename)
-	fileURL := fmt.Sprintf("/uploads/teams/%s", filename)
+	objectName := "teams/" + filename
 
-	// Save file
-	if err := c.SaveFile(file, filepath); err != nil {
-		return domain.NewAppError(domain.ErrCodeInternal, "failed to save logo", err)
+	fileContent, err := file.Open()
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to open logo file", err)
+	}
+	defer fileContent.Close()
+
+	if h.storage == nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "storage service is not configured", nil)
+	}
+
+	fileURL, err := h.storage.UploadFile(c.Context(), fileContent, file.Size, file.Header.Get("Content-Type"), objectName)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to upload logo to storage", err)
 	}
 
 	// Update team logo URL in database

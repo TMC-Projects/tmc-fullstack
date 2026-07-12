@@ -311,7 +311,7 @@ export default function EditClubPage() {
           <div className="flex flex-col items-center mb-8">
             <div className="relative group w-24 h-24 rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-sm flex items-center justify-center">
               {formData.logo_url ? (
-                <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${formData.logo_url}`} alt="Club Logo" className="w-full h-full object-cover bg-white" />
+                <img src={(formData.logo_url?.startsWith('http') ? formData.logo_url : (formData.logo_url?.startsWith('http') ? formData.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${formData.logo_url}`))} alt="Club Logo" className="w-full h-full object-cover bg-white" />
               ) : (
                 <Building2 className="w-10 h-10 text-slate-400" />
               )}

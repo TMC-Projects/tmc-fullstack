@@ -114,7 +114,7 @@ export default function ProfileHeader({
           >
             {user.profile_picture_url ? (
               <img
-                src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${user.profile_picture_url}`}
+                src={(user.profile_picture_url?.startsWith('http') ? user.profile_picture_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${user.profile_picture_url}`)}
                 alt={user.full_name}
                 className="w-full h-full object-cover"
               />
