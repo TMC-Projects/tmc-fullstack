@@ -211,8 +211,8 @@ func (h *TeamHandler) UploadLogo(c *fiber.Ctx) error {
 
 	// Validate file type
 	ext := filepath.Ext(file.Filename)
-	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
-		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid file type, only jpg/jpeg/png allowed", nil)
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".webp" {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid file type, only jpg/jpeg/png/webp allowed", nil)
 	}
 
 	// Create unique filename

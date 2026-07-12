@@ -7,6 +7,8 @@ import { Building2, ArrowRight, MapPin, Globe, Calendar, Settings, Edit3, X, Upl
 import { useTranslations } from 'next-intl';
 import OnboardingModal from '@/components/portal/club/OnboardingModal';
 
+import { compressImageToWebp } from '@/utils/imageCompression';
+
 export default function EditClubPage() {
   const router = useRouter();
   const t = useTranslations('EditClub');
@@ -127,8 +129,9 @@ export default function EditClubPage() {
     setIsUploadingLogo(true);
     setErrorMessage('');
 
+    const compressedFile = await compressImageToWebp(file);
     const formDataObj = new FormData();
-    formDataObj.append('logo', file);
+    formDataObj.append('logo', compressedFile);
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clubs/${user.club_id}/upload-logo`, {

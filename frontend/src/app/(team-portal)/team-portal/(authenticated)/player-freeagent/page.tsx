@@ -14,6 +14,8 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAlertStore } from '@/store/alertStore';
 import { useTranslations } from 'next-intl';
 
+import { compressImageToWebp } from '@/utils/imageCompression';
+
 interface TalentResult {
   id: number;
   username: string;
@@ -781,8 +783,9 @@ function UploadPhotoModal({ talent, onClose, onSuccess, token }: { talent: Talen
     setError('');
 
     try {
+      const compressedFile = await compressImageToWebp(file);
       const formData = new FormData();
-      formData.append('photo', file);
+      formData.append('photo', compressedFile);
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/talents/${talent.id}/photo`, {
         method: 'POST',
