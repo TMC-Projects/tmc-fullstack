@@ -246,7 +246,9 @@ func main() {
 	app.Use(authMiddleware.AccessLogMiddleware())
 
 	// Serve static files
-	app.Static("/uploads", "./uploads")
+	app.Static("/uploads", "./uploads", fiber.Static{
+		Browse: false,
+	})
 
 	// Global Endpoints (API Key only — no JWT required)
 	app.Get("/api/global/clubs", authMiddleware.RequireAPIKey(), clubHandler.GetClubs)
