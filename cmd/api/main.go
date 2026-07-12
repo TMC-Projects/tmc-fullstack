@@ -146,7 +146,7 @@ func main() {
 
 	// Trial Management Usecases
 	b2cSubRepo := postgres.NewB2CSubscriptionRepository(db)
-	
+
 	trialUsecase := usecase.NewTrialUsecase(trialRepo, userRepo, clubRepo)
 	trialAppUsecase := usecase.NewTrialApplicationUsecase(trialAppRepo, trialRepo, trialParticipantRepo, userRepo, b2cSubRepo)
 	trialParticipantUsecase := usecase.NewTrialParticipantUsecase(trialParticipantRepo, trialRepo, userRepo)
@@ -591,9 +591,9 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		Discount       int64
 		Description    string
 	}{
-		{"Monthly", 1, 299000, 0, "Akses penuh platform Njara B2B selama 1 bulan."},
-		{"Quarterly", 3, 799000, 98000, "Akses penuh platform Njara B2B selama 3 bulan. Hemat Rp98.000!"},
-		{"Yearly", 12, 2499000, 489000, "Akses penuh platform Njara B2B selama 12 bulan. Hemat Rp489.000!"},
+		{"Monthly", 1, 199000, 100000, "Akses penuh platform EMC B2B selama 1 bulan."},
+		{"Quarterly", 3, 399000, 198000, "Akses penuh platform EMC B2B selama 3 bulan. Hemat Rp198.000!"},
+		{"Yearly", 12, 1499000, 889000, "Akses penuh platform EMC B2B selama 12 bulan. Hemat Rp889.000!"},
 	}
 
 	for _, sp := range subPlans {
@@ -626,8 +626,8 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		Price          int64
 		Description    string
 	}{
-		{"Monthly", 1, 9000, "Akses premium B2C: Apply trial tanpa batas, highlight tanpa batas, dan achievement tanpa batas selama 1 bulan."},
-		{"Quarterly", 3, 20000, "Akses premium B2C selama 3 bulan. Hemat Rp7.000!"},
+		{"Monthly", 1, 15000, "Akses premium B2C: Apply trial tanpa batas, highlight tanpa batas, dan achievement tanpa batas selama 1 bulan."},
+		{"Quarterly", 3, 40000, "Akses premium B2C selama 3 bulan. Hemat Rp5.000!"},
 	}
 
 	for _, sp := range b2cSubPlans {
