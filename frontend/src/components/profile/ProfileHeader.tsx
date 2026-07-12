@@ -7,6 +7,8 @@ import { useTranslations } from 'next-intl';
 import { User as AuthUser, useAuthStore } from '@/store/auth';
 import { useAlertStore } from '@/store/alertStore';
 
+import { compressImageToWebp } from "@/utils/imageCompression";
+
 interface ProfileHeaderProps {
   user: AuthUser;
   isEditable?: boolean;
@@ -73,10 +75,10 @@ export default function ProfileHeader({
     }
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append('photo', file);
-
     try {
+      const compressedFile = await compressImageToWebp(file);
+      const formData = new FormData();
+      formData.append('photo', compressedFile);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/profile/upload-photo`, {
         method: 'POST',
         headers: {

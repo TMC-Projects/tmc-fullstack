@@ -226,8 +226,8 @@ func (h *TalentHandler) UploadPhoto(c *fiber.Ctx) error {
 
 	// Basic validation for image file
 	ext := filepath.Ext(file.Filename)
-	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
-		return domain.NewAppError(domain.ErrCodeValidation, "only png, jpg, jpeg files are allowed", nil)
+	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".webp" {
+		return domain.NewAppError(domain.ErrCodeValidation, "only png, jpg, jpeg, webp files are allowed", nil)
 	}
 
 	// Generate a unique filename
