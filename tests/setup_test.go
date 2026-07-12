@@ -39,6 +39,13 @@ var (
 // createdUserEmails tracks test user emails for cleanup after all tests.
 var createdUserEmails []string
 
+// mockStorageService is a mock implementation of domain.StorageService for tests.
+type mockStorageService struct{}
+
+func (m *mockStorageService) UploadFile(ctx context.Context, file io.Reader, size int64, contentType, objectName string) (string, error) {
+	return "http://mock-url.com/" + objectName, nil
+}
+
 // TestMain is the entry point for all tests in this package.
 // It bootstraps the full application (same as main.go) and tears it down after.
 func TestMain(m *testing.M) {
@@ -105,27 +112,26 @@ func TestMain(m *testing.M) {
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	clubUsecase := usecase.NewClubUsecase(clubRepo, userRepo, rolePermRepo, cacheRepo)
 
-	authHandler := domainhttp.NewAuthHandler(authUsecase)
+	mockStorage := &mockStorageService{}
+	authHandler := domainhttp.NewAuthHandler(authUsecase, mockStorage)
 	gameHandler := domainhttp.NewGameHandler(gameUsecase)
 	transferMarketHandler := domainhttp.NewTransferMarketHandler(transferMarketUsecase)
 	userHandler := domainhttp.NewUserHandler(userUsecase, authUsecase)
-	clubHandler := domainhttp.NewClubHandler(clubUsecase)
+	clubHandler := domainhttp.NewClubHandler(clubUsecase, mockStorage)
 	invUsecase := usecase.NewTeamInvitationUsecase(invRepo, userRepo, transferMarketRepo, cacheRepo)
 	invHandler := domainhttp.NewTeamInvitationHandler(invUsecase)
 
 	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase, transferMarketRepo, cacheRepo, invRepo)
-	talentHandler := domainhttp.NewTalentHandler(talentUsecase)
+	talentHandler := domainhttp.NewTalentHandler(talentUsecase, mockStorage)
 
 	userFollowRepo := postgres.NewUserFollowRepository(db)
 	userFollowUsecase := usecase.NewUserFollowUsecase(userFollowRepo, userRepo)
 	userFollowHandler := domainhttp.NewUserFollowHandler(userFollowUsecase)
 	b2cPlayerHandler := domainhttp.NewB2CPlayerHandler(authUsecase, userFollowUsecase)
-	
+
 	feedbackRepo := postgres.NewFeedbackRepository(db)
 	feedbackUsecase := usecase.NewFeedbackUsecase(feedbackRepo)
 	feedbackHandler := domainhttp.NewFeedbackHandler(feedbackUsecase)
-
-
 
 	authMiddleware := domainhttp.NewAuthMiddleware(tokenProvider, authUsecase, rolePermRepo, clubRepo, "test_global_api_key_123", accessLogRepo)
 
@@ -148,7 +154,6 @@ func TestMain(m *testing.M) {
 	app.Put("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, clubHandler.UpdateAchievement)
 	app.Delete("/api/clubs/:id/achievements/:ach_id", authMiddleware.Authenticate, clubHandler.DeleteAchievement)
 
-
 	app.Get("/api/players", authMiddleware.Authenticate, userHandler.GetListByCategory("player"))
 	app.Get("/api/coaches", authMiddleware.Authenticate, userHandler.GetListByCategory("coach"))
 	app.Get("/api/owners", authMiddleware.Authenticate, userHandler.GetListByCategory("owner"))
@@ -157,7 +162,7 @@ func TestMain(m *testing.M) {
 
 	app.Post("/api/talents", authMiddleware.Authenticate, authMiddleware.RequirePermission("manage_talents"), talentHandler.RegisterTalent)
 	app.Post("/api/talents/:id/sign", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.SignFreeAgent)
-	
+
 	// B2C Player & Follow Endpoints
 	app.Get("/api/b2c/players/:id", authMiddleware.Authenticate, b2cPlayerHandler.GetB2CPlayerDetail)
 	app.Post("/api/b2c/users/:id/follow", authMiddleware.Authenticate, userFollowHandler.Follow)

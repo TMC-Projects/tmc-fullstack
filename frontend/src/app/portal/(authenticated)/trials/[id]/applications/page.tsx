@@ -75,7 +75,7 @@ function ApplicationRow({ app, participant, trialId, token, userCategory, openAc
           {app.Player.ProfilePictureUrl ? (
             <div className="relative w-10 h-10 rounded-full overflow-hidden border border-slate-400 dark:border-slate-700">
               <Image
-                src={app.Player.ProfilePictureUrl.startsWith('http') ? app.Player.ProfilePictureUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${app.Player.ProfilePictureUrl}`}
+                src={app.Player.ProfilePictureUrl.startsWith('http') ? app.Player.ProfilePictureUrl : (app.Player.ProfilePictureUrl?.startsWith('http') ? app.Player.ProfilePictureUrl : (app.Player.ProfilePictureUrl?.startsWith('http') ? app.Player.ProfilePictureUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${app.Player.ProfilePictureUrl}`))}
                 alt={app.Player.FullName}
                 fill
                 className="object-cover"

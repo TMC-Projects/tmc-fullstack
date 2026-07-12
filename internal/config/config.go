@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -30,7 +31,14 @@ type Config struct {
 	MidtransClientKey  string
 	MidtransServerKey  string
 
-	GlobalAPIKey       string
+	GlobalAPIKey string
+
+	MinioEndpoint  string
+	MinioAccessKey string
+	MinioSecretKey string
+	MinioUseSSL    bool
+	MinioBucket    string
+	MinioPublicURL string
 }
 
 // LoadConfig reads variables from environment or returns defaults.
@@ -66,6 +74,19 @@ func LoadConfig() Config {
 	midtransClientKey := getEnv("MIDTRANS_CLIENT_KEY", "")
 	midtransServerKey := getEnv("MIDTRANS_SERVER_KEY", "")
 
+	minioEndpoint := getEnv("MINIO_ENDPOINT", "localhost:9000")
+	minioEndpoint = strings.TrimPrefix(minioEndpoint, "http://")
+	minioEndpoint = strings.TrimPrefix(minioEndpoint, "https://")
+	minioAccessKey := getEnv("MINIO_ACCESS_KEY", "minioadmin")
+	minioSecretKey := getEnv("MINIO_SECRET_KEY", "minioadmin")
+	minioUseSSLStr := getEnv("MINIO_USE_SSL", "false")
+	minioUseSSL, err := strconv.ParseBool(minioUseSSLStr)
+	if err != nil {
+		minioUseSSL = false
+	}
+	minioBucket := getEnv("MINIO_BUCKET", "njara-uploads")
+	minioPublicURL := getEnv("MINIO_PUBLIC_URL", "http://localhost:9000")
+
 	return Config{
 		ServerPort:    port,
 		DBHost:        dbHost,
@@ -83,6 +104,13 @@ func LoadConfig() Config {
 		MidtransClientKey:  midtransClientKey,
 		MidtransServerKey:  midtransServerKey,
 		GlobalAPIKey:       getEnv("GLOBAL_API_KEY", "default_global_key"),
+
+		MinioEndpoint:  minioEndpoint,
+		MinioAccessKey: minioAccessKey,
+		MinioSecretKey: minioSecretKey,
+		MinioUseSSL:    minioUseSSL,
+		MinioBucket:    minioBucket,
+		MinioPublicURL: minioPublicURL,
 	}
 }
 

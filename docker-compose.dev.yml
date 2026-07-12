@@ -53,6 +53,12 @@ services:
       - MIDTRANS_MERCHANT_ID=G082856386
       - MIDTRANS_CLIENT_KEY=SB-Mid-client-zOkWcEqWCdbmuoeq
       - MIDTRANS_SERVER_KEY=SB-Mid-server-xKwEPlEPQriqAyFBtNKTbqHs
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_USE_SSL=false
+      - MINIO_BUCKET=njara-uploads
+      - MINIO_PUBLIC_URL=http://localhost:9000
     depends_on:
       db:
         condition: service_healthy
@@ -83,7 +89,26 @@ services:
       - frontend
       - api
 
+  minio:
+    image: minio/minio:latest
+    container_name: njara-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   pgdata:
   redisdata:
   uploads_data:
+  miniodata:

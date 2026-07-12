@@ -17,6 +17,7 @@ import (
 	midtransInfra "njara-platform/internal/infrastructure/midtrans"
 	"njara-platform/internal/infrastructure/postgres"
 	"njara-platform/internal/infrastructure/security"
+	"njara-platform/internal/infrastructure/storage"
 	"njara-platform/internal/usecase"
 	"njara-platform/internal/worker"
 
@@ -173,18 +174,26 @@ func main() {
 	b2cSubUsecase := usecase.NewB2CSubscriptionUsecase(b2cSubRepo, userRepo, midtransClient)
 	b2cSubHandler := domainhttp.NewB2CSubscriptionHandler(b2cSubUsecase)
 
-	authHandler := domainhttp.NewAuthHandler(authUsecase)
+	// Storage
+	minioStorage, err := storage.NewMinioStorageService(cfg)
+	if err != nil {
+		log.Warn().Msgf("Warning: failed to initialize MinIO storage service: %v", err)
+	} else {
+		log.Info().Msg("MinIO Storage initialized successfully.")
+	}
+
+	authHandler := domainhttp.NewAuthHandler(authUsecase, minioStorage)
 	gameHandler := domainhttp.NewGameHandler(gameUsecase)
 	transferMarketHandler := domainhttp.NewTransferMarketHandler(transferMarketUsecase)
 	userHandler := domainhttp.NewUserHandler(userUsecase, authUsecase)
-	clubHandler := domainhttp.NewClubHandler(clubUsecase)
-	teamHandler := domainhttp.NewTeamHandler(teamUsecase)
+	clubHandler := domainhttp.NewClubHandler(clubUsecase, minioStorage)
+	teamHandler := domainhttp.NewTeamHandler(teamUsecase, minioStorage)
 
 	invUsecase := usecase.NewTeamInvitationUsecase(invRepo, userRepo, transferMarketRepo, cacheRepo)
 	invHandler := domainhttp.NewTeamInvitationHandler(invUsecase)
 
 	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase, transferMarketRepo, cacheRepo, invRepo)
-	talentHandler := domainhttp.NewTalentHandler(talentUsecase)
+	talentHandler := domainhttp.NewTalentHandler(talentUsecase, minioStorage)
 	playerVoteHandler := domainhttp.NewPlayerVoteHandler(playerVoteUsecase)
 
 	currencyUsecase := usecase.NewCurrencyUsecase(currencyRepo)

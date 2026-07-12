@@ -200,7 +200,7 @@ export default function TalentDetailPage() {
           <div className="relative shrink-0">
             <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl overflow-hidden border-2 border-slate-700/50 shadow-xl bg-slate-800 flex items-center justify-center">
               {(talent.ProfilePictureUrl || talent.profile_picture_url) ? (
-                <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${talent.ProfilePictureUrl || talent.profile_picture_url}`} alt={talent.FullName || talent.full_name} className="w-full h-full object-cover" />
+                <img src={(talent.ProfilePictureUrl || talent.profile_picture_url?.startsWith('http') ? talent.ProfilePictureUrl || talent.profile_picture_url : (talent.ProfilePictureUrl || talent.profile_picture_url?.startsWith('http') ? talent.ProfilePictureUrl || talent.profile_picture_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${talent.ProfilePictureUrl || talent.profile_picture_url}`))} alt={talent.FullName || talent.full_name} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-5xl font-bold text-slate-500">{initials}</span>
               )}

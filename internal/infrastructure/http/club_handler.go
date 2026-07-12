@@ -8,13 +8,17 @@ import (
 	"time"
 )
 
+// ClubHandler handles club-related HTTP requests
 type ClubHandler struct {
 	clubUsecase domain.ClubUsecase
+	storage     domain.StorageService
 }
 
-func NewClubHandler(clubUsecase domain.ClubUsecase) *ClubHandler {
+// NewClubHandler creates a new ClubHandler
+func NewClubHandler(clubUsecase domain.ClubUsecase, storage domain.StorageService) *ClubHandler {
 	return &ClubHandler{
 		clubUsecase: clubUsecase,
+		storage:     storage,
 	}
 }
 
@@ -201,12 +205,21 @@ func (h *ClubHandler) UploadLogo(c *fiber.Ctx) error {
 	// Use strings.ReplaceAll from strings package, so we need to make sure strings is imported.
 	filename := strings.ReplaceAll(file.Filename, " ", "_")
 	fileNameWithID := time.Now().Format("20060102150405") + "_" + filename
-	savePath := "./uploads/clubs/" + fileNameWithID
-	fileURL := "/uploads/clubs/" + fileNameWithID
+	objectName := "clubs/" + fileNameWithID
 
-	// Save file to local disk
-	if err := c.SaveFile(file, savePath); err != nil {
-		return domain.NewAppError(domain.ErrCodeInternal, "failed to save logo", err)
+	fileContent, err := file.Open()
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to open logo file", err)
+	}
+	defer fileContent.Close()
+
+	if h.storage == nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "storage service is not configured", nil)
+	}
+
+	fileURL, err := h.storage.UploadFile(c.Context(), fileContent, file.Size, contentType, objectName)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "failed to upload logo to storage", err)
 	}
 
 	// Update club logo URL in database

@@ -206,7 +206,7 @@ export default function PlayerDetailPage() {
             <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-slate-50 dark:bg-slate-950 border-4 border-slate-300 dark:border-slate-800 flex items-center justify-center overflow-hidden shrink-0 shadow-2xl shadow-indigo-500/10">
               {player.ProfilePictureUrl ? (
                 <Image
-                  src={player.ProfilePictureUrl.startsWith('http') ? player.ProfilePictureUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${player.ProfilePictureUrl}`}
+                  src={player.ProfilePictureUrl.startsWith('http') ? player.ProfilePictureUrl : (player.ProfilePictureUrl?.startsWith('http') ? player.ProfilePictureUrl : (player.ProfilePictureUrl?.startsWith('http') ? player.ProfilePictureUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${player.ProfilePictureUrl}`))}
                   alt={player.FullName}
                   fill
                   className="object-cover"
@@ -225,7 +225,7 @@ export default function PlayerDetailPage() {
                   {(player.Club?.logo_url || player.Club?.LogoUrl) ? (
                     <div className="relative w-6 h-6 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800">
                       <Image
-                        src={(player.Club.logo_url || player.Club.LogoUrl || '').startsWith('http') ? (player.Club.logo_url || player.Club.LogoUrl || '') : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${(player.Club.logo_url || player.Club.LogoUrl || '')}`}
+                        src={(player.Club.logo_url || player.Club.LogoUrl || '').startsWith('http') ? (player.Club.logo_url || player.Club.LogoUrl || '') : ((player.Club.logo_url || player.Club.LogoUrl || '')?.startsWith('http') ? (player.Club.logo_url || player.Club.LogoUrl || '') : ((player.Club.logo_url || player.Club.LogoUrl || '')?.startsWith('http') ? (player.Club.logo_url || player.Club.LogoUrl || '') : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${(player.Club.logo_url || player.Club.LogoUrl || '')}`))}
                         alt={player.Club.name || player.Club.Name || 'Club'}
                         fill
                         className="object-cover"
