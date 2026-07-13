@@ -620,9 +620,9 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		Discount       int64
 		Description    string
 	}{
-		{"Monthly", 1, 199000, 100000, "Akses penuh platform EMC B2B selama 1 bulan."},
-		{"Quarterly", 3, 399000, 198000, "Akses penuh platform EMC B2B selama 3 bulan. Hemat Rp198.000!"},
-		{"Yearly", 12, 1499000, 889000, "Akses penuh platform EMC B2B selama 12 bulan. Hemat Rp889.000!"},
+		{"Monthly", 1, 199000, 100000, "Akses penuh platform NJARA B2B selama 1 bulan."},
+		{"Quarterly", 3, 399000, 198000, "Akses penuh platform NJARA B2B selama 3 bulan. Hemat Rp198.000!"},
+		{"Yearly", 12, 1499000, 889000, "Akses penuh platform NJARA B2B selama 12 bulan. Hemat Rp889.000!"},
 	}
 
 	for _, sp := range subPlans {

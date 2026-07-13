@@ -56,7 +56,7 @@
     "apply_success": "Berhasil mendaftar untuk trial!",
     "apply_failed": "Gagal mendaftar. Maksimal 10 pendaftaran diperbolehkan.",
     "view_profile": "Profil Saya",
-    "welcome_title": "Selamat datang di Platform EMC",
+    "welcome_title": "Selamat datang di Platform NJARA",
     "welcome_desc": "Temukan teman, klub impian, daftar trial terbuka, dan mulai perjalanan esports profesional Anda hari ini.",
     "search_player": "Cari Player berdasarkan ID..."
   },
@@ -186,7 +186,7 @@
     "loading_plans": "Memuat paket langganan...",
     "hero_title": "Langganan ",
     "hero_highlight": "Premium",
-    "hero_subtitle": "Tingkatkan klub Anda dengan fitur eksklusif. Kelola talenta, tim, dan rekrutmen tanpa batas di Portal EMC.",
+    "hero_subtitle": "Tingkatkan klub Anda dengan fitur eksklusif. Kelola talenta, tim, dan rekrutmen tanpa batas di Portal NJARA.",
     "status_label": "Status Langganan:",
     "status_active": "Aktif",
     "status_pending": "Menunggu Pembayaran",
@@ -238,7 +238,7 @@
     "loading_plans": "Memuat paket langganan...",
     "hero_title": "Langganan ",
     "hero_highlight": "Premium",
-    "hero_subtitle": "Tingkatkan tim Anda dengan fitur eksklusif. Kelola talenta, anggota, dan rekrutmen tanpa batas di Portal EMC.",
+    "hero_subtitle": "Tingkatkan tim Anda dengan fitur eksklusif. Kelola talenta, anggota, dan rekrutmen tanpa batas di Portal NJARA.",
     "status_label": "Status Langganan:",
     "status_active": "Aktif",
     "status_pending": "Menunggu Pembayaran",
@@ -281,7 +281,7 @@
     "back_to_subs": "Kembali ke Halaman Langganan"
   },
   "Auth": {
-    "login_title": "EMC PORTAL",
+    "login_title": "NJARA PORTAL",
     "login_subtitle": "Club Management & Administration",
     "email_label": "Email",
     "email_placeholder": "admin@yourclub.com",
@@ -366,7 +366,7 @@
     "create_success": "Profil klub berhasil dibuat! Mengalihkan ke dashboard..."
   },
   "AppAuth": {
-    "login_title": "EMC PLATFORM",
+    "login_title": "NJARA PLATFORM",
     "login_subtitle": "Masuk sebagai Pemain & Pelatih eSports",
     "email_label": "Alamat Email",
     "email_placeholder": "name@example.com",
@@ -451,10 +451,10 @@
     "nav_player_register": "Daftar Player",
     "nav_club_login": "Login Klub",
     "nav_club_register": "Daftarkan Klub",
-    "hero_badge": "Platform Rekrutmen Global EMC",
+    "hero_badge": "Platform Rekrutmen Global NJARA",
     "hero_title": "Dominasi Arena Esports.",
     "hero_subtitle": "Jembatan Pro & Talenta.",
-    "hero_desc": "EMC PLATFORM mengintegrasikan analitik performa tingkat lanjut dengan jaringan pencarian bakat global. Temukan roster impian Anda atau mulai karir profesional Anda di satu ekosistem terpadu.",
+    "hero_desc": "NJARA PLATFORM mengintegrasikan analitik performa tingkat lanjut dengan jaringan pencarian bakat global. Temukan roster impian Anda atau mulai karir profesional Anda di satu ekosistem terpadu.",
     "hero_btn_player": "Mulai Karir Anda",
     "hero_btn_club": "Daftarkan Klub",
     "hero_secondary_cta": "Login Portal Klub",
@@ -520,7 +520,7 @@
     "footer_cookie": "Pengaturan Cookie",
     "footer_contact": "Kontak Scout",
     "footer_api": "Dokumentasi API",
-    "footer_copyright": "© 2026 EMC PLATFORM. HAK CIPTA DILINDUNGI.",
+    "footer_copyright": "© 2026 NJARA PLATFORM. HAK CIPTA DILINDUNGI.",
     "footer_tagline": "DIRANCANG UNTUK PRO."
   },
   "ClubAchievements": {

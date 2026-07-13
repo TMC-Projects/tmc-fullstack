@@ -21,9 +21,9 @@ export default function Home() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <img src="/logo.png" alt="EMC Logo" className="w-8 h-8 rounded-lg object-contain" />
+            <img src="/logo.png" alt="NJARA Logo" className="w-8 h-8 rounded-lg object-contain" />
             <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
-              EMC
+              NJARA
             </span>
           </Link>
 
@@ -236,7 +236,7 @@ export default function Home() {
                   <div>
                     <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mb-1">{t('tm_badge_global')}</div>
                     <h4 className="font-bold text-lg leading-tight">Kael "Vortex" J.</h4>
-                    <span className="text-xs text-slate-500 font-mono mt-1 block">ID: EMC-8831</span>
+                    <span className="text-xs text-slate-500 font-mono mt-1 block">ID: NJARA-8831</span>
                   </div>
                 </div>
               </div>
@@ -288,7 +288,7 @@ export default function Home() {
                   <div>
                     <div className="inline-block px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 text-[9px] font-mono tracking-widest uppercase mb-1 rounded border border-cyan-500/30">{t('tm_badge_open')}</div>
                     <h4 className="font-bold text-lg leading-tight">Sarah "Echo" M.</h4>
-                    <span className="text-xs text-slate-500 font-mono mt-1 block">ID: EMC-9924</span>
+                    <span className="text-xs text-slate-500 font-mono mt-1 block">ID: NJARA-9924</span>
                   </div>
                 </div>
               </div>
@@ -338,7 +338,7 @@ export default function Home() {
                   <div>
                     <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mb-1">{t('tm_badge_global')}</div>
                     <h4 className="font-bold text-lg leading-tight">David "Null" C.</h4>
-                    <span className="text-xs text-slate-500 font-mono mt-1 block">ID: EMC-4420</span>
+                    <span className="text-xs text-slate-500 font-mono mt-1 block">ID: NJARA-4420</span>
                   </div>
                 </div>
               </div>
@@ -462,9 +462,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="EMC Logo" className="w-6 h-6 rounded object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
+              <img src="/logo.png" alt="NJARA Logo" className="w-6 h-6 rounded object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
               <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-                EMC
+                NJARA
               </span>
             </div>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-slate-400">
