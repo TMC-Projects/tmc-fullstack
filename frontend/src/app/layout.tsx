@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EMC Platform",
+  title: "NJARA Platform",
   description: "B2C and B2B Club Management",
 };
 

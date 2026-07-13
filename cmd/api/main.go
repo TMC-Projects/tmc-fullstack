@@ -24,6 +24,7 @@ import (
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -240,6 +241,23 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-API-Key",
 		AllowMethods: "GET, POST, PUT, DELETE, PATCH, OPTIONS",
 	}))
+
+	rateLimiter := limiter.New(limiter.Config{
+		Max:        1000,            // Maksimal request per IP
+		Expiration: 1 * time.Minute, // Reset limit setiap 1 menit
+		KeyGenerator: func(c *fiber.Ctx) string {
+			// Menggunakan IP client sebagai identifier
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"success": false,
+				"message": "Too many requests, please try again later.",
+			})
+		},
+	})
+
+	app.Use(rateLimiter)
 
 	app.Use(requestid.New(requestid.Config{
 		Generator: func() string {
@@ -602,9 +620,9 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		Discount       int64
 		Description    string
 	}{
-		{"Monthly", 1, 199000, 100000, "Akses penuh platform EMC B2B selama 1 bulan."},
-		{"Quarterly", 3, 399000, 198000, "Akses penuh platform EMC B2B selama 3 bulan. Hemat Rp198.000!"},
-		{"Yearly", 12, 1499000, 889000, "Akses penuh platform EMC B2B selama 12 bulan. Hemat Rp889.000!"},
+		{"Monthly", 1, 199000, 100000, "Akses penuh platform NJARA B2B selama 1 bulan."},
+		{"Quarterly", 3, 399000, 198000, "Akses penuh platform NJARA B2B selama 3 bulan. Hemat Rp198.000!"},
+		{"Yearly", 12, 1499000, 889000, "Akses penuh platform NJARA B2B selama 12 bulan. Hemat Rp889.000!"},
 	}
 
 	for _, sp := range subPlans {

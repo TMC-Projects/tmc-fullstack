@@ -56,7 +56,7 @@
     "apply_success": "Successfully applied for the trial!",
     "apply_failed": "Failed to apply. Max 10 applications allowed.",
     "view_profile": "My Profile",
-    "welcome_title": "Welcome to EMC Platform",
+    "welcome_title": "Welcome to NJARA Platform",
     "welcome_desc": "Find your friends, dream club, apply for open trials, and start your professional esports journey today.",
     "search_player": "Search Player by ID..."
   },
@@ -186,7 +186,7 @@
     "loading_plans": "Loading subscription plans...",
     "hero_title": "Club ",
     "hero_highlight": "Premium",
-    "hero_subtitle": "Upgrade your club with exclusive features. Manage talents, teams, and recruitment limitlessly in the EMC Portal.",
+    "hero_subtitle": "Upgrade your club with exclusive features. Manage talents, teams, and recruitment limitlessly in the NJARA Portal.",
     "status_label": "Subscription Status:",
     "status_active": "Active",
     "status_pending": "Pending Payment",
@@ -238,7 +238,7 @@
     "loading_plans": "Loading subscription plans...",
     "hero_title": "Team ",
     "hero_highlight": "Premium",
-    "hero_subtitle": "Upgrade your team with exclusive features. Manage talents, teams, and recruitment limitlessly in the EMC Portal.",
+    "hero_subtitle": "Upgrade your team with exclusive features. Manage talents, teams, and recruitment limitlessly in the NJARA Portal.",
     "status_label": "Subscription Status:",
     "status_active": "Active",
     "status_pending": "Pending Payment",
@@ -281,7 +281,7 @@
     "back_to_subs": "Back to Subscriptions Page"
   },
   "Auth": {
-    "login_title": "EMC PORTAL",
+    "login_title": "NJARA PORTAL",
     "login_subtitle": "Club Management & Administration",
     "email_label": "Email",
     "email_placeholder": "admin@yourclub.com",
@@ -366,7 +366,7 @@
     "create_success": "Club profile created successfully! Redirecting to dashboard..."
   },
   "AppAuth": {
-    "login_title": "EMC PLATFORM",
+    "login_title": "NJARA PLATFORM",
     "login_subtitle": "Login as eSports Player & Coach",
     "email_label": "Email Address",
     "email_placeholder": "name@example.com",
@@ -451,10 +451,10 @@
     "nav_player_register": "Register Player",
     "nav_club_login": "Club Login",
     "nav_club_register": "Join as Club",
-    "hero_badge": "EMC Global Recruitment Platform",
+    "hero_badge": "NJARA Global Recruitment Platform",
     "hero_title": "Dominate the Esports Arena.",
     "hero_subtitle": "The Bridge Between Pros & Talents.",
-    "hero_desc": "EMC PLATFORM integrates advanced performance analytics with a global scouting network. Find your dream roster or start your professional career in one unified ecosystem.",
+    "hero_desc": "NJARA PLATFORM integrates advanced performance analytics with a global scouting network. Find your dream roster or start your professional career in one unified ecosystem.",
     "hero_btn_player": "Start Your Career",
     "hero_btn_club": "Register Club",
     "hero_secondary_cta": "Club Portal Login",
@@ -520,7 +520,7 @@
     "footer_cookie": "Cookie Settings",
     "footer_contact": "Contact Scout",
     "footer_api": "API Docs",
-    "footer_copyright": "© 2026 EMC PLATFORM. ALL RIGHTS RESERVED.",
+    "footer_copyright": "© 2026 NJARA PLATFORM. ALL RIGHTS RESERVED.",
     "footer_tagline": "ENGINEERED FOR PROS."
   },
   "ClubAchievements": {
