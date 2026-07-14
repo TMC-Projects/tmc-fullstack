@@ -244,6 +244,38 @@ func (h *AuthHandler) UpdateProfile(c *fiber.Ctx) error {
 	return SendSuccess(c, fiber.StatusOK, "Profile updated successfully", toUserResponse(user))
 }
 
+type updatePasswordRequest struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
+
+// UpdatePassword handles updating the authenticated user's password.
+func (h *AuthHandler) UpdatePassword(c *fiber.Ctx) error {
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	var req updatePasswordRequest
+	if err := c.BodyParser(&req); err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid request body", err)
+	}
+
+	if req.OldPassword == "" || req.NewPassword == "" {
+		return domain.NewAppError(domain.ErrCodeValidation, "old_password and new_password are required", nil)
+	}
+
+	if err := h.authUsecase.ChangePassword(c.UserContext(), userID, req.OldPassword, req.NewPassword); err != nil {
+		if appErr, ok := err.(*domain.AppError); ok {
+			return appErr
+		}
+		return domain.NewAppError(domain.ErrCodeInternal, err.Error(), err)
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Password updated successfully", nil)
+}
+
 type logoutRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }

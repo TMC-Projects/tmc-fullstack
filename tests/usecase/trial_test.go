@@ -83,6 +83,9 @@ func (m *mockUserRepoForTrial2) UpdateStatus(ctx context.Context, uID int64, s s
 func (m *mockUserRepoForTrial2) UpdateTeamID(ctx context.Context, uID int64, tID *int64) error {
 	return nil
 }
+func (m *mockUserRepoForTrial2) UpdatePassword(ctx context.Context, uID int64, hash string) error {
+	return nil
+}
 
 // ─── Mock: ClubRepository (for trial tests) ──────────────────────────────────
 

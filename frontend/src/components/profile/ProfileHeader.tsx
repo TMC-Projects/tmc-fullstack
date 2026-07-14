@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Shield, Calendar, Activity, Edit2, X, Save, Copy, Share2 } from 'lucide-react';
+import { User, Shield, Calendar, Activity, Edit2, X, Save, Copy, Share2, Key } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { User as AuthUser, useAuthStore } from '@/store/auth';
 import { useAlertStore } from '@/store/alertStore';
@@ -17,16 +17,18 @@ interface ProfileHeaderProps {
   followingCount?: number;
   isFollowing?: boolean;
   onFollowToggle?: () => void;
+  onChangePasswordClick?: () => void;
 }
 
 export default function ProfileHeader({
   user,
   isEditable,
   onRefresh,
-  followersCount,
-  followingCount,
+  followersCount = 0,
+  followingCount = 0,
   isFollowing,
-  onFollowToggle
+  onFollowToggle,
+  onChangePasswordClick
 }: ProfileHeaderProps) {
   const t = useTranslations('Profile');
   const { token } = useAuthStore();
@@ -245,6 +247,15 @@ export default function ProfileHeader({
               >
                 <Edit2 className="w-5 h-5" />
               </button>
+              {onChangePasswordClick && (
+                <button
+                  onClick={onChangePasswordClick}
+                  className="bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-2 rounded-xl transition-colors"
+                  title="Change Password"
+                >
+                  <Key className="w-5 h-5" />
+                </button>
+              )}
             </div>
           )}
         </div>
