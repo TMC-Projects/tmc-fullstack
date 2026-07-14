@@ -316,3 +316,31 @@ func (u *authUsecase) UpdateProfilePicture(ctx context.Context, userID int64, ur
 
 	return nil
 }
+
+func (u *authUsecase) ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) error {
+	user, err := u.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("failed to get user: %w", err)
+	}
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	// Compare old password
+	if err := u.passwordHasher.Compare(user.PasswordHash, oldPassword); err != nil {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "invalid old password", err)
+	}
+
+	// Hash new password
+	hashedPassword, err := u.passwordHasher.Hash(newPassword)
+	if err != nil {
+		return fmt.Errorf("failed to hash new password: %w", err)
+	}
+
+	// Update password in repo
+	if err := u.userRepo.UpdatePassword(ctx, userID, hashedPassword); err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	return nil
+}

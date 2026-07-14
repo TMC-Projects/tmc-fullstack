@@ -32,12 +32,6 @@ export default function EditClubPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Achievements State
-  const [achievements, setAchievements] = useState<any[]>([]);
-  const [isAchModalOpen, setIsAchModalOpen] = useState(false);
-  const [editingAch, setEditingAch] = useState<any>(null);
-  const [achForm, setAchForm] = useState({ title: '', description: '', date: '' });
-  const [isSavingAch, setIsSavingAch] = useState(false);
 
   // Onboarding State
   const [onboardingStatus, setOnboardingStatus] = useState<string | null>(null);
@@ -93,7 +87,7 @@ export default function EditClubPage() {
           npwp: data.data.npwp || '',
           logo_url: data.data.logo_url || ''
         });
-        setAchievements(data.data.achievements || []);
+
       }
     } catch (err) {
       console.error('Failed to fetch club data', err);
@@ -206,79 +200,6 @@ export default function EditClubPage() {
     }
   };
 
-  const handleOpenAddAch = () => {
-    setAchForm({ title: '', description: '', date: '' });
-    setEditingAch(null);
-    setIsAchModalOpen(true);
-  };
-
-  const handleOpenEditAch = (ach: any) => {
-    setAchForm({
-      title: ach.title,
-      description: ach.description,
-      date: ach.date ? ach.date.substring(0, 10) : ''
-    });
-    setEditingAch(ach);
-    setIsAchModalOpen(true);
-  };
-
-  const handleSaveAchievement = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user?.club_id) return;
-
-    setIsSavingAch(true);
-    setErrorMessage('');
-
-    try {
-      const url = editingAch
-        ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clubs/${user.club_id}/achievements/${editingAch.id}`
-        : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clubs/${user.club_id}/achievements`;
-
-      const method = editingAch ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(achForm)
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || t('error_save_ach'));
-      }
-
-      setSuccessMessage(t('success_save_ach'));
-      setIsAchModalOpen(false);
-      await fetchClub();
-    } catch (err: any) {
-      setErrorMessage(err.message || t('error_save_ach'));
-    } finally {
-      setIsSavingAch(false);
-      setTimeout(() => setSuccessMessage(''), 3000);
-    }
-  };
-
-  const handleDeleteAchievement = async (id: number) => {
-    if (!user?.club_id || !confirm(t('confirm_delete_ach'))) return;
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clubs/${user.club_id}/achievements/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!res.ok) throw new Error(t('error_delete_ach'));
-      setSuccessMessage(t('success_delete_ach'));
-      await fetchClub();
-    } catch (err: any) {
-      setErrorMessage(err.message);
-    } finally {
-      setTimeout(() => setSuccessMessage(''), 3000);
-    }
-  };
 
   if (!_hasHydrated || isLoading) {
     return (
@@ -569,121 +490,7 @@ export default function EditClubPage() {
             </form>
           )}
         </div>
-
-        {/* Achievements Section */}
-        <div className="mt-8 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300/80 dark:border-slate-800/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl relative">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500">
-                <Trophy className="w-5 h-5" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{t('achievements_title')}</h2>
-            </div>
-            <button
-              onClick={handleOpenAddAch}
-              className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-medium rounded-xl transition-colors flex items-center gap-2 text-sm"
-            >
-              <Plus className="w-4 h-4" />
-              {t('add_achievement')}
-            </button>
-          </div>
-
-          {achievements.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">
-              {t('no_achievements')}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {achievements.map((ach) => (
-                <div key={ach.id} className="p-5 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-start justify-between group">
-                  <div>
-                    <h4 className="font-semibold text-slate-800 dark:text-slate-200">{ach.title}</h4>
-                    {ach.description && <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{ach.description}</p>}
-                    <p className="text-xs text-slate-500 mt-2">{new Date(ach.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                  </div>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => handleOpenEditAch(ach)} className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors">
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => handleDeleteAchievement(ach.id)} className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
-
-      {/* Achievement Modal */}
-      {isAchModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
-            <button onClick={() => setIsAchModalOpen(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-              <X className="w-5 h-5" />
-            </button>
-
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-amber-500" />
-              {editingAch ? t('edit_achievement_modal') : t('add_achievement_modal')}
-            </h3>
-
-            <form onSubmit={handleSaveAchievement} className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-2">{t('ach_title')}</label>
-                <input
-                  type="text"
-                  required
-                  value={achForm.title}
-                  onChange={e => setAchForm({ ...achForm, title: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-2xl text-slate-900 dark:text-slate-100 transition-all outline-none"
-                  placeholder={t('ach_title_placeholder')}
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-2">{t('ach_date')}</label>
-                <input
-                  type="date"
-                  required
-                  value={achForm.date}
-                  onChange={e => setAchForm({ ...achForm, date: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-2xl text-slate-900 dark:text-slate-100 transition-all outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-2">{t('ach_desc')}</label>
-                <textarea
-                  rows={3}
-                  value={achForm.description}
-                  onChange={e => setAchForm({ ...achForm, description: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-2xl text-slate-900 dark:text-slate-100 transition-all outline-none resize-none"
-                  placeholder={t('ach_desc_placeholder')}
-                />
-              </div>
-
-              <div className="pt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsAchModalOpen(false)}
-                  className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-2xl transition-colors"
-                >
-                  {t('cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSavingAch}
-                  className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 text-white font-semibold rounded-2xl shadow-lg transition-all"
-                >
-                  {isSavingAch ? t('saving') : t('save')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       <OnboardingModal
         isOpen={isOnboardingModalOpen}

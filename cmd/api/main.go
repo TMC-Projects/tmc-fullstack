@@ -292,6 +292,7 @@ func main() {
 	app.Post("/api/refresh-token", authHandler.RefreshToken)
 	app.Get("/api/profile", authMiddleware.Authenticate, authHandler.GetProfile)
 	app.Put("/api/profile", authMiddleware.Authenticate, authHandler.UpdateProfile)
+	app.Put("/api/profile/password", authMiddleware.Authenticate, authHandler.UpdatePassword)
 	app.Post("/api/profile/upload-photo", authMiddleware.Authenticate, authHandler.UploadProfilePhoto)
 	app.Get("/api/games", gameHandler.GetList)
 	app.Get("/api/transfer-market", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireVerifiedClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), authMiddleware.RequirePermission("view_transfer_market"), transferMarketHandler.GetList)

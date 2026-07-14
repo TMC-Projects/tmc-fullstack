@@ -232,3 +232,7 @@ func (r *userRepository) UpdateProfilePicture(ctx context.Context, userID int64,
 func (r *userRepository) UpdateStatus(ctx context.Context, userID int64, status string) error {
 	return r.db.WithContext(ctx).Model(&UserModel{}).Where("id = ?", userID).Update("status", status).Error
 }
+
+func (r *userRepository) UpdatePassword(ctx context.Context, userID int64, hash string) error {
+	return r.db.WithContext(ctx).Model(&UserModel{}).Where("id = ?", userID).Update("password_hash", hash).Error
+}

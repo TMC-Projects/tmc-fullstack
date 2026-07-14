@@ -197,8 +197,12 @@ export default function Sidebar() {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className={`flex items-center transition-colors ${collapsed ? 'justify-center p-1 w-full rounded-full hover:bg-slate-300/50 dark:hover:bg-slate-800/50' : 'w-full gap-3 p-3 rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-200/50 dark:bg-slate-900/50 hover:bg-slate-300/50 dark:hover:bg-slate-800/50'}`}
           >
-            <div className={`w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold shrink-0`}>
-              {user?.full_name?.charAt(0)?.toUpperCase() || <UserCircle className="w-6 h-6" />}
+            <div className={`w-10 h-10 rounded-full bg-blue-500/20 overflow-hidden flex items-center justify-center text-blue-500 font-bold shrink-0`}>
+              {user?.profile_picture_url ? (
+                <img src={user.profile_picture_url} alt={user.full_name || 'Profile'} className="w-full h-full object-cover" />
+              ) : (
+                user?.full_name?.charAt(0)?.toUpperCase() || <UserCircle className="w-6 h-6" />
+              )}
             </div>
             {!collapsed && (
               <>

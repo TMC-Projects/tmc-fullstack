@@ -53,6 +53,7 @@ type UserRepository interface {
 	UpdateProfile(ctx context.Context, user *User) error
 	UpdateProfilePicture(ctx context.Context, userID int64, url string) error
 	UpdateStatus(ctx context.Context, userID int64, status string) error
+	UpdatePassword(ctx context.Context, userID int64, hash string) error
 }
 
 // RegisterInput defines the input parameters required to register a user.
@@ -100,6 +101,7 @@ type AuthUsecase interface {
 	UpdateProfile(ctx context.Context, userID int64, input UpdateProfileInput) (*User, error)
 	UpdateProfilePicture(ctx context.Context, userID int64, url string) error
 	InvalidateProfileCache(ctx context.Context, userID int64) error
+	ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) error
 }
 
 // RolePermissionRepository defines the outbound port for role permission mappings.
