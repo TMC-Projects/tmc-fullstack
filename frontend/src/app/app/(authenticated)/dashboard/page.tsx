@@ -13,7 +13,6 @@ import OpenTrialList, { Trial } from '@/components/dashboard/OpenTrialList';
 import TeamInvitations from '@/components/dashboard/TeamInvitations';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import B2CNavbar from '@/components/dashboard/B2CNavbar';
 
 export default function B2CDashboardPage() {
   const router = useRouter();
@@ -197,7 +196,6 @@ export default function B2CDashboardPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 overflow-x-hidden">
-      <B2CNavbar />
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8 space-y-12">
         {/* Welcome Section */}

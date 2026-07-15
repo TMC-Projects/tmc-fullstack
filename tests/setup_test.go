@@ -133,6 +133,10 @@ func TestMain(m *testing.M) {
 	feedbackUsecase := usecase.NewFeedbackUsecase(feedbackRepo)
 	feedbackHandler := domainhttp.NewFeedbackHandler(feedbackUsecase)
 
+	postRepo := postgres.NewPostRepository(db)
+	postUsecase := usecase.NewPostUsecase(postRepo)
+	postHandler := domainhttp.NewPostHandler(postUsecase, mockStorage)
+
 	authMiddleware := domainhttp.NewAuthMiddleware(tokenProvider, authUsecase, rolePermRepo, clubRepo, "test_global_api_key_123", accessLogRepo)
 
 	// Setup Fiber app — identical routing to main.go
@@ -172,6 +176,15 @@ func TestMain(m *testing.M) {
 	app.Get("/api/b2c/invitations", authMiddleware.Authenticate, invHandler.GetMyInvitations)
 	app.Post("/api/b2c/invitations/:id/respond", authMiddleware.Authenticate, invHandler.Respond)
 
+	// B2C Post Endpoints
+	b2cPostGroup := app.Group("/api/b2c/posts", authMiddleware.Authenticate)
+	b2cPostGroup.Post("/", postHandler.CreatePost)
+	b2cPostGroup.Get("/", postHandler.GetFeed)
+	b2cPostGroup.Post("/:id/like", postHandler.ToggleLike)
+	b2cPostGroup.Post("/:id/comments", postHandler.AddComment)
+	b2cPostGroup.Get("/:id/comments", postHandler.GetComments)
+	b2cPostGroup.Post("/upload-image", postHandler.UploadImage)
+
 	app.Get("/api/test/player", authMiddleware.Authenticate, authMiddleware.RequirePermission("edit_portfolio"), func(c *fiber.Ctx) error {
 		return domainhttp.SendSuccess(c, fiber.StatusOK, "Welcome Player! You have 'edit_portfolio' permission.", nil)
 	})
@@ -197,7 +210,7 @@ func TestMain(m *testing.M) {
 // This mirrors the migrateAndSeedDB function in main.go exactly.
 func migrateAndSeedDB(db *gorm.DB) error {
 	db.Exec("DROP TABLE IF EXISTS club_achievements CASCADE;")
-	db.Exec("TRUNCATE TABLE transfer_market, role_permissions, users, club_achievements CASCADE;")
+	db.Exec("TRUNCATE TABLE transfer_market, role_permissions, users, club_achievements, posts, post_likes, post_comments CASCADE;")
 	if testRedis != nil {
 		testRedis.FlushAll(context.Background())
 	}
@@ -212,6 +225,9 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		&domain.ClubOnboarding{},
 		&postgres.FeedbackModel{},
 		&postgres.TeamInvitationModel{},
+		&postgres.PostModel{},
+		&postgres.PostLikeModel{},
+		&postgres.PostCommentModel{},
 	)
 	if err != nil {
 		return err
@@ -282,7 +298,7 @@ func cleanupTestUsers() {
 		return
 	}
 	testDB.Exec("DROP TABLE IF EXISTS club_achievements CASCADE;")
-	testDB.Exec("TRUNCATE TABLE transfer_market, role_permissions, users, club_achievements CASCADE;")
+	testDB.Exec("TRUNCATE TABLE transfer_market, role_permissions, users, club_achievements, posts, post_likes, post_comments CASCADE;")
 }
 
 // trackTestUser registers an email to be deleted in teardown.
