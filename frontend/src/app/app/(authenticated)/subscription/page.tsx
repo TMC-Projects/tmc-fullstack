@@ -7,7 +7,6 @@ import { CreditCard, Check, AlertTriangle, ArrowLeft, Loader2, QrCode, Banknote,
 import { useAuthStore } from '@/store/auth';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import B2CNavbar from '@/components/dashboard/B2CNavbar';
 
 interface Plan {
   id: number;
@@ -160,7 +159,6 @@ export default function SubscriptionPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-      <B2CNavbar />
 
       <div className="max-w-4xl mx-auto px-4 mt-8">
         {activeSub ? (

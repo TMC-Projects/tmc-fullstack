@@ -10,7 +10,6 @@ import { motion } from 'framer-motion';
 
 import TeamInvitations from '@/components/dashboard/TeamInvitations';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import B2CNavbar from '@/components/dashboard/B2CNavbar';
 
 export default function InvitationsPage() {
   const router = useRouter();
@@ -45,7 +44,6 @@ export default function InvitationsPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 overflow-x-hidden">
-      <B2CNavbar />
 
       <div className="max-w-4xl mx-auto px-4 md:px-8 mt-8 space-y-8">
         <div className="flex items-center gap-4">

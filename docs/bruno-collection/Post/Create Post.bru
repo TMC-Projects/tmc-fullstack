@@ -1,0 +1,21 @@
+meta {
+  name: Create Post
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/b2c/posts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{b2cToken}}
+}
+
+body:json {
+  {
+    "content": "<p>Hello from Post API!</p>"
+  }
+}

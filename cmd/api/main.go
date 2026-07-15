@@ -53,6 +53,10 @@ func main() {
 		fmt.Printf("failed to create uploads/teams directory: %v\n", err)
 		os.Exit(1)
 	}
+	if err := os.MkdirAll("./uploads/posts", 0755); err != nil {
+		fmt.Printf("failed to create uploads/posts directory: %v\n", err)
+		os.Exit(1)
+	}
 
 	// Create daily log file
 	logFileName := fmt.Sprintf("logs/%s.log", time.Now().Format("2006-01-02"))
@@ -137,6 +141,7 @@ func main() {
 	playerVoteRepo := postgres.NewPlayerVoteRepository(db)
 	currencyRepo := postgres.NewCurrencyRepository(db)
 	feedbackRepo := postgres.NewFeedbackRepository(db)
+	postRepo := postgres.NewPostRepository(db)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, clubRepo, cacheRepo, passwordHasher, tokenProvider, 15*time.Minute, transferMarketRepo)
 	gameUsecase := usecase.NewGameUsecase(gameRepo)
@@ -161,6 +166,9 @@ func main() {
 	// Follow System
 	userFollowRepo := postgres.NewUserFollowRepository(db)
 	userFollowUsecase := usecase.NewUserFollowUsecase(userFollowRepo, userRepo)
+
+	// Post System
+	postUsecase := usecase.NewPostUsecase(postRepo)
 
 	// Midtrans
 	midtransClient := midtransInfra.NewClient(cfg.MidtransServerKey, cfg.MidtransMerchantID)
@@ -207,6 +215,7 @@ func main() {
 	userFollowHandler := domainhttp.NewUserFollowHandler(userFollowUsecase)
 	b2cPlayerHandler := domainhttp.NewB2CPlayerHandler(authUsecase, userFollowUsecase)
 	b2cInvitationHandler := invHandler
+	postHandler := domainhttp.NewPostHandler(postUsecase, minioStorage)
 
 	// Trial Management Handlers
 	trialHandler := domainhttp.NewTrialHandler(trialUsecase, trialAppRepo)
@@ -436,6 +445,15 @@ func main() {
 	app.Post("/api/b2c/subscription/callback", b2cSubHandler.HandleMidtransCallback)
 	app.Get("/api/b2c/subscription/plans", b2cSubHandler.GetPlans) // Public access if needed
 
+	// B2C Post Endpoints
+	b2cPostGroup := app.Group("/api/b2c/posts", authMiddleware.Authenticate)
+	b2cPostGroup.Post("/", postHandler.CreatePost)
+	b2cPostGroup.Get("/", postHandler.GetFeed)
+	b2cPostGroup.Post("/:id/like", postHandler.ToggleLike)
+	b2cPostGroup.Post("/:id/comments", postHandler.AddComment)
+	b2cPostGroup.Get("/:id/comments", postHandler.GetComments)
+	b2cPostGroup.Post("/upload-image", postHandler.UploadImage)
+
 	// Public Endpoints
 	app.Get("/api/public/players/:username", b2cPlayerHandler.GetPublicPlayerProfile)
 
@@ -510,6 +528,9 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		&postgres.TeamInvitationModel{},
 		&postgres.B2CSubscriptionPlanModel{},
 		&postgres.B2CSubscriptionModel{},
+		&postgres.PostModel{},
+		&postgres.PostLikeModel{},
+		&postgres.PostCommentModel{},
 	)
 	if err != nil {
 		return err

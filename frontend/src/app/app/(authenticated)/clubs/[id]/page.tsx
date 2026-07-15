@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import { Shield, MapPin, Calendar, Building2, ChevronLeft, Flag , CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import B2CNavbar from '@/components/dashboard/B2CNavbar';
 import { useTranslations } from 'next-intl';
 
 interface ClubDetail {
@@ -79,7 +78,6 @@ export default function ClubDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-200 pb-20">
-      <B2CNavbar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div 

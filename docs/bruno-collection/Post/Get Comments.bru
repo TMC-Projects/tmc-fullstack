@@ -1,0 +1,19 @@
+meta {
+  name: Get Comments
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/b2c/posts/:id/comments
+  body: none
+  auth: bearer
+}
+
+params:path {
+  id: 1
+}
+
+auth:bearer {
+  token: {{b2cToken}}
+}

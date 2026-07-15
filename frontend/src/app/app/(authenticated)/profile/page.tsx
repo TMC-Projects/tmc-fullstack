@@ -16,7 +16,6 @@ import AchievementList from '@/components/profile/AchievementList';
 import HighlightList from '@/components/profile/HighlightList';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import B2CNavbar from '@/components/dashboard/B2CNavbar';
 
 export default function B2CProfilePage() {
   const router = useRouter();
@@ -182,7 +181,6 @@ export default function B2CProfilePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 overflow-x-hidden">
-      <B2CNavbar />
 
       <div className="max-w-5xl mx-auto px-4 md:px-8 mt-8 space-y-12">
         {/* Profile Header */}

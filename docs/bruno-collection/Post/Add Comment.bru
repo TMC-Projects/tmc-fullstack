@@ -1,0 +1,25 @@
+meta {
+  name: Add Comment
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/b2c/posts/:id/comments
+  body: json
+  auth: bearer
+}
+
+params:path {
+  id: 1
+}
+
+auth:bearer {
+  token: {{b2cToken}}
+}
+
+body:json {
+  {
+    "content": "Nice post!"
+  }
+}
