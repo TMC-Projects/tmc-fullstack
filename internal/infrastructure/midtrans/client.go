@@ -58,7 +58,7 @@ type CoreChargeResult struct {
 // NewClient creates a new Midtrans Core API client configured for Sandbox.
 func NewClient(serverKey, merchantID string) *Client {
 	c := coreapi.Client{}
-	c.New(serverKey, midtrans.Sandbox)
+	c.New(serverKey, midtrans.Production)
 	return &Client{
 		core:       c,
 		serverKey:  serverKey,
