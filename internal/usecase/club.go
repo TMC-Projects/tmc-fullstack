@@ -295,6 +295,16 @@ func (u *clubUsecase) ApproveOnboarding(ctx context.Context, onboardingID int64,
 		return domain.NewAppError(domain.ErrCodeInternal, "failed to update onboarding status", err)
 	}
 
+	// Invalidate cache for all owners and managers of this club so they can immediately access Transfer Market
+	owners, _ := u.userRepo.GetByCategoryAndClub(ctx, "owner", club.ID)
+	for _, o := range owners {
+		_ = u.cacheRepo.Delete(ctx, fmt.Sprintf("user:profile:%d", o.ID))
+	}
+	managers, _ := u.userRepo.GetByCategoryAndClub(ctx, "manager", club.ID)
+	for _, m := range managers {
+		_ = u.cacheRepo.Delete(ctx, fmt.Sprintf("user:profile:%d", m.ID))
+	}
+
 	return nil
 }
 

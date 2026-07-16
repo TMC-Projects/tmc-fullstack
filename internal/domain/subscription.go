@@ -97,7 +97,7 @@ type SubscriptionRepository interface {
 type SubscriptionUsecase interface {
 	GetPlans(ctx context.Context) ([]*SubscriptionPlan, error)
 	CreateSubscription(ctx context.Context, planID int64, userID int64) (*Subscription, error)
-	ChargePayment(ctx context.Context, subscriptionID int64, paymentType string, bank string, userID int64) (*ChargeResult, error)
+	ChargePayment(ctx context.Context, subscriptionID int64, paymentMethodCode string, userID int64) (*ChargeResult, error)
 	HandleMidtransCallback(ctx context.Context, payload MidtransCallbackPayload) error
 	GetMySubscriptions(ctx context.Context, userID int64) ([]*Subscription, error)
 }

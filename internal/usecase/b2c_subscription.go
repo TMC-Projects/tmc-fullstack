@@ -15,6 +15,7 @@ type b2cSubscriptionUsecase struct {
 	repo     domain.B2CSubscriptionRepository
 	userRepo domain.UserRepository
 	midtrans *midtransClient.Client
+	pmRepo   domain.PaymentMethodRepository
 }
 
 // NewB2CSubscriptionUsecase creates a new B2C subscription usecase.
@@ -22,11 +23,13 @@ func NewB2CSubscriptionUsecase(
 	repo domain.B2CSubscriptionRepository,
 	userRepo domain.UserRepository,
 	midtrans *midtransClient.Client,
+	pmRepo domain.PaymentMethodRepository,
 ) domain.B2CSubscriptionUsecase {
 	return &b2cSubscriptionUsecase{
 		repo:     repo,
 		userRepo: userRepo,
 		midtrans: midtrans,
+		pmRepo:   pmRepo,
 	}
 }
 
@@ -84,7 +87,7 @@ func (u *b2cSubscriptionUsecase) CreateSubscription(ctx context.Context, planID 
 }
 
 // ChargePayment charges the subscription via Midtrans Core API (VA, QRIS, Gopay, OVO, CC).
-func (u *b2cSubscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID int64, paymentType string, bank string, userID int64) (*domain.B2CChargeResult, error) {
+func (u *b2cSubscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID int64, paymentMethodCode string, userID int64) (*domain.B2CChargeResult, error) {
 	// Verify user
 	user, err := u.userRepo.GetByID(ctx, userID)
 	if err != nil || user == nil {
@@ -106,9 +109,17 @@ func (u *b2cSubscriptionUsecase) ChargePayment(ctx context.Context, subscription
 		return nil, domain.NewAppError(domain.ErrCodeBadRequest, fmt.Sprintf("subscription is already in status '%s'", sub.Status), nil)
 	}
 
+	// Verify and fetch payment method
+	pm, err := u.pmRepo.GetByCode(paymentMethodCode)
+	if err != nil {
+		return nil, domain.NewAppError(domain.ErrCodeBadRequest, "invalid payment method", err)
+	}
+	if !pm.IsActive {
+		return nil, domain.NewAppError(domain.ErrCodeBadRequest, "payment method is not active", nil)
+	}
+
 	// Charge via Midtrans Client
-	// paymentType can be: "bank_transfer", "qris", "gopay", "credit_card", "echannel"
-	result, err := u.midtrans.ChargeCoreAPI(sub.PaymentOrderID, sub.Amount, paymentType, bank, user)
+	result, err := u.midtrans.ChargeCoreAPI(sub.PaymentOrderID, sub.Amount, pm.Type, pm.Bank, user)
 	if err != nil {
 		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to charge payment via Midtrans", err)
 	}
@@ -116,9 +127,9 @@ func (u *b2cSubscriptionUsecase) ChargePayment(ctx context.Context, subscription
 	// Persist the transaction details
 	payloadBytes, _ := json.Marshal(result)
 	sub.PaymentToken = result.TransactionID
-	sub.PaymentType = paymentType
-	if paymentType == "bank_transfer" && bank != "" {
-		sub.PaymentType = "bank_transfer_" + bank
+	sub.PaymentType = pm.Type
+	if pm.Type == "bank_transfer" && pm.Bank != "" {
+		sub.PaymentType = "bank_transfer_" + pm.Bank
 	}
 	sub.ProviderPayload = string(payloadBytes)
 

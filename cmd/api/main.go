@@ -176,11 +176,17 @@ func main() {
 	// Subscription
 	subPlanRepo := postgres.NewSubscriptionPlanRepository(db)
 	subRepo := postgres.NewSubscriptionRepository(db)
-	subUsecase := usecase.NewSubscriptionUsecase(subRepo, subPlanRepo, clubRepo, userRepo, midtransClient)
+	
+	// Payment Methods
+	paymentMethodRepo := postgres.NewPaymentMethodRepository(db)
+	paymentMethodUsecase := usecase.NewPaymentMethodUsecase(paymentMethodRepo)
+	paymentMethodHandler := domainhttp.NewPaymentMethodHandler(paymentMethodUsecase)
+
+	subUsecase := usecase.NewSubscriptionUsecase(subRepo, subPlanRepo, clubRepo, userRepo, midtransClient, paymentMethodRepo)
 	subHandler := domainhttp.NewSubscriptionHandler(subUsecase)
 
 	// B2C Subscription
-	b2cSubUsecase := usecase.NewB2CSubscriptionUsecase(b2cSubRepo, userRepo, midtransClient)
+	b2cSubUsecase := usecase.NewB2CSubscriptionUsecase(b2cSubRepo, userRepo, midtransClient, paymentMethodRepo)
 	b2cSubHandler := domainhttp.NewB2CSubscriptionHandler(b2cSubUsecase)
 
 	// Storage
@@ -294,6 +300,7 @@ func main() {
 	app.Get("/api/global/criteria", assessmentCriteriaHandler.GetActive)
 	app.Get("/api/global/currencies", currencyHandler.GetExchangeRate)
 	app.Post("/api/players/:id/vote", authMiddleware.RequireAPIKey(), playerVoteHandler.HandleVote)
+	app.Get("/api/payment-methods", paymentMethodHandler.GetActive)
 
 	app.Post("/api/register", authHandler.Register)
 	app.Post("/api/login", authHandler.Login)
@@ -531,6 +538,7 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		&postgres.PostModel{},
 		&postgres.PostLikeModel{},
 		&postgres.PostCommentModel{},
+		&postgres.PaymentMethodModel{},
 	)
 	if err != nil {
 		return err
@@ -538,6 +546,11 @@ func migrateAndSeedDB(db *gorm.DB) error {
 
 	// Seed Assessment Criteria
 	if err := seedAssessmentCriteria(db); err != nil {
+		return err
+	}
+
+	// Seed Payment Methods
+	if err := seedPaymentMethods(db); err != nil {
 		return err
 	}
 
@@ -724,6 +737,33 @@ func seedAssessmentCriteria(db *gorm.DB) error {
 			if err := db.Create(&c).Error; err != nil {
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+func seedPaymentMethods(db *gorm.DB) error {
+	methods := []postgres.PaymentMethodModel{
+		{Name: "BCA Virtual Account", Code: "bca_va", Bank: "bca", Type: "bank_transfer", IsActive: true},
+		{Name: "Mandiri Virtual Account", Code: "mandiri_va", Bank: "mandiri", Type: "bank_transfer", IsActive: true},
+		{Name: "BNI Virtual Account", Code: "bni_va", Bank: "bni", Type: "bank_transfer", IsActive: true},
+		{Name: "BRI Virtual Account", Code: "bri_va", Bank: "bri", Type: "bank_transfer", IsActive: true},
+		{Name: "Permata Virtual Account", Code: "permata_va", Bank: "permata", Type: "bank_transfer", IsActive: true},
+		{Name: "GoPay", Code: "gopay", Bank: "", Type: "gopay", IsActive: true},
+		{Name: "QRIS", Code: "qris", Bank: "", Type: "qris", IsActive: true},
+		{Name: "ShopeePay", Code: "shopeepay", Bank: "", Type: "shopeepay", IsActive: true},
+	}
+
+	for _, m := range methods {
+		var count int64
+		if err := db.Model(&postgres.PaymentMethodModel{}).Where("code = ?", m.Code).Count(&count).Error; err != nil {
+			return err
+		}
+		if count == 0 {
+			if err := db.Create(&m).Error; err != nil {
+				return err
+			}
+			log.Info().Msgf("Payment method '%s' seeded successfully.", m.Name)
 		}
 	}
 	return nil

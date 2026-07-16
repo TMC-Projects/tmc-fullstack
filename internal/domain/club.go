@@ -7,22 +7,22 @@ import (
 
 // Club represents an eSports Club in the B2B or B2C platform.
 type Club struct {
-	ID               int64      `json:"id"`
-	Name             string     `json:"name"`
-	Address          string     `json:"address"`
-	Country          string     `json:"country"`
-	EstablishedYear  int        `json:"established_year"`
-	Category         string     `json:"category"` // "club", "team"
-	Status           string     `json:"status"`   // "trial", "full", "expired"
-	Verify           bool       `json:"verify"`
-	LogoUrl          string     `json:"logo_url"`
-	OrganizationName string     `json:"organization_name,omitempty"`
-	NIB              string     `json:"nib,omitempty"`
-	NPWP             string     `json:"npwp,omitempty"`
-	ExpiredDate      *time.Time         `json:"expired_date,omitempty"`
-	CreatedAt        time.Time          `json:"created_at"`
-	UpdatedAt        time.Time          `json:"updated_at"`
-	Achievements     []ClubAchievement  `json:"achievements"`
+	ID               int64             `json:"id"`
+	Name             string            `json:"name"`
+	Address          string            `json:"address"`
+	Country          string            `json:"country"`
+	EstablishedYear  int               `json:"established_year"`
+	Category         string            `json:"category"` // "club", "team"
+	Status           string            `json:"status"`   // "trial", "full", "expired"
+	Verify           bool              `json:"verify"`
+	LogoUrl          string            `json:"logo_url"`
+	OrganizationName string            `json:"organization_name,omitempty"`
+	NIB              string            `json:"nib,omitempty"`
+	NPWP             string            `json:"npwp,omitempty"`
+	ExpiredDate      *time.Time        `json:"expired_date,omitempty"`
+	CreatedAt        time.Time         `json:"created_at"`
+	UpdatedAt        time.Time         `json:"updated_at"`
+	Achievements     []ClubAchievement `json:"achievements"`
 }
 
 // ClubAchievement represents a notable achievement/award for a Club
@@ -51,7 +51,7 @@ type ClubOnboarding struct {
 	OrganizationName string    `json:"organization_name"`
 	NIB              string    `json:"nib"`
 	NPWP             string    `json:"npwp"`
-	Status           string    `json:"status"` // "pending", "approved", "rejected"
+	Status           string    `json:"status"`        // "pending", "approved", "rejected"
 	OnboardingBy     int64     `json:"onboarding_by"` // User ID of owner/manager
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
