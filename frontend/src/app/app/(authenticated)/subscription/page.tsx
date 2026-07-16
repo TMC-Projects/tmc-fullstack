@@ -28,6 +28,15 @@ interface Subscription {
   plan?: Plan;
 }
 
+interface PaymentMethod {
+  id: number;
+  name: string;
+  code: string;
+  bank: string;
+  type: string;
+  is_active: boolean;
+}
+
 export default function SubscriptionPage() {
   const t = useTranslations('Subscription');
   const router = useRouter();
@@ -41,8 +50,8 @@ export default function SubscriptionPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [pendingSub, setPendingSub] = useState<Subscription | null>(null);
 
-  const [paymentType, setPaymentType] = useState('bank_transfer');
-  const [bank, setBank] = useState('bca');
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [selectedMethodCode, setSelectedMethodCode] = useState<string>('');
   const [paymentResult, setPaymentResult] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
@@ -53,10 +62,11 @@ export default function SubscriptionPage() {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const headers = { 'Authorization': `Bearer ${token}` };
 
-      const [plansRes, meRes, historyRes] = await Promise.all([
+      const [plansRes, meRes, historyRes, pmRes] = await Promise.all([
         fetch(`${baseUrl}/api/b2c/subscription/plans`, { headers }),
         fetch(`${baseUrl}/api/b2c/subscription/me`, { headers }),
-        fetch(`${baseUrl}/api/b2c/subscription/history`, { headers })
+        fetch(`${baseUrl}/api/b2c/subscription/history`, { headers }),
+        fetch(`${baseUrl}/api/payment-methods`)
       ]);
 
       if (plansRes.ok) {
@@ -70,6 +80,13 @@ export default function SubscriptionPage() {
       if (historyRes.ok) {
         const hData = await historyRes.json();
         setHistory(hData.data || []);
+      }
+      if (pmRes.ok) {
+        const pmData = await pmRes.json();
+        setPaymentMethods(pmData.data || []);
+        if (pmData.data?.length > 0) {
+          setSelectedMethodCode(pmData.data[0].code);
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -136,7 +153,7 @@ export default function SubscriptionPage() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ payment_type: paymentType, bank: bank })
+        body: JSON.stringify({ payment_method_code: selectedMethodCode })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || t('error_process'));
@@ -266,36 +283,14 @@ export default function SubscriptionPage() {
             )}
 
             <div className="space-y-4 mb-8">
-              <label className={`block p-4 border rounded-xl cursor-pointer transition-colors ${paymentType === 'bank_transfer' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'border-slate-200 dark:border-slate-700 hover:border-amber-300'}`}>
-                <div className="flex items-center gap-3">
-                  <input type="radio" name="paymentType" value="bank_transfer" checked={paymentType === 'bank_transfer'} onChange={() => setPaymentType('bank_transfer')} className="w-4 h-4 text-amber-500" />
-                  <span className="font-medium">{t('label_va_transfer')}</span>
-                </div>
-                {paymentType === 'bank_transfer' && (
-                  <div className="mt-4 ml-7 grid grid-cols-2 gap-2">
-                    {['bca', 'bni', 'bri', 'permata', 'mandiri'].map(b => (
-                      <label key={b} className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="bank" value={b} checked={bank === b} onChange={() => setBank(b)} />
-                        <span className="uppercase">{b}</span>
-                      </label>
-                    ))}
+              {paymentMethods.map((pm) => (
+                <label key={pm.code} className={`block p-4 border rounded-xl cursor-pointer transition-colors ${selectedMethodCode === pm.code ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'border-slate-200 dark:border-slate-700 hover:border-amber-300'}`}>
+                  <div className="flex items-center gap-3">
+                    <input type="radio" name="paymentMethod" value={pm.code} checked={selectedMethodCode === pm.code} onChange={() => setSelectedMethodCode(pm.code)} className="w-4 h-4 text-amber-500" />
+                    <span className="font-medium">{pm.name}</span>
                   </div>
-                )}
-              </label>
-
-              <label className={`block p-4 border rounded-xl cursor-pointer transition-colors ${paymentType === 'qris' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'border-slate-200 dark:border-slate-700 hover:border-amber-300'}`}>
-                <div className="flex items-center gap-3">
-                  <input type="radio" name="paymentType" value="qris" checked={paymentType === 'qris'} onChange={() => setPaymentType('qris')} className="w-4 h-4 text-amber-500" />
-                  <span className="font-medium">{t('label_qris_method')}</span>
-                </div>
-              </label>
-
-              <label className={`block p-4 border rounded-xl cursor-pointer transition-colors ${paymentType === 'gopay' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'border-slate-200 dark:border-slate-700 hover:border-amber-300'}`}>
-                <div className="flex items-center gap-3">
-                  <input type="radio" name="paymentType" value="gopay" checked={paymentType === 'gopay'} onChange={() => setPaymentType('gopay')} className="w-4 h-4 text-amber-500" />
-                  <span className="font-medium">{t('label_gopay')}</span>
-                </div>
-              </label>
+                </label>
+              ))}
             </div>
 
             <div className="flex gap-4">

@@ -55,8 +55,7 @@ func (h *SubscriptionHandler) CreateSubscription(c *fiber.Ctx) error {
 }
 
 type chargePaymentRequest struct {
-	PaymentType string `json:"payment_type"`
-	Bank        string `json:"bank"` // "bca", "bni", "bri", "permata", "mandiri"
+	PaymentMethodCode string `json:"payment_method_code"`
 }
 
 // ChargePayment charges the subscription via Midtrans bank transfer.
@@ -77,7 +76,7 @@ func (h *SubscriptionHandler) ChargePayment(c *fiber.Ctx) error {
 	// Ignore parse error
 	_ = c.BodyParser(&req)
 
-	result, err := h.subUsecase.ChargePayment(c.UserContext(), int64(subscriptionID), req.PaymentType, req.Bank, userID)
+	result, err := h.subUsecase.ChargePayment(c.UserContext(), int64(subscriptionID), req.PaymentMethodCode, userID)
 	if err != nil {
 		return err
 	}

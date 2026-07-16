@@ -17,6 +17,7 @@ type subscriptionUsecase struct {
 	clubRepo    domain.ClubRepository
 	userRepo    domain.UserRepository
 	midtrans    *midtransClient.Client
+	pmRepo      domain.PaymentMethodRepository
 }
 
 // NewSubscriptionUsecase creates a new subscription usecase.
@@ -26,6 +27,7 @@ func NewSubscriptionUsecase(
 	clubRepo domain.ClubRepository,
 	userRepo domain.UserRepository,
 	midtrans *midtransClient.Client,
+	pmRepo domain.PaymentMethodRepository,
 ) domain.SubscriptionUsecase {
 	return &subscriptionUsecase{
 		subRepo:  subRepo,
@@ -33,6 +35,7 @@ func NewSubscriptionUsecase(
 		clubRepo: clubRepo,
 		userRepo: userRepo,
 		midtrans: midtrans,
+		pmRepo:   pmRepo,
 	}
 }
 
@@ -98,7 +101,7 @@ func (u *subscriptionUsecase) CreateSubscription(ctx context.Context, planID int
 
 // ChargePayment charges the subscription via Midtrans.
 // Only the owner of the club that owns the subscription can trigger payment.
-func (u *subscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID int64, paymentType string, bank string, userID int64) (*domain.ChargeResult, error) {
+func (u *subscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID int64, paymentMethodCode string, userID int64) (*domain.ChargeResult, error) {
 	// Verify user
 	user, err := u.userRepo.GetByID(ctx, userID)
 	if err != nil || user == nil {
@@ -123,15 +126,16 @@ func (u *subscriptionUsecase) ChargePayment(ctx context.Context, subscriptionID 
 		return nil, domain.NewAppError(domain.ErrCodeBadRequest, fmt.Sprintf("subscription is already in status '%s'", sub.Status), nil)
 	}
 
-	// Charge via Midtrans
-	if paymentType == "" {
-		paymentType = "bank_transfer"
+	// Verify and fetch payment method
+	pm, err := u.pmRepo.GetByCode(paymentMethodCode)
+	if err != nil {
+		return nil, domain.NewAppError(domain.ErrCodeBadRequest, "invalid payment method", err)
 	}
-	if paymentType == "bank_transfer" && bank == "" {
-		bank = "bca"
+	if !pm.IsActive {
+		return nil, domain.NewAppError(domain.ErrCodeBadRequest, "payment method is not active", nil)
 	}
 
-	result, err := u.midtrans.ChargeCoreAPI(sub.PaymentOrderID, sub.Amount, paymentType, bank, user)
+	result, err := u.midtrans.ChargeCoreAPI(sub.PaymentOrderID, sub.Amount, pm.Type, pm.Bank, user)
 	if err != nil {
 		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to charge payment via Midtrans", err)
 	}

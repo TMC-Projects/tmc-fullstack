@@ -54,9 +54,8 @@ func (h *B2CSubscriptionHandler) CreateSubscription(c *fiber.Ctx) error {
 	return SendSuccess(c, fiber.StatusCreated, "B2C subscription created successfully", sub)
 }
 
-type chargeB2CPaymentRequest struct {
-	PaymentType string `json:"payment_type"` // "bank_transfer", "qris", "gopay", "credit_card", "echannel"
-	Bank        string `json:"bank"`         // "bca", "bni", "bri", "permata", "mandiri"
+type b2cChargePaymentRequest struct {
+	PaymentMethodCode string `json:"payment_method_code"`
 }
 
 // ChargePayment charges the subscription via Midtrans Core API.
@@ -73,15 +72,15 @@ func (h *B2CSubscriptionHandler) ChargePayment(c *fiber.Ctx) error {
 		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid subscription id", err)
 	}
 
-	var req chargeB2CPaymentRequest
+	var req b2cChargePaymentRequest
 	if err := c.BodyParser(&req); err != nil {
 		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid request body", err)
 	}
-	if req.PaymentType == "" {
-		return domain.NewAppError(domain.ErrCodeValidation, "payment_type is required", nil)
+	if req.PaymentMethodCode == "" {
+		return domain.NewAppError(domain.ErrCodeValidation, "payment_method_code is required", nil)
 	}
 
-	result, err := h.subUsecase.ChargePayment(c.UserContext(), int64(subscriptionID), req.PaymentType, req.Bank, userID)
+	result, err := h.subUsecase.ChargePayment(c.UserContext(), int64(subscriptionID), req.PaymentMethodCode, userID)
 	if err != nil {
 		return err
 	}
