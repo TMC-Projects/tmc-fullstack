@@ -8,12 +8,28 @@ import (
 
 type UserFollowHandler struct {
 	followUsecase domain.UserFollowUsecase
+	authUsecase   domain.AuthUsecase
 }
 
-func NewUserFollowHandler(followUsecase domain.UserFollowUsecase) *UserFollowHandler {
+func NewUserFollowHandler(followUsecase domain.UserFollowUsecase, authUsecase domain.AuthUsecase) *UserFollowHandler {
 	return &UserFollowHandler{
 		followUsecase: followUsecase,
+		authUsecase:   authUsecase,
 	}
+}
+
+func (h *UserFollowHandler) parseTargetID(c *fiber.Ctx) (int64, error) {
+	idStr := c.Params("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err == nil && id != 0 {
+		return id, nil
+	}
+	// Fallback to searching by username
+	user, err := h.authUsecase.GetProfileByUsername(c.UserContext(), idStr)
+	if err != nil {
+		return 0, err
+	}
+	return user.ID, nil
 }
 
 // Follow handles POST /api/b2c/users/:id/follow
@@ -24,8 +40,7 @@ func (h *UserFollowHandler) Follow(c *fiber.Ctx) error {
 		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
 	}
 
-	followingIDStr := c.Params("id")
-	followingID, err := strconv.ParseInt(followingIDStr, 10, 64)
+	followingID, err := h.parseTargetID(c)
 	if err != nil || followingID == 0 {
 		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid target user id", err)
 	}
@@ -46,8 +61,7 @@ func (h *UserFollowHandler) Unfollow(c *fiber.Ctx) error {
 		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
 	}
 
-	followingIDStr := c.Params("id")
-	followingID, err := strconv.ParseInt(followingIDStr, 10, 64)
+	followingID, err := h.parseTargetID(c)
 	if err != nil || followingID == 0 {
 		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid target user id", err)
 	}
@@ -68,8 +82,7 @@ func (h *UserFollowHandler) FollowStatus(c *fiber.Ctx) error {
 		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
 	}
 
-	followingIDStr := c.Params("id")
-	followingID, err := strconv.ParseInt(followingIDStr, 10, 64)
+	followingID, err := h.parseTargetID(c)
 	if err != nil || followingID == 0 {
 		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid target user id", err)
 	}

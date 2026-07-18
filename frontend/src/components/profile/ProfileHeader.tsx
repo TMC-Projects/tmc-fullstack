@@ -154,17 +154,31 @@ export default function ProfileHeader({
                   {user.full_name}
                 </h1>
 
-                {!isEditable && onFollowToggle && (
+                <div className="flex items-center gap-2 mt-2 md:mt-0">
+                  {!isEditable && onFollowToggle && (
+                    <button
+                      onClick={onFollowToggle}
+                      className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all shadow-lg ${isFollowing
+                        ? 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/50 border border-transparent'
+                        : 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-500/25'
+                        }`}
+                    >
+                      {isFollowing ? 'Following' : 'Follow'}
+                    </button>
+                  )}
+
                   <button
-                    onClick={onFollowToggle}
-                    className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all shadow-lg ${isFollowing
-                      ? 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/50 border border-transparent'
-                      : 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-500/25'
-                      }`}
+                    onClick={() => {
+                      const url = `${window.location.origin}/p/${user.username}`;
+                      navigator.clipboard.writeText(url);
+                      showAlert('Public profile link copied to clipboard!', 'success');
+                    }}
+                    className="px-4 py-1.5 rounded-full text-sm font-semibold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors shadow-lg flex items-center gap-2"
+                    title="Share Public Profile"
                   >
-                    {isFollowing ? 'Following' : 'Follow'}
+                    <Share2 className="w-4 h-4" /> Share
                   </button>
-                )}
+                </div>
               </div>
               <div className="flex flex-col gap-1 mt-1">
                 <p className="text-slate-600 dark:text-slate-400 font-medium">@{user.username}</p>

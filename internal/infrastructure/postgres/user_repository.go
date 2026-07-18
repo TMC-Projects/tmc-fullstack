@@ -73,6 +73,20 @@ func (r *userRepository) GetByUsername(ctx context.Context, username string) (*d
 	return m.ToDomain(), nil
 }
 
+func (r *userRepository) GetUsersByCategory(ctx context.Context, category string) ([]*domain.User, error) {
+	var models []UserModel
+	err := r.db.WithContext(ctx).Where("category = ?", category).Find(&models).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*domain.User
+	for _, m := range models {
+		users = append(users, m.ToDomain())
+	}
+	return users, nil
+}
+
 func (r *userRepository) GetByCategoryAndClub(ctx context.Context, category string, clubID int64) ([]*domain.User, error) {
 	var models []UserModel
 	err := r.db.WithContext(ctx).Where("category = ? AND club_id = ?", category, clubID).Find(&models).Error

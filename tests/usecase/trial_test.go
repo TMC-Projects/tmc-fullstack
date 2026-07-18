@@ -57,6 +57,9 @@ func (m *mockUserRepoForTrial2) GetByID(ctx context.Context, id int64) (*domain.
 func (m *mockUserRepoForTrial2) GetByEmail(ctx context.Context, e string) (*domain.User, error) {
 	return nil, nil
 }
+func (m *mockUserRepoForTrial2) GetUsersByCategory(ctx context.Context, category string) ([]*domain.User, error) {
+	return nil, nil
+}
 func (m *mockUserRepoForTrial2) GetByUsername(ctx context.Context, u string) (*domain.User, error) {
 	return nil, nil
 }
@@ -151,7 +154,7 @@ func validTrialInput() domain.CreateTrialInput {
 }
 
 func newTrialUsecase(user *domain.User, trialRepo *mockTrialRepo) domain.TrialUsecase {
-	return usecase.NewTrialUsecase(trialRepo, &mockUserRepoForTrial2{user: user}, &mockClubRepoForTrial2{})
+	return usecase.NewTrialUsecase(trialRepo, &mockUserRepoForTrial2{user: user}, &mockClubRepoForTrial2{}, nil)
 }
 
 // ─── Tests: CreateTrial ───────────────────────────────────────────────────────

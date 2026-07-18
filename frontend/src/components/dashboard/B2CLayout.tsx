@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ClipboardList, Shield, CreditCard, User, LogOut, Menu, X, Rss, LayoutDashboard } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import NotificationBell from '@/components/layout/NotificationBell';
 import { useAuthStore } from '@/store/auth';
 
 export default function B2CLayout({ children }: { children: React.ReactNode }) {
@@ -80,7 +81,7 @@ export default function B2CLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         
         {/* Topbar */}
-        <header className="h-16 flex items-center justify-between px-4 md:px-8 border-b border-slate-300 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 backdrop-blur-md shrink-0">
+        <header className="relative z-40 h-16 flex items-center justify-between px-4 md:px-8 border-b border-slate-300 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-3 md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
@@ -98,6 +99,7 @@ export default function B2CLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-4">
+            <NotificationBell />
             <LanguageSwitcher />
             
             <div className="flex items-center gap-3 pl-4 border-l border-slate-300 dark:border-slate-800">

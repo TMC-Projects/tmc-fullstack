@@ -42,17 +42,21 @@ func NewAuthMiddleware(
 
 // Authenticate is a GoFiber middleware to validate JWT tokens.
 func (m *AuthMiddleware) Authenticate(c *fiber.Ctx) error {
+	var tokenString string
 	authHeader := c.Get("Authorization")
-	if authHeader == "" {
-		return domain.NewAppError(domain.ErrCodeUnauthorized, "missing authorization header", nil)
-	}
 
-	parts := strings.Split(authHeader, " ")
-	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-		return domain.NewAppError(domain.ErrCodeUnauthorized, "invalid authorization header format", nil)
+	if authHeader != "" {
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+			return domain.NewAppError(domain.ErrCodeUnauthorized, "invalid authorization header format", nil)
+		}
+		tokenString = parts[1]
+	} else {
+		tokenString = c.Query("token")
+		if tokenString == "" {
+			return domain.NewAppError(domain.ErrCodeUnauthorized, "missing authorization header or token query", nil)
+		}
 	}
-
-	tokenString := parts[1]
 
 	if m.authUsecase.IsTokenBlocked(c.UserContext(), tokenString) {
 		return domain.NewAppError(domain.ErrCodeUnauthorized, "token has been revoked", nil)

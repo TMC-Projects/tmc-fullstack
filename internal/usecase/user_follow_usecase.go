@@ -3,19 +3,22 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"njara-platform/internal/domain"
 )
 
 type userFollowUsecase struct {
-	followRepo domain.UserFollowRepository
-	userRepo   domain.UserRepository
+	followRepo   domain.UserFollowRepository
+	userRepo     domain.UserRepository
+	notifUsecase domain.NotificationUsecase
 }
 
-func NewUserFollowUsecase(followRepo domain.UserFollowRepository, userRepo domain.UserRepository) domain.UserFollowUsecase {
+func NewUserFollowUsecase(followRepo domain.UserFollowRepository, userRepo domain.UserRepository, notifUsecase domain.NotificationUsecase) domain.UserFollowUsecase {
 	return &userFollowUsecase{
-		followRepo: followRepo,
-		userRepo:   userRepo,
+		followRepo:   followRepo,
+		userRepo:     userRepo,
+		notifUsecase: notifUsecase,
 	}
 }
 
@@ -30,7 +33,22 @@ func (u *userFollowUsecase) Follow(ctx context.Context, followerID, followingID 
 		return err
 	}
 
-	return u.followRepo.Follow(ctx, followerID, followingID)
+	err = u.followRepo.Follow(ctx, followerID, followingID)
+	if err == nil {
+		follower, _ := u.userRepo.GetByID(ctx, followerID)
+		followerName := "Someone"
+		if follower != nil {
+			followerName = follower.FullName
+		}
+		u.notifUsecase.CreateNotification(ctx, &domain.Notification{
+			UserID:    followingID,
+			Title:     "New Follower",
+			Message:   fmt.Sprintf("%s started following you.", followerName),
+			Type:      domain.NotificationTypeFollow,
+			RelatedID: followerID,
+		})
+	}
+	return err
 }
 
 func (u *userFollowUsecase) Unfollow(ctx context.Context, followerID, followingID int64) error {

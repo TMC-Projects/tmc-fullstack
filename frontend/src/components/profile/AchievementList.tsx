@@ -119,23 +119,19 @@ export default function AchievementList({ achievements, isEditable, onRefresh }:
       </div>
 
       {achievements && achievements.length > 0 ? (
-        <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-700 before:to-transparent">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {achievements.map((ach, index) => (
             <motion.div
               key={ach.ID}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              className="bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded-2xl overflow-hidden shadow-lg group relative flex flex-col"
             >
-              {/* Timeline Icon */}
-              <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-slate-950 bg-amber-500/20 text-amber-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 relative">
-                <Award className="w-4 h-4" />
-              </div>
               
-              {/* Card */}
-              <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 shadow hover:bg-slate-200/60 dark:hover:bg-slate-800/60 transition-colors relative">
+              {/* Card Content */}
+              <div className="p-5 flex flex-col flex-grow">
                 {isEditable && (
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-20">
                     <button onClick={() => handleOpenModal(ach)} className="p-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md">
@@ -151,11 +147,12 @@ export default function AchievementList({ achievements, isEditable, onRefresh }:
                   <Calendar className="w-4 h-4" />
                   <span className="text-sm font-bold">{ach.Year}</span>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1 pr-16">{ach.Title}</h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">{ach.Description}</p>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2 group-hover:text-amber-500 transition-colors">{ach.Title}</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4 flex-grow">{ach.Description}</p>
+                
                 {ach.ImageURL && (
-                  <div className="mt-4 rounded-xl overflow-hidden border border-slate-300 dark:border-slate-800">
-                    <img src={ach.ImageURL} alt={ach.Title} className="w-full h-auto object-cover max-h-48" />
+                  <div className="mt-auto mb-2 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-32 relative">
+                    <img src={ach.ImageURL} alt={ach.Title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                 )}
               </div>

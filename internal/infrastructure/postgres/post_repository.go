@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"time"
 
 	"njara-platform/internal/domain"
 
@@ -76,6 +77,19 @@ func (r *postRepository) Delete(ctx context.Context, postID int64) error {
 	})
 }
 
+func (r *postRepository) CountByUserIDThisMonth(ctx context.Context, userID int64) (int64, error) {
+	var count int64
+	
+	now := time.Now()
+	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+
+	err := r.db.WithContext(ctx).Model(&PostModel{}).
+		Where("user_id = ?", userID).
+		Where("created_at >= ?", startOfMonth).
+		Count(&count).Error
+	return count, err
+}
+
 func (r *postRepository) ToggleLike(ctx context.Context, postID int64, userID int64) (bool, error) {
 	var isLiked bool
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -135,7 +149,7 @@ func (r *postRepository) GetCommentsByPostID(ctx context.Context, postID int64, 
 		Preload("User").
 		Preload("User.Club").
 		Where("post_id = ?", postID).
-		Order("created_at asc").
+		Order("created_at desc").
 		Limit(limit).
 		Offset(offset).
 		Find(&models).Error
@@ -155,4 +169,29 @@ func (r *postRepository) GetCommentCount(ctx context.Context, postID int64) (int
 	var count int64
 	err := r.db.WithContext(ctx).Model(&PostCommentModel{}).Where("post_id = ?", postID).Count(&count).Error
 	return count, err
+}
+
+func (r *postRepository) GetPostInteractors(ctx context.Context, postID int64) ([]*domain.User, error) {
+	var userModels []UserModel
+	
+	query := `
+		SELECT u.* FROM users u
+		WHERE u.id IN (
+			SELECT user_id FROM posts WHERE id = ?
+			UNION
+			SELECT user_id FROM post_likes WHERE post_id = ?
+			UNION
+			SELECT user_id FROM post_comments WHERE post_id = ?
+		)
+	`
+	err := r.db.WithContext(ctx).Raw(query, postID, postID, postID).Scan(&userModels).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*domain.User
+	for _, m := range userModels {
+		users = append(users, m.ToDomain())
+	}
+	return users, nil
 }
