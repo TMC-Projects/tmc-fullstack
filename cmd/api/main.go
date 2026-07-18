@@ -153,9 +153,13 @@ func main() {
 
 	// Trial Management Usecases
 	b2cSubRepo := postgres.NewB2CSubscriptionRepository(db)
+	notificationRepo := postgres.NewNotificationRepository(db)
 
-	trialUsecase := usecase.NewTrialUsecase(trialRepo, userRepo, clubRepo)
-	trialAppUsecase := usecase.NewTrialApplicationUsecase(trialAppRepo, trialRepo, trialParticipantRepo, userRepo, b2cSubRepo)
+	notificationUsecase := usecase.NewNotificationUsecase(notificationRepo, userRepo, b2cSubRepo, cacheRepo)
+
+	trialUsecase := usecase.NewTrialUsecase(trialRepo, userRepo, clubRepo, notificationUsecase)
+	trialAppUsecase := usecase.NewTrialApplicationUsecase(trialAppRepo, trialRepo, trialParticipantRepo, userRepo, b2cSubRepo, notificationUsecase)
+	postUsecase := usecase.NewPostUsecase(postRepo, b2cSubRepo, userRepo, notificationUsecase)
 	trialParticipantUsecase := usecase.NewTrialParticipantUsecase(trialParticipantRepo, trialRepo, userRepo)
 	assessmentResultUsecase := usecase.NewAssessmentResultUsecase(assessmentResultRepo, trialParticipantRepo, trialRepo, userRepo)
 	assessmentScoreUsecase := usecase.NewAssessmentScoreUsecase(assessmentScoreRepo, assessmentResultRepo, assessmentCriteriaRepo, userRepo)
@@ -165,10 +169,7 @@ func main() {
 
 	// Follow System
 	userFollowRepo := postgres.NewUserFollowRepository(db)
-	userFollowUsecase := usecase.NewUserFollowUsecase(userFollowRepo, userRepo)
-
-	// Post System
-	postUsecase := usecase.NewPostUsecase(postRepo)
+	userFollowUsecase := usecase.NewUserFollowUsecase(userFollowRepo, userRepo, notificationUsecase)
 
 	// Midtrans
 	midtransClient := midtransInfra.NewClient(cfg.MidtransServerKey, cfg.MidtransMerchantID)
@@ -218,7 +219,7 @@ func main() {
 	feedbackHandler := domainhttp.NewFeedbackHandler(feedbackUsecase)
 
 	// B2C Handlers
-	userFollowHandler := domainhttp.NewUserFollowHandler(userFollowUsecase)
+	userFollowHandler := domainhttp.NewUserFollowHandler(userFollowUsecase, authUsecase)
 	b2cPlayerHandler := domainhttp.NewB2CPlayerHandler(authUsecase, userFollowUsecase)
 	b2cInvitationHandler := invHandler
 	postHandler := domainhttp.NewPostHandler(postUsecase, minioStorage)
@@ -226,6 +227,7 @@ func main() {
 	// Trial Management Handlers
 	trialHandler := domainhttp.NewTrialHandler(trialUsecase, trialAppRepo)
 	trialAppHandler := domainhttp.NewTrialApplicationHandler(trialAppUsecase)
+	notificationHandler := domainhttp.NewNotificationHandler(notificationUsecase)
 	trialParticipantHandler := domainhttp.NewTrialParticipantHandler(trialParticipantUsecase)
 	assessmentResultHandler := domainhttp.NewAssessmentResultHandler(assessmentResultUsecase)
 	assessmentScoreHandler := domainhttp.NewAssessmentScoreHandler(assessmentScoreUsecase)
@@ -286,6 +288,13 @@ func main() {
 
 	// Attach custom access log middleware for database tracing
 	app.Use(authMiddleware.AccessLogMiddleware())
+
+	// Notifications Endpoints
+	notifGroup := app.Group("/api/notifications", authMiddleware.Authenticate)
+	notifGroup.Get("/", notificationHandler.GetMyNotifications)
+	notifGroup.Get("/stream", notificationHandler.Stream)
+	notifGroup.Get("/unread-count", notificationHandler.GetUnreadCount)
+	notifGroup.Put("/:id/read", notificationHandler.MarkAsRead)
 
 	// Serve static files
 	app.Static("/uploads", "./uploads", fiber.Static{
@@ -457,8 +466,10 @@ func main() {
 	b2cPostGroup.Post("/", postHandler.CreatePost)
 	b2cPostGroup.Get("/", postHandler.GetFeed)
 	b2cPostGroup.Post("/:id/like", postHandler.ToggleLike)
+	b2cPostGroup.Delete("/:id", postHandler.DeletePost)
 	b2cPostGroup.Post("/:id/comments", postHandler.AddComment)
 	b2cPostGroup.Get("/:id/comments", postHandler.GetComments)
+	b2cPostGroup.Get("/:id/interactors", postHandler.GetPostInteractors)
 	b2cPostGroup.Post("/upload-image", postHandler.UploadImage)
 
 	// Public Endpoints
@@ -538,6 +549,7 @@ func migrateAndSeedDB(db *gorm.DB) error {
 		&postgres.PostModel{},
 		&postgres.PostLikeModel{},
 		&postgres.PostCommentModel{},
+		&postgres.NotificationModel{},
 		&postgres.PaymentMethodModel{},
 	)
 	if err != nil {

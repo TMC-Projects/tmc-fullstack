@@ -44,6 +44,7 @@ type UserRepository interface {
 	GetByID(ctx context.Context, id int64) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	GetByUsername(ctx context.Context, username string) (*User, error)
+	GetUsersByCategory(ctx context.Context, category string) ([]*User, error)
 	GetByCategoryAndClub(ctx context.Context, category string, clubID int64) ([]*User, error)
 	UpdateClubID(ctx context.Context, userID int64, clubID int64) error
 	UpdateTeamID(ctx context.Context, userID int64, teamID *int64) error

@@ -41,6 +41,8 @@ type PostRepository interface {
 	GetList(ctx context.Context, limit int, offset int) ([]*Post, error)
 	GetByID(ctx context.Context, postID int64) (*Post, error)
 	Delete(ctx context.Context, postID int64) error
+	CountByUserIDThisMonth(ctx context.Context, userID int64) (int64, error)
+	GetPostInteractors(ctx context.Context, postID int64) ([]*User, error)
 
 	ToggleLike(ctx context.Context, postID int64, userID int64) (bool, error) // Returns true if liked, false if unliked
 	CheckIsLiked(ctx context.Context, postID int64, userID int64) (bool, error)
@@ -69,4 +71,5 @@ type PostUsecase interface {
 	ToggleLike(ctx context.Context, userID int64, postID int64) (bool, error)
 	AddComment(ctx context.Context, userID int64, postID int64, input AddCommentInput) (*PostComment, error)
 	GetComments(ctx context.Context, postID int64, limit int, offset int) ([]*PostComment, error)
+	GetPostInteractors(ctx context.Context, postID int64) ([]*User, error)
 }

@@ -106,6 +106,10 @@ export default function FeedPage() {
     );
   };
 
+  const handleDeletePost = (postId: number) => {
+    setPosts(prev => prev.filter(p => p.ID !== postId));
+  };
+
   if (isLoading && !posts.length) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -187,7 +191,8 @@ export default function FeedPage() {
                 <PostCard 
                   key={post.ID} 
                   post={post} 
-                  onLikeToggle={handleLikeToggle} 
+                  onLikeToggle={handleLikeToggle}
+                  onDeletePost={handleDeletePost}
                 />
               ))
             ) : (

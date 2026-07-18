@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"time"
+	"fmt"
 
 	"njara-platform/internal/domain"
 )
@@ -13,6 +14,7 @@ type trialApplicationUsecase struct {
 	participantRepo domain.TrialParticipantRepository
 	userRepo        domain.UserRepository
 	b2cSubRepo      domain.B2CSubscriptionRepository
+	notifUsecase    domain.NotificationUsecase
 }
 
 func NewTrialApplicationUsecase(
@@ -21,11 +23,12 @@ func NewTrialApplicationUsecase(
 	participantRepo domain.TrialParticipantRepository,
 	userRepo domain.UserRepository,
 	b2cSubRepo domain.B2CSubscriptionRepository,
+	notifUsecase domain.NotificationUsecase,
 ) domain.TrialApplicationUsecase {
 	return &trialApplicationUsecase{
 		appRepo: appRepo, trialRepo: trialRepo,
 		participantRepo: participantRepo, userRepo: userRepo,
-		b2cSubRepo: b2cSubRepo,
+		b2cSubRepo: b2cSubRepo, notifUsecase: notifUsecase,
 	}
 }
 
@@ -76,14 +79,18 @@ func (u *trialApplicationUsecase) Apply(ctx context.Context, trialID int64, call
 			if err != nil {
 				return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to check existing applications", err)
 			}
-			activeCount := 0
-			for _, a := range myApps {
-				if a.Status != domain.ApplicationStatusRejected && a.Status != domain.ApplicationStatusWithdrawn {
-					activeCount++
+			now := time.Now()
+			startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+			
+			countThisMonth := 0
+			for _, app := range myApps {
+				if app.CreatedAt.After(startOfMonth) || app.CreatedAt.Equal(startOfMonth) {
+					countThisMonth++
 				}
 			}
-			if activeCount >= 3 {
-				return nil, domain.NewAppError(domain.ErrCodeForbidden, "free users can only have up to 3 active trial applications. Please upgrade to premium.", nil)
+
+			if countThisMonth >= 3 {
+				return nil, domain.NewAppError(domain.ErrCodeForbidden, "free users can only apply to up to 3 open trials per month. Please upgrade to premium.", nil)
 			}
 		}
 	}
@@ -196,12 +203,27 @@ func (u *trialApplicationUsecase) Shortlist(ctx context.Context, applicationID i
 		}
 	}
 
+	// Trigger Notification
+	if u.notifUsecase != nil {
+		clubName := "A club"
+		if trial.Club != nil {
+			clubName = trial.Club.Name
+		}
+		_ = u.notifUsecase.CreateNotification(ctx, &domain.Notification{
+			UserID:    app.PlayerID,
+			Title:     "Application Shortlisted",
+			Message:   fmt.Sprintf("Your application for '%s' at %s has been shortlisted.", trial.Title, clubName),
+			Type:      domain.NotificationTypeTrialStatus,
+			RelatedID: trial.ID,
+		})
+	}
+
 	return app, nil
 }
 
 // Reject moves an application to REJECTED status.
 func (u *trialApplicationUsecase) Reject(ctx context.Context, applicationID int64, remarks string, callerUserID int64) (*domain.TrialApplication, error) {
-	_, app, _, err := u.resolveManagementAction(ctx, applicationID, callerUserID)
+	_, app, trial, err := u.resolveManagementAction(ctx, applicationID, callerUserID)
 	if err != nil {
 		return nil, err
 	}
@@ -218,6 +240,22 @@ func (u *trialApplicationUsecase) Reject(ctx context.Context, applicationID int6
 	if err := u.appRepo.Update(ctx, app); err != nil {
 		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to update application", err)
 	}
+
+	// Trigger Notification
+	if u.notifUsecase != nil {
+		clubName := "A club"
+		if trial.Club != nil {
+			clubName = trial.Club.Name
+		}
+		_ = u.notifUsecase.CreateNotification(ctx, &domain.Notification{
+			UserID:    app.PlayerID,
+			Title:     "Application Rejected",
+			Message:   fmt.Sprintf("Your application for '%s' at %s has been rejected.", trial.Title, clubName),
+			Type:      domain.NotificationTypeTrialStatus,
+			RelatedID: trial.ID,
+		})
+	}
+
 	return app, nil
 }
 

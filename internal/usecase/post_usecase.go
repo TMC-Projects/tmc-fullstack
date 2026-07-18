@@ -2,21 +2,50 @@ package usecase
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 
 	"njara-platform/internal/domain"
 )
 
 type postUsecase struct {
-	postRepo domain.PostRepository
+	postRepo    domain.PostRepository
+	b2cSubRepo  domain.B2CSubscriptionRepository
+	userRepo    domain.UserRepository
+	notifUsecase domain.NotificationUsecase
 }
 
-func NewPostUsecase(postRepo domain.PostRepository) domain.PostUsecase {
+func NewPostUsecase(
+	postRepo domain.PostRepository, 
+	b2cSubRepo domain.B2CSubscriptionRepository,
+	userRepo domain.UserRepository,
+	notifUsecase domain.NotificationUsecase,
+) domain.PostUsecase {
 	return &postUsecase{
-		postRepo: postRepo,
+		postRepo:    postRepo,
+		b2cSubRepo:  b2cSubRepo,
+		userRepo:    userRepo,
+		notifUsecase: notifUsecase,
 	}
 }
 
 func (u *postUsecase) CreatePost(ctx context.Context, userID int64, input domain.CreatePostInput) (*domain.Post, error) {
+	if u.b2cSubRepo != nil {
+		isPremium, err := u.b2cSubRepo.IsUserPremium(ctx, userID)
+		if err != nil {
+			return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to check premium status", err)
+		}
+		if !isPremium {
+			count, err := u.postRepo.CountByUserIDThisMonth(ctx, userID)
+			if err != nil {
+				return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to check feed count", err)
+			}
+			if count >= 3 {
+				return nil, domain.NewAppError(domain.ErrCodeForbidden, "free users can only create up to 3 feeds per month. Please upgrade to premium.", nil)
+			}
+		}
+	}
+
 	post := &domain.Post{
 		UserID:  userID,
 		Content: input.Content,
@@ -63,11 +92,27 @@ func (u *postUsecase) DeletePost(ctx context.Context, userID int64, postID int64
 
 func (u *postUsecase) ToggleLike(ctx context.Context, userID int64, postID int64) (bool, error) {
 	// check if post exists
-	_, err := u.postRepo.GetByID(ctx, postID)
+	post, err := u.postRepo.GetByID(ctx, postID)
 	if err != nil {
 		return false, err
 	}
-	return u.postRepo.ToggleLike(ctx, postID, userID)
+	isLiked, err := u.postRepo.ToggleLike(ctx, postID, userID)
+	if err == nil && isLiked && post.UserID != userID {
+		// send notification
+		liker, _ := u.userRepo.GetByID(ctx, userID)
+		likerName := "Someone"
+		if liker != nil {
+			likerName = liker.FullName
+		}
+		u.notifUsecase.CreateNotification(ctx, &domain.Notification{
+			UserID:    post.UserID,
+			Title:     "New Like",
+			Message:   fmt.Sprintf("%s liked your post.", likerName),
+			Type:      domain.NotificationTypeLike,
+			RelatedID: postID,
+		})
+	}
+	return isLiked, err
 }
 
 func (u *postUsecase) AddComment(ctx context.Context, userID int64, postID int64, input domain.AddCommentInput) (*domain.PostComment, error) {
@@ -86,10 +131,47 @@ func (u *postUsecase) AddComment(ctx context.Context, userID int64, postID int64
 	if err := u.postRepo.AddComment(ctx, comment); err != nil {
 		return nil, err
 	}
-	// Fetch complete with user preload if needed, or rely on frontend. Let's just return what we have.
-	// Actually we should fetch it to get user info.
-	// Let's do a simple get or we can just return the raw for now.
+
+	// Trigger mention notifications
+	u.triggerMentionNotifications(ctx, userID, postID, input.Content)
+
 	return comment, nil
+}
+
+func (u *postUsecase) triggerMentionNotifications(ctx context.Context, senderID int64, postID int64, content string) {
+	re := regexp.MustCompile(`@([a-zA-Z0-9_]+)`)
+	matches := re.FindAllStringSubmatch(content, -1)
+	
+	mentionedUsers := make(map[string]bool)
+	for _, match := range matches {
+		if len(match) > 1 {
+			mentionedUsers[match[1]] = true
+		}
+	}
+
+	for username := range mentionedUsers {
+		user, err := u.userRepo.GetByUsername(ctx, username)
+		if err == nil && user != nil && user.ID != senderID {
+			// Get sender's info for notification message
+			sender, _ := u.userRepo.GetByID(ctx, senderID)
+			senderName := "Someone"
+			if sender != nil {
+				senderName = sender.FullName
+			}
+
+			_ = u.notifUsecase.CreateNotification(ctx, &domain.Notification{
+				UserID:    user.ID,
+				Title:     "New Mention",
+				Message:   fmt.Sprintf("%s mentioned you in a comment.", senderName),
+				Type:      domain.NotificationTypeMention,
+				RelatedID: postID,
+			})
+		}
+	}
+}
+
+func (u *postUsecase) GetPostInteractors(ctx context.Context, postID int64) ([]*domain.User, error) {
+	return u.postRepo.GetPostInteractors(ctx, postID)
 }
 
 func (u *postUsecase) GetComments(ctx context.Context, postID int64, limit int, offset int) ([]*domain.PostComment, error) {

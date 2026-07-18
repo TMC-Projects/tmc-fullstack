@@ -124,9 +124,13 @@ func TestMain(m *testing.M) {
 	talentUsecase := usecase.NewTalentUsecase(userRepo, authUsecase, transferMarketRepo, cacheRepo, invRepo)
 	talentHandler := domainhttp.NewTalentHandler(talentUsecase, mockStorage)
 
+	b2cSubRepo := postgres.NewB2CSubscriptionRepository(db)
+	notifRepo := postgres.NewNotificationRepository(db)
+	notificationUsecase := usecase.NewNotificationUsecase(notifRepo, userRepo, b2cSubRepo, cacheRepo)
+
 	userFollowRepo := postgres.NewUserFollowRepository(db)
-	userFollowUsecase := usecase.NewUserFollowUsecase(userFollowRepo, userRepo)
-	userFollowHandler := domainhttp.NewUserFollowHandler(userFollowUsecase)
+	userFollowUsecase := usecase.NewUserFollowUsecase(userFollowRepo, userRepo, notificationUsecase)
+	userFollowHandler := domainhttp.NewUserFollowHandler(userFollowUsecase, authUsecase)
 	b2cPlayerHandler := domainhttp.NewB2CPlayerHandler(authUsecase, userFollowUsecase)
 
 	feedbackRepo := postgres.NewFeedbackRepository(db)
@@ -134,7 +138,7 @@ func TestMain(m *testing.M) {
 	feedbackHandler := domainhttp.NewFeedbackHandler(feedbackUsecase)
 
 	postRepo := postgres.NewPostRepository(db)
-	postUsecase := usecase.NewPostUsecase(postRepo)
+	postUsecase := usecase.NewPostUsecase(postRepo, b2cSubRepo, userRepo, notificationUsecase)
 	postHandler := domainhttp.NewPostHandler(postUsecase, mockStorage)
 
 	authMiddleware := domainhttp.NewAuthMiddleware(tokenProvider, authUsecase, rolePermRepo, clubRepo, "test_global_api_key_123", accessLogRepo)

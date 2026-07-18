@@ -130,7 +130,7 @@ func publishedTrial(clubID int64, maxP int) *domain.Trial {
 }
 
 func newAppUsecase(user *domain.User, trial *domain.Trial, appRepo *mockAppRepo, pRepo *mockParticipantRepo) domain.TrialApplicationUsecase {
-	return usecase.NewTrialApplicationUsecase(appRepo, &mockTrialRepo{trial: trial}, pRepo, &mockUserRepoForTrial2{user: user}, &mockB2CSubscriptionRepo{isPremium: true})
+	return usecase.NewTrialApplicationUsecase(appRepo, &mockTrialRepo{trial: trial}, pRepo, &mockUserRepoForTrial2{user: user}, &mockB2CSubscriptionRepo{isPremium: true}, nil)
 }
 
 // ─── Tests: Apply ─────────────────────────────────────────────────────────────
@@ -183,7 +183,7 @@ func TestApply_MaxParticipantsReached(t *testing.T) {
 func TestApply_TrialNotPublished(t *testing.T) {
 	closedTrial := &domain.Trial{ID: 1, ClubID: 1, Status: domain.TrialStatusClosed}
 	repo := &mockAppRepo{app: nil}
-	uc := usecase.NewTrialApplicationUsecase(repo, &mockTrialRepo{trial: closedTrial}, &mockParticipantRepo{}, &mockUserRepoForTrial2{user: playerUser2(1)}, &mockB2CSubscriptionRepo{isPremium: true})
+	uc := usecase.NewTrialApplicationUsecase(repo, &mockTrialRepo{trial: closedTrial}, &mockParticipantRepo{}, &mockUserRepoForTrial2{user: playerUser2(1)}, &mockB2CSubscriptionRepo{isPremium: true}, nil)
 	_, err := uc.Apply(context.Background(), 1, 3)
 	appErr, _ := err.(*domain.AppError)
 	if appErr == nil || appErr.Code != domain.ErrCodeBadRequest {

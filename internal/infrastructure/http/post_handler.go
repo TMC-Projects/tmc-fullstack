@@ -44,6 +44,21 @@ func (h *PostHandler) CreatePost(c *fiber.Ctx) error {
 	return SendSuccess(c, fiber.StatusCreated, "Post created successfully", post)
 }
 
+func (h *PostHandler) DeletePost(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(int64)
+	postID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "Invalid post ID format", err)
+	}
+
+	err = h.postUsecase.DeletePost(c.Context(), userID, postID)
+	if err != nil {
+		return err // Errors from usecase are already domain.AppError
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Post deleted successfully", nil)
+}
+
 func (h *PostHandler) GetFeed(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(int64)
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
@@ -110,6 +125,20 @@ func (h *PostHandler) GetComments(c *fiber.Ctx) error {
 	}
 
 	return SendSuccess(c, fiber.StatusOK, "Comments fetched successfully", comments)
+}
+
+func (h *PostHandler) GetPostInteractors(c *fiber.Ctx) error {
+	postID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "Invalid post ID format", err)
+	}
+
+	interactors, err := h.postUsecase.GetPostInteractors(c.Context(), postID)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeInternal, "Failed to fetch interactors", err)
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Interactors fetched successfully", interactors)
 }
 
 func (h *PostHandler) UploadImage(c *fiber.Ctx) error {

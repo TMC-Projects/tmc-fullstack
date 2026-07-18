@@ -8,13 +8,14 @@ import (
 )
 
 type trialUsecase struct {
-	trialRepo domain.TrialRepository
-	userRepo  domain.UserRepository
-	clubRepo  domain.ClubRepository
+	trialRepo    domain.TrialRepository
+	userRepo     domain.UserRepository
+	clubRepo     domain.ClubRepository
+	notifUsecase domain.NotificationUsecase
 }
 
-func NewTrialUsecase(trialRepo domain.TrialRepository, userRepo domain.UserRepository, clubRepo domain.ClubRepository) domain.TrialUsecase {
-	return &trialUsecase{trialRepo: trialRepo, userRepo: userRepo, clubRepo: clubRepo}
+func NewTrialUsecase(trialRepo domain.TrialRepository, userRepo domain.UserRepository, clubRepo domain.ClubRepository, notifUsecase domain.NotificationUsecase) domain.TrialUsecase {
+	return &trialUsecase{trialRepo: trialRepo, userRepo: userRepo, clubRepo: clubRepo, notifUsecase: notifUsecase}
 }
 
 func (u *trialUsecase) CreateTrial(ctx context.Context, input domain.CreateTrialInput, callerUserID int64) (*domain.Trial, error) {
@@ -106,9 +107,13 @@ func (u *trialUsecase) UpdateTrial(ctx context.Context, trialID int64, input dom
 	if input.MaxParticipants > 0 {
 		trial.MaxParticipants = input.MaxParticipants
 	}
+	var wasPublished bool
 	if input.Status != "" {
 		if !validStatuses[input.Status] {
 			return nil, domain.NewAppError(domain.ErrCodeValidation, "invalid status; allowed: DRAFT, PUBLISHED, CLOSED, COMPLETED", nil)
+		}
+		if trial.Status != domain.TrialStatusPublished && input.Status == domain.TrialStatusPublished {
+			wasPublished = true
 		}
 		trial.Status = input.Status
 	}
@@ -120,6 +125,20 @@ func (u *trialUsecase) UpdateTrial(ctx context.Context, trialID int64, input dom
 	if err := u.trialRepo.Update(ctx, trial); err != nil {
 		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to update trial", err)
 	}
+
+	// Trigger broadcast if newly published
+	if wasPublished && u.notifUsecase != nil {
+		clubName := "A club"
+		if user.Club != nil {
+			clubName = user.Club.Name
+		}
+		// Fire async or sync. Sync is safer here since it's an MVP, but it might block. We will just fire sync for now or run in goroutine.
+		// Since BroadcastNewTrial loops over many users, let's run it async.
+		go func() {
+			_ = u.notifUsecase.BroadcastNewTrial(context.Background(), trial.ID, clubName)
+		}()
+	}
+
 	return trial, nil
 }
 

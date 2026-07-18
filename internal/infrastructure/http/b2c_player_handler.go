@@ -23,13 +23,20 @@ func (h *B2CPlayerHandler) GetB2CPlayerDetail(c *fiber.Ctx) error {
 	// The user may or may not be logged in, but our route will require Authentication
 	targetIDStr := c.Params("id")
 	targetID, err := strconv.ParseInt(targetIDStr, 10, 64)
+	
+	var targetUser *domain.User
 	if err != nil || targetID == 0 {
-		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid user id", err)
-	}
-
-	targetUser, err := h.authUsecase.GetProfile(c.UserContext(), targetID)
-	if err != nil {
-		return domain.NewAppError(domain.ErrCodeNotFound, "user not found", err)
+		// Fallback to searching by username
+		targetUser, err = h.authUsecase.GetProfileByUsername(c.UserContext(), targetIDStr)
+		if err != nil {
+			return domain.NewAppError(domain.ErrCodeNotFound, "user not found", err)
+		}
+		targetID = targetUser.ID
+	} else {
+		targetUser, err = h.authUsecase.GetProfile(c.UserContext(), targetID)
+		if err != nil {
+			return domain.NewAppError(domain.ErrCodeNotFound, "user not found", err)
+		}
 	}
 
 	// Only players can be searched and shared in B2C

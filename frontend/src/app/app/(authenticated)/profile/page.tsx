@@ -216,11 +216,9 @@ export default function B2CProfilePage() {
           </section>
 
           {/* Bottom Grid for Achievements */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <section>
-              <AchievementList achievements={profileData.achievements || []} isEditable={true} onRefresh={fetchProfile} />
-            </section>
-          </div>
+          <section>
+            <AchievementList achievements={profileData.achievements || []} isEditable={true} onRefresh={fetchProfile} />
+          </section>
         </motion.div>
       </div>
 
