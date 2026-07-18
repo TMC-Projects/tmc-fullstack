@@ -1,0 +1,22 @@
+meta {
+  name: 7 - Respond Invitation
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/b2c/invitations/1/respond
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "status": "accepted"
+  }
+}
+

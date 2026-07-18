@@ -1,0 +1,16 @@
+meta {
+  name: 5 - Get My History
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/b2c/subscription/history
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

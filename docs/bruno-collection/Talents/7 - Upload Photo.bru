@@ -1,0 +1,16 @@
+meta {
+  name: 7 - Upload Photo
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/talents/1/photo
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

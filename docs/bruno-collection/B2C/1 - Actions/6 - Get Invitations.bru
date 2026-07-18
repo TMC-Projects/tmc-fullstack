@@ -1,0 +1,16 @@
+meta {
+  name: 6 - Get Invitations
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/b2c/invitations
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

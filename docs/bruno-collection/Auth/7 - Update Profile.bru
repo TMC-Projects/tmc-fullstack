@@ -1,0 +1,16 @@
+meta {
+  name: 7 - Update Profile
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/api/profile
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

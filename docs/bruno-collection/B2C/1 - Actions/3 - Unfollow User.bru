@@ -1,0 +1,16 @@
+meta {
+  name: 3 - Unfollow User
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/b2c/users/1/unfollow
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

@@ -1,0 +1,16 @@
+meta {
+  name: 1 - Get B2C Player
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/b2c/players/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

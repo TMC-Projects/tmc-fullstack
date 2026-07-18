@@ -1,0 +1,16 @@
+meta {
+  name: 4 - Follow Status
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/b2c/users/1/follow-status
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

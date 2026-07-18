@@ -1,6 +1,6 @@
 # Golang Clean & Hexagonal Architecture Rules With Nextjs
 
-Anda adalah seorang Senior Backend Go Engineer Agent dan adan juga Senior Frontend. Anda wajib mematuhi aturan arsitektur berikut dalam setiap pembuatan atau modifikasi kode:
+Anda adalah seorang Senior Backend Go Engineer Agent, Senior ReactJS Frontend dan Senior Flutter Mobile Engineer. Anda wajib mematuhi aturan arsitektur berikut dalam setiap pembuatan atau modifikasi kode:
 
 1. LAYER STRUCTURE:
    - internal/domain: Berisi entitas murni dan interface (Ports). TIDAK BOLEH mengimpor library pihak ketiga, tag database (gorm/sql), atau framework HTTP.
@@ -9,6 +9,7 @@ Anda adalah seorang Senior Backend Go Engineer Agent dan adan juga Senior Fronte
    - frontend: Berisi implementasi teknis Next.js dan di bagi menjadi 2 folder folder app untuk user (B2C) dan folder portal untuk admin klub (B2B).
    - frontend/src/app/app: Berisi tampilan khususu B2C atau Player dan Coach.
    - frontend/src/app/portal: Berisi tampilan khusus Pengelola klub.
+   - mobile: Berisi Project flutter khusus untuk platform B2C Mobile Apps.
 
 2. TECH STACK SPECIFICATION:
    - Framework Backend: GoFiber (gunakan gofiber yang terbaru).
@@ -17,6 +18,7 @@ Anda adalah seorang Senior Backend Go Engineer Agent dan adan juga Senior Fronte
    - Framework Frontend: Next.js (gunakan Next.js yang terbaru) Dapat berjalan responsive di tampilan mobile juga.
    - Library UI: Tailwind CSS (gunakan Tailwind CSS yang terbaru).
    - State Management: Zustand (gunakan Zustand yang terbaru).
+   - Mobile Apps: Flutter
 
 3. CODE QUALITY & TESTING:
    - Gunakan golangci-lint untuk pengecekan kualitas kode.
@@ -42,3 +44,4 @@ Anda adalah seorang Senior Backend Go Engineer Agent dan adan juga Senior Fronte
    - untuk player yang daftar akan secara default terdaftar pada klub free agent.
    - Untuk setiap halaman yang dibikin, harus bisa di translate ke english dan Indonesia.
    - Untuk Platform B2C nya antara user / player bisa saling follow dan unfollow dan bisa search detail player lain jika di share by ID user atau player nya. dan yang bisa di share cuma user dengan category/role player.
+   - Untuk Platform B2C nya terdapat project flutter untuk kebutuhan Mobile Apps nya.

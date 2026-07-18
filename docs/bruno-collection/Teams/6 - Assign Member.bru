@@ -1,0 +1,23 @@
+meta {
+  name: 6 - Assign Member
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/teams/1/assign
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "user_id": 1,
+    "role": "player"
+  }
+}
+
