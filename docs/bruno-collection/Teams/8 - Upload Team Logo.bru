@@ -1,0 +1,16 @@
+meta {
+  name: 8 - Upload Team Logo
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/teams/1/upload-logo
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

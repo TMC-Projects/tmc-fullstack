@@ -1,0 +1,16 @@
+meta {
+  name: 3 - Pay Subscription
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/b2c/subscription/1/pay
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

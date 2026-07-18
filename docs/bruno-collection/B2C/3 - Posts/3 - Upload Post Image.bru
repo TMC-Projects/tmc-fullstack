@@ -1,0 +1,16 @@
+meta {
+  name: 3 - Upload Post Image
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/b2c/posts/upload-image
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

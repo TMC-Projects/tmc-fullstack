@@ -1,0 +1,16 @@
+meta {
+  name: 1 - Get Plans
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/b2c/subscription/plans
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+

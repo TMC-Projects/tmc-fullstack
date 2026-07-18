@@ -1,0 +1,24 @@
+meta {
+  name: 6 - Update Biodata
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/talents/1/biodata
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "birth_date": "2000-01-01T00:00:00Z",
+    "height": 180,
+    "weight": 75
+  }
+}
+

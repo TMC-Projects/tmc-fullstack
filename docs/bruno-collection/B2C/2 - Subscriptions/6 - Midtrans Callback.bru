@@ -1,0 +1,18 @@
+meta {
+  name: 6 - Midtrans Callback
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/b2c/subscription/callback
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "order_id": "B2C-1234"
+  }
+}
+

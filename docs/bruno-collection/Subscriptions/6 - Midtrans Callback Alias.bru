@@ -1,0 +1,18 @@
+meta {
+  name: 6 - Midtrans Callback Alias
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/callback
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "order_id": "SUB-1234"
+  }
+}
+

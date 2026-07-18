@@ -1,0 +1,22 @@
+meta {
+  name: 8 - Update Transfer Status
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{baseUrl}}/api/talents/1/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "transfer_status": "listed"
+  }
+}
+

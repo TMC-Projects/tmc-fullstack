@@ -1,0 +1,23 @@
+meta {
+  name: 5 - Submit Feedback
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/b2c/feedback
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "subject": "Bug",
+    "message": "Found a bug"
+  }
+}
+

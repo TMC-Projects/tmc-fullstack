@@ -55,12 +55,12 @@ type PostRepository interface {
 
 // CreatePostInput defines the payload for creating a post.
 type CreatePostInput struct {
-	Content string
+	Content string `json:"content"`
 }
 
 // AddCommentInput defines the payload for adding a comment.
 type AddCommentInput struct {
-	Content string
+	Content string `json:"content"`
 }
 
 // PostUsecase defines the inbound port for Post operations.

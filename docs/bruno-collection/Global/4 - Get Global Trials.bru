@@ -1,0 +1,16 @@
+meta {
+  name: 4 - Get Global Trials
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/global/trials
+  body: none
+  auth: none
+}
+
+headers {
+  X-API-Key: {{api_key}}
+}
+

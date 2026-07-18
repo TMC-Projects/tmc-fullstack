@@ -16,3 +16,7 @@ frontend/.env.test
 .env
 .DS_Store
 docker-compose.prod.yml
+mobile/.env
+mobile/.dart_tool
+mobile/.idea
+mobile/build/*
