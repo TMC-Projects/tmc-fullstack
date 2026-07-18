@@ -162,9 +162,16 @@ func (m *AuthMiddleware) RequireActiveB2BClub() fiber.Handler {
 			return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized or user not found", err)
 		}
 
+		if user.ClubID == 0 {
+			return domain.NewAppError(domain.ErrCodeForbidden, "access denied: user does not belong to a club", nil)
+		}
+
 		club, err := m.clubRepo.GetByID(c.UserContext(), user.ClubID)
-		if err != nil || club == nil {
+		if err != nil {
 			return domain.NewAppError(domain.ErrCodeInternal, "failed to retrieve club info", err)
+		}
+		if club == nil {
+			return domain.NewAppError(domain.ErrCodeForbidden, "access denied: club not found", nil)
 		}
 
 		// Auto-expire clubs whose paid subscription period has naturally lapsed
@@ -205,8 +212,11 @@ func (m *AuthMiddleware) RequireVerifiedClub() fiber.Handler {
 		}
 
 		club, err := m.clubRepo.GetByID(c.UserContext(), user.ClubID)
-		if err != nil || club == nil {
+		if err != nil {
 			return domain.NewAppError(domain.ErrCodeInternal, "failed to retrieve club info", err)
+		}
+		if club == nil {
+			return domain.NewAppError(domain.ErrCodeForbidden, "access denied: club not found", nil)
 		}
 
 		if !club.Verify {

@@ -105,6 +105,10 @@ export default function TalentsPage() {
           router.push('/portal/login');
           return;
         }
+        if (res.status === 403 && data.message?.includes('does not belong to a club')) {
+          router.push('/portal/club/create');
+          return;
+        }
         throw new Error(data.message || 'Failed to fetch talents');
       }
 
