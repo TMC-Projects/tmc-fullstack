@@ -1,5 +1,17 @@
 import React from 'react';
+import { Metadata } from 'next';
 import Sidebar from '@/components/team-portal/Sidebar';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Dashboard Tim | NJARA Teams',
+    template: '%s | NJARA Teams',
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AuthenticatedPortalLayout({
   children,
@@ -16,3 +28,4 @@ export default function AuthenticatedPortalLayout({
     </div>
   );
 }
+
