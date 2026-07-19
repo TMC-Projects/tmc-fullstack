@@ -9,7 +9,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function CreateClubPage() {
   const router = useRouter();
-  const { token, _hasHydrated, clearAuth } = useAuthStore();
+  const { token, _hasHydrated, clearAuth, updateUser } = useAuthStore();
   const t = useTranslations('ClubCreate');
 
   const [formData, setFormData] = useState({
@@ -69,6 +69,15 @@ export default function CreateClubPage() {
           return;
         }
         throw new Error(data.message || t('create_error'));
+      }
+
+      // Update auth store with the newly created club's details
+      if (data.data) {
+        updateUser({
+          club_id: data.data.id,
+          club_name: data.data.name,
+          club_logo_url: data.data.logo_url || '',
+        });
       }
 
       setSuccessMessage(t('create_success'));
@@ -202,7 +211,7 @@ export default function CreateClubPage() {
                   rows={3}
                   placeholder={t('address_placeholder')}
                   value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl text-slate-900 dark:text-slate-100 placeholder-slate-600 transition-all outline-none resize-none"
                 />
               </div>

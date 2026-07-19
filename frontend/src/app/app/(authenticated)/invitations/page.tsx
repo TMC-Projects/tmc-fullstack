@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, User, ClipboardList, Shield, ChevronLeft , CreditCard } from 'lucide-react';
+import { LogOut, User, ClipboardList, Shield, ChevronLeft, CreditCard } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -15,7 +15,7 @@ export default function InvitationsPage() {
   const router = useRouter();
   const { token, clearAuth, _hasHydrated } = useAuthStore();
   const t = useTranslations('Dashboard');
-  const tProf = useTranslations('Profile'); 
+  const tProf = useTranslations('Profile');
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -47,9 +47,9 @@ export default function InvitationsPage() {
 
       <div className="max-w-4xl mx-auto px-4 md:px-8 mt-8 space-y-8">
         <div className="flex items-center gap-4">
-          <Link href="/app/dashboard" className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+          {/* <Link href="/app/dashboard" className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
             <ChevronLeft className="w-5 h-5" />
-          </Link>
+          </Link> */}
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Undangan Tim</h2>
             <p className="text-slate-500 dark:text-slate-400">Kelola semua undangan bergabung dari Klub maupun Tim.</p>

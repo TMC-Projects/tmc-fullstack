@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { useTranslations } from 'next-intl';
+import { apiFetch } from '@/utils/api';
 import { 
   ChevronLeft, Calendar, MessageSquare, ShieldAlert, Building2, CheckCircle2, XCircle, Clock
 , CreditCard } from 'lucide-react';
@@ -46,11 +47,9 @@ export default function MyApplicationsPage() {
     if (!token) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/my-applications`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await apiFetch('/api/my-applications');
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.message || t('error_fetch'));
       }
@@ -60,7 +59,7 @@ export default function MyApplicationsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [token, t]);
 
   useEffect(() => {
     if (_hasHydrated) {
