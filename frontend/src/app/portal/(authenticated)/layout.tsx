@@ -1,5 +1,17 @@
 import React from 'react';
+import { Metadata } from 'next';
 import Sidebar from '@/components/portal/Sidebar';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Dashboard Klub | NJARA Club',
+    template: '%s | NJARA Club',
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AuthenticatedPortalLayout({
   children,
@@ -16,3 +28,4 @@ export default function AuthenticatedPortalLayout({
     </div>
   );
 }
+
