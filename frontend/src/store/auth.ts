@@ -28,11 +28,15 @@ interface AuthState {
   setAuth: (token: string, refreshToken: string, user: User) => void;
   updateUser: (partialUser: Partial<User>) => void;
   clearAuth: () => void;
+  /** Attempt to refresh the access token. Returns the new token or null if failed. */
+  refreshAccessToken: () => Promise<string | null>;
 }
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       refreshToken: null,
       user: null,
@@ -41,6 +45,36 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (token, refreshToken, user) => set({ token, refreshToken, user }),
       updateUser: (partialUser) => set((state) => ({ user: state.user ? { ...state.user, ...partialUser } : null })),
       clearAuth: () => set({ token: null, refreshToken: null, user: null }),
+      refreshAccessToken: async () => {
+        const { refreshToken, user, clearAuth } = get();
+        if (!refreshToken || !user) {
+          clearAuth();
+          return null;
+        }
+        try {
+          const res = await fetch(`${BASE_URL}/api/refresh-token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+          if (!res.ok) {
+            clearAuth();
+            return null;
+          }
+          const data = await res.json();
+          const newToken: string = data.data?.token ?? data.token;
+          const newRefreshToken: string = data.data?.refresh_refresh_token ?? data.data?.refresh_token ?? data.refresh_token ?? refreshToken;
+          if (!newToken) {
+            clearAuth();
+            return null;
+          }
+          set({ token: newToken, refreshToken: newRefreshToken });
+          return newToken;
+        } catch {
+          clearAuth();
+          return null;
+        }
+      },
     }),
     {
       name: 'njara-auth',
