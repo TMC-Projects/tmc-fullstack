@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import WYSIWYGEditor from './WYSIWYGEditor';
 import { Send, Loader2 } from 'lucide-react';
 
@@ -10,6 +11,7 @@ interface CreatePostProps {
 }
 
 export default function CreatePost({ onSubmit, user }: CreatePostProps) {
+  const t = useTranslations('Feed');
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -29,10 +31,10 @@ export default function CreatePost({ onSubmit, user }: CreatePostProps) {
   return (
     <div className="p-4 sm:p-6">
       <form onSubmit={handleSubmit}>
-        <WYSIWYGEditor 
-          content={content} 
-          onChange={setContent} 
-          placeholder="What's on your mind? Share your achievements or thoughts..." 
+        <WYSIWYGEditor
+          content={content}
+          onChange={setContent}
+          placeholder={t('placeholder')}
           isSubmitting={isSubmitting}
         />
         <div className="flex justify-end mt-4">
@@ -46,7 +48,7 @@ export default function CreatePost({ onSubmit, user }: CreatePostProps) {
             ) : (
               <Send className="w-4 h-4" />
             )}
-            Post
+            {t('post_btn')}
           </button>
         </div>
       </form>

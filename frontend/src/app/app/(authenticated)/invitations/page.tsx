@@ -14,8 +14,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 export default function InvitationsPage() {
   const router = useRouter();
   const { token, clearAuth, _hasHydrated } = useAuthStore();
-  const t = useTranslations('Dashboard');
-  const tProf = useTranslations('Profile');
+  const t = useTranslations('Invitations');
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -51,8 +50,8 @@ export default function InvitationsPage() {
             <ChevronLeft className="w-5 h-5" />
           </Link> */}
           <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Undangan Tim</h2>
-            <p className="text-slate-500 dark:text-slate-400">Kelola semua undangan bergabung dari Klub maupun Tim.</p>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('title')}</h2>
+            <p className="text-slate-500 dark:text-slate-400">{t('subtitle')}</p>
           </div>
         </div>
 
