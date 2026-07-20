@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Heart, MessageCircle, Share2, MoreHorizontal, Send, Loader2, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useAlertStore } from '@/store/alertStore';
+import { useTranslations } from 'next-intl';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -12,7 +13,7 @@ const renderContentWithMentions = (content: string) => {
   if (!content) return null;
   const mentionRegex = /(@[\w.-]+)/g;
   const parts = content.split(mentionRegex);
-  
+
   return parts.map((part, i) => {
     if (part.match(mentionRegex)) {
       const username = part.slice(1);
@@ -42,6 +43,7 @@ interface PostCardProps {
 export default function PostCard({ post, onLikeToggle, onDeletePost }: PostCardProps) {
   const { token, user: currentUser } = useAuthStore();
   const showAlert = useAlertStore((state) => state.showAlert);
+  const t = useTranslations('Feed');
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -138,7 +140,7 @@ export default function PostCard({ post, onLikeToggle, onDeletePost }: PostCardP
         return;
       }
     }
-    
+
     setShowSuggestions(false);
   };
 
@@ -169,17 +171,17 @@ export default function PostCard({ post, onLikeToggle, onDeletePost }: PostCardP
         // Fetch comments again to get full user data for the new comment
         fetchComments();
       } else {
-        showAlert(data.message || 'Failed to post comment', 'error');
+        showAlert(data.message || t('failed_post_comment'), 'error');
       }
     } catch (error) {
-      showAlert('Failed to post comment', 'error');
+      showAlert(t('failed_post_comment'), 'error');
     } finally {
       setIsSubmittingComment(false);
     }
   };
 
   const handleDeletePost = async () => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
+    if (!confirm(t('delete_confirm'))) return;
     setIsDeleting(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/b2c/posts/${post.ID}`, {
@@ -190,14 +192,14 @@ export default function PostCard({ post, onLikeToggle, onDeletePost }: PostCardP
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showAlert('Post deleted successfully', 'success');
+        showAlert(t('post_deleted'), 'success');
         if (onDeletePost) onDeletePost(post.ID);
       } else {
-        showAlert(data.message || 'Failed to delete post', 'error');
+        showAlert(data.message || t('failed_delete_post'), 'error');
       }
     } catch (error) {
       console.error('Failed to delete post', error);
-      showAlert('Failed to delete post', 'error');
+      showAlert(t('failed_delete_post'), 'error');
     } finally {
       setIsDeleting(false);
     }
@@ -222,23 +224,23 @@ export default function PostCard({ post, onLikeToggle, onDeletePost }: PostCardP
           </div>
           <div>
             <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              {user?.FullName || 'Unknown User'}
+              {user?.FullName || t('unknown_user')}
               <span className="text-xs font-normal text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
                 {user?.Category || 'player'}
               </span>
             </h4>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {user?.Club?.Name || 'Free Agent'} • {formatDistanceToNow(new Date(post.CreatedAt), { addSuffix: true })}
+              {user?.Club?.Name || t('free_agent')} • {formatDistanceToNow(new Date(post.CreatedAt), { addSuffix: true })}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {isOwner && (
-            <button 
+            <button
               onClick={handleDeletePost}
               disabled={isDeleting}
               className="text-slate-400 hover:text-red-500 transition-colors p-1"
-              title="Delete post"
+              title={t('delete_confirm')}
             >
               {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
             </button>
@@ -250,7 +252,7 @@ export default function PostCard({ post, onLikeToggle, onDeletePost }: PostCardP
       </div>
 
       {/* Content */}
-      <div 
+      <div
         className="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 text-sm md:text-base mb-4"
         dangerouslySetInnerHTML={{ __html: post.Content }}
       />
@@ -258,44 +260,44 @@ export default function PostCard({ post, onLikeToggle, onDeletePost }: PostCardP
       {/* Stats */}
       <div className="flex items-center gap-4 text-sm text-slate-500 border-b border-slate-200 dark:border-slate-800 pb-3 mb-3">
         <span className="flex items-center gap-1">
-          {post.LikeCount} Likes
+          {post.LikeCount} {t('like')}
         </span>
         <span className="flex items-center gap-1 cursor-pointer hover:underline" onClick={handleToggleComments}>
-          {post.CommentCount} Comments
+          {post.CommentCount} {t('comment')}
         </span>
       </div>
 
       {/* Actions */}
       <div className="flex gap-2">
-        <button 
+        <button
           onClick={handleLike}
           disabled={isLiking}
           className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition-colors font-medium ${
-            post.IsLiked 
-              ? 'text-rose-500 bg-rose-500/10 hover:bg-rose-500/20' 
+            post.IsLiked
+              ? 'text-rose-500 bg-rose-500/10 hover:bg-rose-500/20'
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Heart className={`w-5 h-5 ${post.IsLiked ? 'fill-current' : ''}`} />
-          Like
+          {t('like')}
         </button>
-        <button 
+        <button
           onClick={handleToggleComments}
           className="flex-1 flex items-center justify-center gap-2 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors font-medium"
         >
           <MessageCircle className="w-5 h-5" />
-          Comment
+          {t('comment')}
         </button>
         <button className="flex-1 flex items-center justify-center gap-2 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors font-medium">
           <Share2 className="w-5 h-5" />
-          Share
+          {t('share')}
         </button>
       </div>
 
       {/* Comments Section */}
       <AnimatePresence>
         {showComments && (
-          <motion.div 
+          <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -308,41 +310,41 @@ export default function PostCard({ post, onLikeToggle, onDeletePost }: PostCardP
                   type="text"
                   value={newComment}
                   onChange={handleCommentChange}
-                  placeholder="Write a comment..."
+                  placeholder={t('write_comment')}
                   className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-950/50 border border-slate-300 dark:border-slate-700 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm"
                 />
-                <button 
+                <button
                   type="submit"
-                disabled={isSubmittingComment || !newComment.trim()}
-                className="w-10 h-10 shrink-0 flex items-center justify-center bg-violet-500 hover:bg-violet-600 text-white rounded-full disabled:opacity-50 transition-colors"
-              >
-                {isSubmittingComment ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-              </button>
-            </form>
-            
-            {showSuggestions && interactors.length > 0 && (
-              <div className="absolute left-0 bottom-full mb-2 w-64 max-h-48 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[100]">
-                {interactors
-                  .filter(u => u.FullName.toLowerCase().includes(mentionQuery.toLowerCase()) || (u.Username && u.Username.toLowerCase().includes(mentionQuery.toLowerCase())))
-                  .map(u => (
-                    <div 
-                      key={u.ID} 
-                      className="px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-2 text-sm"
-                      onClick={() => insertMention(u.Username || u.FullName.replace(/\s+/g, ''))}
-                    >
-                      <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden flex items-center justify-center text-xs">
-                        {u.ProfilePictureUrl ? (
-                          <img src={u.ProfilePictureUrl} alt={u.FullName} className="w-full h-full object-cover" />
-                        ) : (
-                          u.FullName.charAt(0)
-                        )}
+                  disabled={isSubmittingComment || !newComment.trim()}
+                  className="w-10 h-10 shrink-0 flex items-center justify-center bg-violet-500 hover:bg-violet-600 text-white rounded-full disabled:opacity-50 transition-colors"
+                >
+                  {isSubmittingComment ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                </button>
+              </form>
+
+              {showSuggestions && interactors.length > 0 && (
+                <div className="absolute left-0 bottom-full mb-2 w-64 max-h-48 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[100]">
+                  {interactors
+                    .filter(u => u.FullName.toLowerCase().includes(mentionQuery.toLowerCase()) || (u.Username && u.Username.toLowerCase().includes(mentionQuery.toLowerCase())))
+                    .map(u => (
+                      <div
+                        key={u.ID}
+                        className="px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-2 text-sm"
+                        onClick={() => insertMention(u.Username || u.FullName.replace(/\s+/g, ''))}
+                      >
+                        <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden flex items-center justify-center text-xs">
+                          {u.ProfilePictureUrl ? (
+                            <img src={u.ProfilePictureUrl} alt={u.FullName} className="w-full h-full object-cover" />
+                          ) : (
+                            u.FullName.charAt(0)
+                          )}
+                        </div>
+                        <span className="font-medium text-slate-900 dark:text-white">{u.FullName}</span>
+                        {u.Username && <span className="text-slate-500 text-xs">@{u.Username}</span>}
                       </div>
-                      <span className="font-medium text-slate-900 dark:text-white">{u.FullName}</span>
-                      {u.Username && <span className="text-slate-500 text-xs">@{u.Username}</span>}
-                    </div>
-                  ))}
-              </div>
-            )}
+                    ))}
+                </div>
+              )}
             </div>
 
             {/* Comment List */}

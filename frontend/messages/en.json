@@ -757,5 +757,38 @@
     "subscriptions": "Subscriptions",
     "subscriptions_desc": "Manage your Team Portal subscriptions and billing.",
     "view_subscriptions": "View Subscriptions"
+  },
+  "Feed": {
+    "placeholder": "What's on your mind? Share your achievements or thoughts...",
+    "no_posts_title": "No posts yet",
+    "no_posts_desc": "Be the first one to share something with the community!",
+    "create_post": "Create Post",
+    "try_again": "Try Again",
+    "like": "Like",
+    "comment": "Comment",
+    "share": "Share",
+    "write_comment": "Write a comment...",
+    "unknown_user": "Unknown User",
+    "free_agent": "Free Agent",
+    "delete_confirm": "Are you sure you want to delete this post?",
+    "post_created": "Post created successfully!",
+    "post_deleted": "Post deleted successfully",
+    "failed_post_comment": "Failed to post comment",
+    "failed_delete_post": "Failed to delete post",
+    "error_creating_post": "Error creating post",
+    "failed_fetch": "Failed to load feed data",
+    "post_btn": "Post"
+  },
+  "Invitations": {
+    "title": "Team Invitations",
+    "subtitle": "Manage all join invitations from Clubs and Teams.",
+    "no_invitations_title": "No invitations yet",
+    "no_invitations_desc": "There are currently no teams or clubs inviting you.",
+    "invitation_header": "Join Team Invitation",
+    "main_club": "Main Club",
+    "club_label": "Club",
+    "accept": "Accept",
+    "decline": "Decline",
+    "failed_respond": "Failed to respond"
   }
 }

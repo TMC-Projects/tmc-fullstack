@@ -757,5 +757,38 @@
     "subscriptions": "Langganan",
     "subscriptions_desc": "Kelola langganan dan tagihan Portal Tim Anda.",
     "view_subscriptions": "Lihat Langganan"
+  },
+  "Feed": {
+    "placeholder": "Ada apa? Bagikan pencapaian atau pikiranmu...",
+    "no_posts_title": "Belum ada postingan",
+    "no_posts_desc": "Jadilah yang pertama berbagi sesuatu dengan komunitas!",
+    "create_post": "Buat Postingan",
+    "try_again": "Coba Lagi",
+    "like": "Suka",
+    "comment": "Komentar",
+    "share": "Bagikan",
+    "write_comment": "Tulis komentar...",
+    "unknown_user": "Pengguna Tidak Dikenal",
+    "free_agent": "Free Agent",
+    "delete_confirm": "Apakah Anda yakin ingin menghapus postingan ini?",
+    "post_created": "Postingan berhasil dibuat!",
+    "post_deleted": "Postingan berhasil dihapus",
+    "failed_post_comment": "Gagal memposting komentar",
+    "failed_delete_post": "Gagal menghapus postingan",
+    "error_creating_post": "Terjadi kesalahan saat membuat postingan",
+    "failed_fetch": "Gagal memuat data feed",
+    "post_btn": "Posting"
+  },
+  "Invitations": {
+    "title": "Undangan Tim",
+    "subtitle": "Kelola semua undangan bergabung dari Klub maupun Tim.",
+    "no_invitations_title": "Belum ada undangan",
+    "no_invitations_desc": "Saat ini tidak ada tim atau klub yang mengundang Anda.",
+    "invitation_header": "Undangan Bergabung ke Tim",
+    "main_club": "Klub Utama",
+    "club_label": "Klub",
+    "accept": "Terima",
+    "decline": "Tolak",
+    "failed_respond": "Gagal merespons"
   }
 }

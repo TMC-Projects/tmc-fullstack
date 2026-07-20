@@ -1,6 +1,9 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Shield, Check, X, Clock } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
+import { useTranslations } from 'next-intl';
 
 interface Invitation {
   id: number;
@@ -21,6 +24,7 @@ interface Invitation {
 
 export default function TeamInvitations({ showEmptyState = false }: { showEmptyState?: boolean }) {
   const { token } = useAuthStore();
+  const t = useTranslations('Invitations');
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState<number | null>(null);
@@ -56,11 +60,8 @@ export default function TeamInvitations({ showEmptyState = false }: { showEmptyS
         },
         body: JSON.stringify({ accept })
       });
-      
+
       if (res.ok) {
-        // Optimistically remove the pending invitation or reload profile/invitations
-        // Typically a full reload of the dashboard might be needed if they accept so their club changes,
-        // but for now let's just refresh the list.
         if (accept) {
           window.location.reload(); // Hard reload to fetch new club context on Dashboard
         } else {
@@ -68,7 +69,7 @@ export default function TeamInvitations({ showEmptyState = false }: { showEmptyS
         }
       } else {
         const errorData = await res.json();
-        alert(`Failed to respond: ${errorData.message}`);
+        alert(`${t('failed_respond')}: ${errorData.message}`);
       }
     } catch (err) {
       console.error('Error responding to invitation', err);
@@ -92,8 +93,8 @@ export default function TeamInvitations({ showEmptyState = false }: { showEmptyS
       return (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center shadow-sm">
           <Shield className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Belum ada undangan</h3>
-          <p className="text-slate-500 dark:text-slate-400">Saat ini tidak ada tim atau klub yang mengundang Anda.</p>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">{t('no_invitations_title')}</h3>
+          <p className="text-slate-500 dark:text-slate-400">{t('no_invitations_desc')}</p>
         </div>
       );
     }
@@ -110,7 +111,7 @@ export default function TeamInvitations({ showEmptyState = false }: { showEmptyS
       <div className="relative z-10">
         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
           <Shield className="w-5 h-5 text-indigo-500" />
-          Undangan Bergabung ke Tim
+          {t('invitation_header')}
         </h2>
 
         <div className="grid gap-4">
@@ -124,10 +125,10 @@ export default function TeamInvitations({ showEmptyState = false }: { showEmptyS
                 <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
                   {inv.club?.logo_url ? (
                     <>
-                      <img 
-                        src={inv.club.logo_url} 
-                        alt="Club Logo" 
-                        className="w-full h-full object-cover" 
+                      <img
+                        src={inv.club.logo_url}
+                        alt="Club Logo"
+                        className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                           if (e.currentTarget.nextElementSibling) {
@@ -150,11 +151,11 @@ export default function TeamInvitations({ showEmptyState = false }: { showEmptyS
                   <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
                     {inv.team ? (
                       <span className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full text-xs font-semibold">
-                        Klub: {inv.club?.name || 'Unknown Club'}
+                        {t('club_label')}: {inv.club?.name || t('no_invitations_title')}
                       </span>
                     ) : (
                       <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full text-xs font-semibold">
-                        Klub Utama
+                        {t('main_club')}
                       </span>
                     )}
                     <span className="flex items-center gap-1 text-xs">
@@ -171,7 +172,7 @@ export default function TeamInvitations({ showEmptyState = false }: { showEmptyS
                   disabled={isProcessing === inv.id}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-xl transition-colors disabled:opacity-50 text-sm font-semibold border border-transparent hover:border-rose-200 dark:hover:border-rose-900/50"
                 >
-                  <X className="w-4 h-4" /> Tolak
+                  <X className="w-4 h-4" /> {t('decline')}
                 </button>
                 <button
                   onClick={() => respondToInvitation(inv.id, true)}
@@ -182,7 +183,7 @@ export default function TeamInvitations({ showEmptyState = false }: { showEmptyS
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   ) : (
                     <>
-                      <Check className="w-4 h-4" /> Terima
+                      <Check className="w-4 h-4" /> {t('accept')}
                     </>
                   )}
                 </button>
