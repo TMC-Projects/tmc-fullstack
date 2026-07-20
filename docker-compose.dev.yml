@@ -51,8 +51,8 @@ services:
       - JWT_TTL=24h
       - GLOBAL_API_KEY=njara_global_landing_page_key_123
       - MIDTRANS_MERCHANT_ID=G082856386
-      - MIDTRANS_CLIENT_KEY=SB-Mid-client-zOkWcEqWCdbmuoeq
-      - MIDTRANS_SERVER_KEY=SB-Mid-server-xKwEPlEPQriqAyFBtNKTbqHs
+      - MIDTRANS_CLIENT_KEY=
+      - MIDTRANS_SERVER_KEY=
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
