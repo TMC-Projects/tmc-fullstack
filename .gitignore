@@ -20,3 +20,6 @@ mobile/.env
 mobile/.dart_tool
 mobile/.idea
 mobile/build/*
+
+# Added by ggshield
+.cache_ggshield
