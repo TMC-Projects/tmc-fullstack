@@ -55,10 +55,16 @@ type CoreChargeResult struct {
 	StatusCode      string
 }
 
-// NewClient creates a new Midtrans Core API client configured for Sandbox.
-func NewClient(serverKey, merchantID string) *Client {
+// NewClient creates a new Midtrans Core API client.
+// The environment (Sandbox or Production) is controlled by the isSandbox parameter,
+// which should be set from the MIDTRANS_IS_SANDBOX environment variable.
+func NewClient(serverKey, merchantID string, isSandbox bool) *Client {
 	c := coreapi.Client{}
-	c.New(serverKey, midtrans.Sandbox)
+	env := midtrans.Production
+	if isSandbox {
+		env = midtrans.Sandbox
+	}
+	c.New(serverKey, env)
 	return &Client{
 		core:       c,
 		serverKey:  serverKey,

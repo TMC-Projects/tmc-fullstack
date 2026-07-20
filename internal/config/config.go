@@ -30,6 +30,7 @@ type Config struct {
 	MidtransMerchantID string
 	MidtransClientKey  string
 	MidtransServerKey  string
+	MidtransIsSandbox  bool
 
 	GlobalAPIKey string
 
@@ -73,6 +74,12 @@ func LoadConfig() Config {
 	midtransMerchantID := getEnv("MIDTRANS_MERCHANT_ID", "")
 	midtransClientKey := getEnv("MIDTRANS_CLIENT_KEY", "")
 	midtransServerKey := getEnv("MIDTRANS_SERVER_KEY", "")
+	// Default to true (Sandbox) for safety; set MIDTRANS_IS_SANDBOX=false in production
+	midtransIsSandboxStr := getEnv("MIDTRANS_IS_SANDBOX", "true")
+	midtransIsSandbox, err := strconv.ParseBool(midtransIsSandboxStr)
+	if err != nil {
+		midtransIsSandbox = true
+	}
 
 	minioEndpoint := getEnv("MINIO_ENDPOINT", "localhost:9000")
 	minioEndpoint = strings.TrimPrefix(minioEndpoint, "http://")
@@ -103,6 +110,7 @@ func LoadConfig() Config {
 		MidtransMerchantID: midtransMerchantID,
 		MidtransClientKey:  midtransClientKey,
 		MidtransServerKey:  midtransServerKey,
+		MidtransIsSandbox:  midtransIsSandbox,
 		GlobalAPIKey:       getEnv("GLOBAL_API_KEY", "default_global_key"),
 
 		MinioEndpoint:  minioEndpoint,
