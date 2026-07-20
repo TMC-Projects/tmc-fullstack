@@ -16,10 +16,14 @@ frontend/.env.test
 .env
 .DS_Store
 docker-compose.prod.yml
+docker-compose.dev.yml
+docker-compose.yml
 mobile/.env
 mobile/.dart_tool
 mobile/.idea
 mobile/build/*
+docs/bruno-collection/.env
+docs/bruno-collection/Auth/.env
 
 # Added by ggshield
 .cache_ggshield
