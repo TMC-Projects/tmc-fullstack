@@ -53,6 +53,7 @@ services:
       - MIDTRANS_MERCHANT_ID=G082856386
       - MIDTRANS_CLIENT_KEY=
       - MIDTRANS_SERVER_KEY=
+      - MIDTRANS_IS_SANDBOX=true
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin

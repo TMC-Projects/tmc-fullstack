@@ -172,7 +172,7 @@ func main() {
 	userFollowUsecase := usecase.NewUserFollowUsecase(userFollowRepo, userRepo, notificationUsecase)
 
 	// Midtrans
-	midtransClient := midtransInfra.NewClient(cfg.MidtransServerKey, cfg.MidtransMerchantID)
+	midtransClient := midtransInfra.NewClient(cfg.MidtransServerKey, cfg.MidtransMerchantID, cfg.MidtransIsSandbox)
 
 	// Subscription
 	subPlanRepo := postgres.NewSubscriptionPlanRepository(db)
