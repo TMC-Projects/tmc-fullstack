@@ -128,6 +128,28 @@ export default function InternalLayout({
                 Users
               </Link>
             </li>
+            <li>
+              <Link
+                href="/internal/tables/subscriptions"
+                className={`block px-4 py-2 rounded-lg transition-colors ${pathname.includes('/tables/subscriptions')
+                    ? 'bg-indigo-600/20 text-indigo-400 font-medium'
+                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50'
+                  }`}
+              >
+                Club Transactions
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/internal/tables/b2c_player_subscriptions"
+                className={`block px-4 py-2 rounded-lg transition-colors ${pathname.includes('/tables/b2c_player_subscriptions')
+                    ? 'bg-indigo-600/20 text-indigo-400 font-medium'
+                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50'
+                  }`}
+              >
+                Player Transactions
+              </Link>
+            </li>
           </ul>
         </nav>
         <div className="p-4 border-t border-zinc-800">

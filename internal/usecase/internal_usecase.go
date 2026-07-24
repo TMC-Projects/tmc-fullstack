@@ -39,6 +39,8 @@ var allowedTables = map[string]bool{
 	"clubs":                    true,
 	"club_onboardings":         true,
 	"users":                    true,
+	"subscriptions":            true,
+	"b2c_player_subscriptions": true,
 }
 
 func isTableAllowed(tableName string) bool {

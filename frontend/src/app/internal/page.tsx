@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Gamepad2, Building2, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Gamepad2, Building2, User, CreditCard } from 'lucide-react';
 
 const TABLE_METADATA: Record<string, { title: string, description: string, icon: any }> = {
   "games": {
@@ -34,6 +35,16 @@ const TABLE_METADATA: Record<string, { title: string, description: string, icon:
     title: "Users",
     description: "Manage all user accounts on the platform.",
     icon: User
+  },
+  "subscriptions": {
+    title: "Club Transactions",
+    description: "View and manage club subscription transactions.",
+    icon: CreditCard
+  },
+  "b2c_player_subscriptions": {
+    title: "Player Transactions",
+    description: "View and manage player B2C transactions.",
+    icon: CreditCard
   }
 };
 
@@ -41,6 +52,7 @@ export default function InternalDashboard() {
   const [tables, setTables] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -53,6 +65,11 @@ export default function InternalDashboard() {
           }
         });
         const data = await res.json();
+        if (res.status === 401 || res.status === 403 || (data && typeof data.message === 'string' && (data.message.toLowerCase().includes('token') || data.message.toLowerCase().includes('unauthorized')))) {
+          localStorage.removeItem('internal_token');
+          router.push('/internal/login');
+          return;
+        }
         if (!res.ok || !data.success) {
           throw new Error(data.message || 'Failed to fetch tables');
         }

@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, use, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, ChevronLeft, ChevronRight, Pencil, KeyRound, Trash2 } from 'lucide-react';
 
 export default function TableDataPage({ params }: { params: Promise<{ tableName: string }> }) {
   const { tableName } = use(params);
@@ -22,6 +23,17 @@ export default function TableDataPage({ params }: { params: Promise<{ tableName:
   const [formData, setFormData] = useState<any>({});
   const [currentId, setCurrentId] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
+  const router = useRouter();
+
+  const checkAuthError = (res: Response, resData?: any) => {
+    if (res.status === 401 || res.status === 403 || (resData && typeof resData.message === 'string' && (resData.message.toLowerCase().includes('token') || resData.message.toLowerCase().includes('unauthorized')))) {
+      localStorage.removeItem('internal_token');
+      router.push('/internal/login');
+      return true;
+    }
+    return false;
+  };
+
 
   // Dialog State for generic alerts and confirms
   type DialogState = {
@@ -50,7 +62,9 @@ export default function TableDataPage({ params }: { params: Promise<{ tableName:
     "b2c_subscription_plans": ["id", "name", "duration_months", "price", "description", "is_active", "created_at", "updated_at"],
     "clubs": ["id", "name", "status", "verify", "organization_name", "nib", "npwp", "address", "country", "established_year", "category", "logo_url", "expired_date", "created_at", "updated_at"],
     "club_onboardings": ["id", "club_id", "organization_name", "nib", "npwp", "status", "onboarding_by", "created_at", "updated_at"],
-    "users": ["id", "username", "email", "full_name", "category", "language", "club_id", "team_id", "vote_count"]
+    "users": ["id", "username", "email", "full_name", "category", "language", "club_id", "team_id", "vote_count"],
+        "subscriptions": ["id", "club_id", "plan_id", "status", "amount", "payment_provider", "payment_order_id", "paid_at", "expired_at", "created_at"],
+    "b2c_player_subscriptions": ["id", "user_id", "plan_id", "status", "amount", "payment_provider", "payment_order_id", "paid_at", "expired_at", "created_at"]
   };
 
   const fetchData = async () => {
@@ -62,6 +76,7 @@ export default function TableDataPage({ params }: { params: Promise<{ tableName:
         headers: { Authorization: `Bearer ${token}` }
       });
       const resData = await res.json();
+      if (checkAuthError(res, resData)) return;
       if (!res.ok || !resData.success) {
         throw new Error(resData.message || 'Failed to fetch data');
       }
@@ -115,6 +130,7 @@ export default function TableDataPage({ params }: { params: Promise<{ tableName:
           headers: { Authorization: `Bearer ${token}` }
         });
         const resData = await res.json();
+        if (checkAuthError(res, resData)) return;
         if (!res.ok || !resData.success) throw new Error(resData.message || 'Failed to reset password');
         
         setResetPasswordValue(resData.password);
@@ -135,6 +151,7 @@ export default function TableDataPage({ params }: { params: Promise<{ tableName:
           headers: { Authorization: `Bearer ${token}` }
         });
         const resData = await res.json();
+        if (checkAuthError(res, resData)) return;
         if (!res.ok || !resData.success) throw new Error(resData.message || 'Failed to delete');
         
         fetchData();
@@ -176,6 +193,7 @@ export default function TableDataPage({ params }: { params: Promise<{ tableName:
         body: JSON.stringify(payload)
       });
       const resData = await res.json();
+      if (checkAuthError(res, resData)) return;
       if (!res.ok || !resData.success) throw new Error(resData.message || 'Failed to save');
       
       setIsModalOpen(false);
@@ -195,10 +213,26 @@ export default function TableDataPage({ params }: { params: Promise<{ tableName:
     setFormData({ ...formData, [col]: checked });
   }
 
-  const renderValue = (val: any) => {
+  const renderValue = (col: string, val: any) => {
+    if (col === 'status' && typeof val === 'string') {
+      const statusLower = val.toLowerCase();
+      let colorClass = 'bg-zinc-500/10 text-zinc-400'; // default
+      if (statusLower === 'paid' || statusLower === 'success' || statusLower === 'approved') {
+        colorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      } else if (statusLower === 'pending' || statusLower === 'waiting') {
+        colorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      } else if (statusLower === 'failed' || statusLower === 'expired' || statusLower === 'rejected') {
+        colorClass = 'bg-red-500/10 text-red-400 border border-red-500/20';
+      }
+      return (
+        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${colorClass}`}>
+          {val}
+        </span>
+      );
+    }
     if (typeof val === 'boolean') {
       return (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${val ? 'bg-green-500/10 text-green-400' : 'bg-zinc-500/10 text-zinc-400'}`}>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${val ? 'bg-indigo-500/10 text-indigo-400' : 'bg-zinc-500/10 text-zinc-400'}`}>
           {val ? 'True' : 'False'}
         </span>
       );
@@ -286,31 +320,35 @@ export default function TableDataPage({ params }: { params: Promise<{ tableName:
                   <tr key={i} className="hover:bg-zinc-800/30 transition-colors">
                     {columns.map(col => (
                       <td key={col} className="px-6 py-4 max-w-[200px] truncate text-zinc-300">
-                        {renderValue(row[col])}
+                        {renderValue(col, row[col])}
                       </td>
                     ))}
                     <td className="px-6 py-4 text-right sticky right-0 bg-zinc-900/90 backdrop-blur before:absolute before:left-0 before:inset-y-0 before:w-px before:bg-zinc-800/50">
-                                            <button 
-                        onClick={() => handleOpenEdit(row)}
-                        className="text-indigo-400 hover:text-indigo-300 font-medium mr-4 transition-colors px-2 py-1 rounded hover:bg-indigo-400/10"
-                      >
-                        Edit
-                      </button>
-                      {tableName === 'users' && (
+                      <div className="flex justify-end gap-1">
                         <button 
-                          onClick={() => handleResetPassword(row.id?.toString())}
-                          className="text-amber-400 hover:text-amber-300 font-medium mr-4 transition-colors px-2 py-1 rounded hover:bg-amber-400/10"
+                          onClick={() => handleOpenEdit(row)}
+                          className="text-indigo-400 hover:text-indigo-300 transition-colors p-2 rounded-lg hover:bg-indigo-400/10 border border-transparent hover:border-indigo-400/20"
+                          title="Edit"
                         >
-                          Reset Password
+                          <Pencil className="w-4 h-4" />
                         </button>
-                      )}
-                      <button 
-                        onClick={() => handleDelete(row.id?.toString())}
-
-                        className="text-red-400 hover:text-red-300 font-medium transition-colors px-2 py-1 rounded hover:bg-red-400/10"
-                      >
-                        Delete
-                      </button>
+                        {tableName === 'users' && (
+                          <button 
+                            onClick={() => handleResetPassword(row.id?.toString())}
+                            className="text-amber-400 hover:text-amber-300 transition-colors p-2 rounded-lg hover:bg-amber-400/10 border border-transparent hover:border-amber-400/20"
+                            title="Reset Password"
+                          >
+                            <KeyRound className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => handleDelete(row.id?.toString())}
+                          className="text-red-400 hover:text-red-300 transition-colors p-2 rounded-lg hover:bg-red-400/10 border border-transparent hover:border-red-400/20"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -407,14 +445,48 @@ export default function TableDataPage({ params }: { params: Promise<{ tableName:
                           </span>
                         </label>
                       ) : (
-                        <input
-                          type={isNumber ? "number" : "text"}
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors disabled:opacity-50 disabled:bg-zinc-900"
-                          value={formData[col] === undefined || formData[col] === null ? '' : String(formData[col])}
-                          onChange={(e) => handleInputChange(col, e.target.value)}
-                          disabled={col === 'id' && modalMode === 'edit'}
-                          placeholder={`Enter ${col.replace(/_/g, ' ')}`}
-                        />
+                        (() => {
+                          const val = formData[col] === undefined || formData[col] === null ? '' : String(formData[col]);
+                          let isJson = false;
+                          let displayVal = val;
+                          
+                          if (val.trim().startsWith('{') || val.trim().startsWith('[')) {
+                            try {
+                              const parsed = JSON.parse(val);
+                              displayVal = JSON.stringify(parsed, null, 2);
+                              isJson = true;
+                            } catch (e) {
+                              isJson = false;
+                            }
+                          }
+                          
+                          if (isJson || col === 'provider_payload' || col.includes('payload')) {
+                            return (
+                              <textarea
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors disabled:opacity-50 disabled:bg-zinc-900 font-mono text-sm min-h-[150px]"
+                                value={displayVal}
+                                onChange={(e) => {
+                                  // If they edit the formatted JSON, we just save the string.
+                                  // We could optionally minify it, but string is fine.
+                                  handleInputChange(col, e.target.value);
+                                }}
+                                disabled={col === 'id' && modalMode === 'edit'}
+                                placeholder={`Enter ${col.replace(/_/g, ' ')}`}
+                              />
+                            );
+                          }
+                          
+                          return (
+                            <input
+                              type={isNumber ? "number" : "text"}
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors disabled:opacity-50 disabled:bg-zinc-900"
+                              value={val}
+                              onChange={(e) => handleInputChange(col, e.target.value)}
+                              disabled={col === 'id' && modalMode === 'edit'}
+                              placeholder={`Enter ${col.replace(/_/g, ' ')}`}
+                            />
+                          );
+                        })()
                       )}
                     </div>
                   );
