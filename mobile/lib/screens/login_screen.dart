@@ -7,6 +7,7 @@ import '../utils/blur_extension.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../providers/auth_provider.dart';
 import 'main_layout.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -107,10 +108,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       border: Border.all(color: const Color(0x338B5CF6)), // violet-500/20
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(
-                      LucideIcons.gamepad2,
-                      color: Color(0xFFA78BFA), // violet-400
-                      size: 32,
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      width: 48,
+                      height: 48,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -329,6 +330,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           const Icon(LucideIcons.arrowRight, size: 18),
                                         ],
                                       ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Link to Register
+                            Center(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const RegisterScreen()),
+                                  );
+                                },
+                                child: RichText(
+                                  text: TextSpan(
+                                    text: "Don't have an account? ",
+                                    style: GoogleFonts.inter(
+                                      color: context.textSecondary,
+                                      fontSize: 14,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: 'Create one',
+                                        style: GoogleFonts.inter(
+                                          color: context.primary,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ],

@@ -88,7 +88,22 @@ func (r *trialApplicationRepository) GetByPlayerID(ctx context.Context, playerID
 	}
 	apps := make([]*domain.TrialApplication, len(models))
 	for i := range models {
-		apps[i] = models[i].ToDomain()
+		app := models[i].ToDomain()
+		
+		// Fetch TrialParticipant if shortlisted/accepted
+		var participant TrialParticipantModel
+		if err := r.db.WithContext(ctx).Where("application_id = ?", app.ID).First(&participant).Error; err == nil {
+			app.FinalResult = participant.FinalResult
+			
+			// Fetch AssessmentResult
+			var assessment AssessmentResultModel
+			if err := r.db.WithContext(ctx).Where("participant_id = ?", participant.ID).First(&assessment).Error; err == nil {
+				score := assessment.TotalScore
+				app.AssessmentScore = &score
+			}
+		}
+		
+		apps[i] = app
 	}
 	return apps, nil
 }

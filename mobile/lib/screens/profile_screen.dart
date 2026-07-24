@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
+import 'settings_screen.dart';
 import '../providers/profile_provider.dart';
 import '../providers/subscription_provider.dart';
 import '../widgets/profile/edit_profile_sheet.dart';
@@ -16,6 +17,7 @@ import '../widgets/profile/social_media_sheet.dart';
 import '../widgets/profile/stat_sheet.dart';
 import '../widgets/profile/highlight_sheet.dart';
 import '../widgets/profile/achievement_sheet.dart';
+import '../widgets/profile/feedback_sheet.dart';
 import '../widgets/profile/profile_utils.dart';
 import 'package:intl/intl.dart';
 
@@ -165,14 +167,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             child: Stack(
               children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: const Icon(LucideIcons.logOut, color: Color(0xFFF43F5E)), // rose-500
-                    onPressed: _handleLogout,
-                    tooltip: 'Logout',
-                  ),
-                ),
                 Column(
                   children: [
 
@@ -211,6 +205,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ],
                     ),
                     Text('@${user['username'] ?? ''} • ${user['category'] ?? ''}', style: GoogleFonts.inter(fontSize: 14, color: context.textMuted)),
+                    if (user['club_name'] != null && user['club_name'].toString().isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(LucideIcons.building2, size: 13, color: context.primary),
+                          const SizedBox(width: 5),
+                          Text(
+                            user['club_name'],
+                            style: GoogleFonts.inter(fontSize: 13, color: context.primary, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ],
                     if (user['bio'] != null && user['bio'].toString().isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 12),
@@ -358,10 +367,50 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             subtitle: Text('Help us improve NJARA Player', style: GoogleFonts.inter(color: context.textSecondary, fontSize: 13)),
             trailing: Icon(LucideIcons.chevronRight, color: context.textMuted, size: 20),
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Feedback modal coming soon!')),
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: context.bgSecondary,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                builder: (context) => const FeedbackSheet(),
               );
             },
+          ),
+          // Settings Menu
+          ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: context.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(LucideIcons.settings, color: context.primary),
+            ),
+            title: Text('Settings', style: GoogleFonts.inter(color: context.textPrimary, fontWeight: FontWeight.w600)),
+            subtitle: Text('App preferences and account settings', style: GoogleFonts.inter(color: context.textSecondary, fontSize: 13)),
+            trailing: Icon(LucideIcons.chevronRight, color: context.textMuted, size: 20),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+          // Logout Menu
+          ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF43F5E).withValues(alpha: 0.1), // rose-500
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(LucideIcons.logOut, color: Color(0xFFF43F5E)),
+            ),
+            title: Text('Logout', style: GoogleFonts.inter(color: const Color(0xFFF43F5E), fontWeight: FontWeight.w600)),
+            subtitle: Text('Sign out of your account', style: GoogleFonts.inter(color: context.textSecondary, fontSize: 13)),
+            onTap: _handleLogout,
           ),
           const SizedBox(height: 24),
         ],

@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,9 +7,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../utils/blur_extension.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../providers/auth_provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/dashboard_provider.dart';
-import 'login_screen.dart';
+import 'player_detail_screen.dart';
+import 'club_detail_screen.dart';
+import 'trials_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -29,6 +32,8 @@ String _getFullUrl(String? path) {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   final _searchController = TextEditingController();
+  bool _isSearching = false;
+  int _clubPage = 1;
 
   @override
   void initState() {
@@ -42,6 +47,73 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _searchPlayer() async {
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
+
+    setState(() => _isSearching = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
+      if (token == null) throw Exception('Not authenticated');
+
+      final apiUrl = dotenv.env['API_URL'] ?? 'https://api.njara.web.id/api';
+      final res = await http.get(
+        Uri.parse('$apiUrl/b2c/players/$query'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        final data = body['data'] as Map<String, dynamic>? ?? {};
+        final user = data['user'] as Map<String, dynamic>? ?? {};
+        final userId = user['id'] as int? ?? 0;
+        final fullName = user['full_name'] as String?;
+        final avatar = user['profile_picture_url'] as String?;
+
+        if (userId == 0) throw Exception('Player not found.');
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PlayerDetailScreen(
+              userId: userId,
+              preloadName: fullName,
+              preloadAvatar: avatar,
+            ),
+          ),
+        );
+      } else {
+        final body = jsonDecode(res.body);
+        final msg = body['message'] as String? ?? 'Player not found.';
+        throw Exception(msg);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          title: Text('Player Not Found', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+          content: Text(
+            e.toString().replaceAll('Exception: ', ''),
+            style: GoogleFonts.inter(color: Colors.grey),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK', style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary)),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSearching = false);
+    }
   }
 
   @override
@@ -165,6 +237,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                         child: TextField(
                                           controller: _searchController,
                                           style: GoogleFonts.inter(color: context.textPrimary),
+                                          keyboardType: TextInputType.number,
+                                          textInputAction: TextInputAction.search,
+                                          onSubmitted: (_) => _searchPlayer(),
                                           decoration: InputDecoration(
                                             hintText: 'Search Player ID...',
                                             hintStyle: GoogleFonts.inter(color: context.textMuted),
@@ -177,16 +252,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                           color: context.accent,
                                           borderRadius: BorderRadius.circular(50),
                                         ),
-                                        child: IconButton(
-                                          icon: Icon(LucideIcons.search, color: context.textPrimary, size: 20),
-                                          onPressed: () {
-                                            if (_searchController.text.trim().isNotEmpty) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text('Searching for ${_searchController.text}')),
-                                              );
-                                            }
-                                          },
-                                        ),
+                                        child: _isSearching
+                                            ? Padding(
+                                                padding: const EdgeInsets.all(12),
+                                                child: SizedBox(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child: CircularProgressIndicator(
+                                                    color: context.textPrimary,
+                                                    strokeWidth: 2,
+                                                  ),
+                                                ),
+                                              )
+                                            : IconButton(
+                                                icon: Icon(LucideIcons.search, color: context.textPrimary, size: 20),
+                                                onPressed: _searchPlayer,
+                                              ),
                                       )
                                     ],
                                   ),
@@ -212,7 +293,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const TrialsScreen()),
+                            );
+                          },
                           child: Text(
                             'View All',
                             style: GoogleFonts.inter(
@@ -395,68 +481,132 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               ),
                             ),
                           )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: dashboardState.clubs.length > 5 ? 5 : dashboardState.clubs.length,
-                            itemBuilder: (context, index) {
-                              final club = dashboardState.clubs[index];
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: context.bgSecondary, // slate-900
-                                  border: Border.all(color: context.border), // slate-800
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                        color: context.border,
-                                        borderRadius: BorderRadius.circular(12),
-                                        image: club['logo_url'] != null && club['logo_url'].toString().isNotEmpty
-                                            ? DecorationImage(
-                                                image: CachedNetworkImageProvider(_getFullUrl(club['logo_url'])),
-                                                fit: BoxFit.cover,
-                                              )
-                                            : null,
-                                      ),
-                                      child: (club['logo_url'] == null || club['logo_url'].toString().isEmpty)
-                                          ? Icon(LucideIcons.shield, color: context.textSecondary)
-                                          : null,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            club['Name'] ?? club['name'] ?? 'Unnamed Club',
-                                            style: GoogleFonts.inter(
-                                              fontWeight: FontWeight.w600,
-                                              color: context.textPrimary,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          if (club['City'] != null || club['city'] != null)
-                                            Text(
-                                              club['City'] ?? club['city'],
-                                              style: GoogleFonts.inter(
-                                                color: context.textSecondary,
-                                                fontSize: 13,
+                        : Builder(
+                            builder: (context) {
+                              final int itemsPerPage = 5;
+                              final int totalPages = (dashboardState.clubs.length / itemsPerPage).ceil();
+                              final int startIndex = (_clubPage - 1) * itemsPerPage;
+                              final int endIndex = (startIndex + itemsPerPage > dashboardState.clubs.length) 
+                                  ? dashboardState.clubs.length 
+                                  : startIndex + itemsPerPage;
+                              
+                              final displayedClubs = dashboardState.clubs.sublist(startIndex, endIndex);
+
+                              return Column(
+                                children: [
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: displayedClubs.length,
+                                    itemBuilder: (context, index) {
+                                      final club = displayedClubs[index];
+                                      return GestureDetector(
+                                        onTap: () {
+                                          final clubId = club['ID'] ?? club['id'];
+                                          if (clubId != null) {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => ClubDetailScreen(
+                                                  clubId: clubId,
+                                                  preloadName: club['Name'] ?? club['name'],
+                                                  preloadLogo: club['logo_url'],
+                                                ),
                                               ),
-                                            ),
-                                        ],
-                                      ),
+                                            );
+                                          }
+                                        },
+                                        child: Container(
+                                          margin: const EdgeInsets.only(bottom: 12),
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: context.bgSecondary, // slate-900
+                                            border: Border.all(color: context.border), // slate-800
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                width: 48,
+                                                height: 48,
+                                                decoration: BoxDecoration(
+                                                  color: context.border,
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  image: club['logo_url'] != null && club['logo_url'].toString().isNotEmpty
+                                                      ? DecorationImage(
+                                                          image: CachedNetworkImageProvider(_getFullUrl(club['logo_url'])),
+                                                          fit: BoxFit.cover,
+                                                        )
+                                                      : null,
+                                                ),
+                                                child: (club['logo_url'] == null || club['logo_url'].toString().isEmpty)
+                                                    ? Icon(LucideIcons.shield, color: context.textSecondary)
+                                                    : null,
+                                              ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      club['Name'] ?? club['name'] ?? 'Unnamed Club',
+                                                      style: GoogleFonts.inter(
+                                                        fontWeight: FontWeight.w600,
+                                                        color: context.textPrimary,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                    if (club['City'] != null || club['city'] != null)
+                                                      Text(
+                                                        club['City'] ?? club['city'],
+                                                        style: GoogleFonts.inter(
+                                                          color: context.textSecondary,
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Icon(LucideIcons.chevronRight, color: context.textMuted),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  if (totalPages > 1) ...[
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(LucideIcons.chevronLeft, color: _clubPage > 1 ? context.textPrimary : context.textMuted),
+                                          onPressed: _clubPage > 1 
+                                              ? () => setState(() => _clubPage--)
+                                              : null,
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Text(
+                                          'Page $_clubPage of $totalPages',
+                                          style: GoogleFonts.inter(
+                                            color: context.textSecondary,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        IconButton(
+                                          icon: Icon(LucideIcons.chevronRight, color: _clubPage < totalPages ? context.textPrimary : context.textMuted),
+                                          onPressed: _clubPage < totalPages 
+                                              ? () => setState(() => _clubPage++)
+                                              : null,
+                                        ),
+                                      ],
                                     ),
-                                    Icon(LucideIcons.chevronRight, color: context.textMuted),
-                                  ],
-                                ),
+                                  ]
+                                ],
                               );
-                            },
+                            }
                           ),
                   ],
                 ),

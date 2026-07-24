@@ -344,3 +344,31 @@ func (u *authUsecase) ChangePassword(ctx context.Context, userID int64, oldPassw
 
 	return nil
 }
+
+func (u *authUsecase) AdminResetPassword(ctx context.Context, requesterClubID int64, targetUserID int64, newPassword string) error {
+	user, err := u.userRepo.GetByID(ctx, targetUserID)
+	if err != nil {
+		return fmt.Errorf("failed to get user: %w", err)
+	}
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	// Verify that the user belongs to the requester's club
+	if user.ClubID != requesterClubID {
+		return domain.NewAppError(domain.ErrCodeForbidden, "forbidden: user does not belong to your club", nil)
+	}
+
+	// Hash new password
+	hashedPassword, err := u.passwordHasher.Hash(newPassword)
+	if err != nil {
+		return fmt.Errorf("failed to hash new password: %w", err)
+	}
+
+	// Update password in repo
+	if err := u.userRepo.UpdatePassword(ctx, targetUserID, hashedPassword); err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	return nil
+}

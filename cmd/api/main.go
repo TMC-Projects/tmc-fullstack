@@ -158,7 +158,7 @@ func main() {
 	notificationUsecase := usecase.NewNotificationUsecase(notificationRepo, userRepo, b2cSubRepo, cacheRepo)
 
 	trialUsecase := usecase.NewTrialUsecase(trialRepo, userRepo, clubRepo, notificationUsecase)
-	trialAppUsecase := usecase.NewTrialApplicationUsecase(trialAppRepo, trialRepo, trialParticipantRepo, userRepo, b2cSubRepo, notificationUsecase)
+	trialAppUsecase := usecase.NewTrialApplicationUsecase(trialAppRepo, trialRepo, trialParticipantRepo, userRepo, b2cSubRepo, notificationUsecase, assessmentResultRepo, assessmentScoreRepo)
 	postUsecase := usecase.NewPostUsecase(postRepo, b2cSubRepo, userRepo, notificationUsecase)
 	trialParticipantUsecase := usecase.NewTrialParticipantUsecase(trialParticipantRepo, trialRepo, userRepo)
 	assessmentResultUsecase := usecase.NewAssessmentResultUsecase(assessmentResultRepo, trialParticipantRepo, trialRepo, userRepo)
@@ -374,8 +374,9 @@ func main() {
 	app.Put("/api/trials/:id", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager", "staff"), authMiddleware.RequireActiveB2BClub(), trialHandler.Update)
 
 	// Module 1: Trial Application
-	app.Get("/api/my-applications", authMiddleware.Authenticate, authMiddleware.RequireCategory("player"), trialAppHandler.GetMyApplications)
-	app.Post("/api/trials/:trial_id/apply", authMiddleware.Authenticate, authMiddleware.RequireCategory("player"), trialAppHandler.Apply)
+	app.Get("/api/my-applications", authMiddleware.Authenticate, authMiddleware.RequireCategory("player", "coach"), trialAppHandler.GetMyApplications)
+	app.Get("/api/my-applications/:id/assessment", authMiddleware.Authenticate, authMiddleware.RequireCategory("player", "coach"), trialAppHandler.GetAssessmentDetail)
+	app.Post("/api/trials/:trial_id/apply", authMiddleware.Authenticate, authMiddleware.RequireCategory("player", "coach"), trialAppHandler.Apply)
 	app.Get("/api/trials/:trial_id/applications", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager", "staff", "coach"), authMiddleware.RequireActiveB2BClub(), trialAppHandler.GetByTrial)
 	app.Patch("/api/trial-applications/:id/shortlist", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager", "staff"), authMiddleware.RequireActiveB2BClub(), trialAppHandler.Shortlist)
 	app.Patch("/api/trial-applications/:id/reject", authMiddleware.Authenticate, authMiddleware.RequireCategory("owner", "manager", "staff"), authMiddleware.RequireActiveB2BClub(), trialAppHandler.Reject)
@@ -404,6 +405,7 @@ func main() {
 	app.Get("/api/owners", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), userHandler.GetListByCategory("owner"))
 	app.Get("/api/staff", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), userHandler.GetListByCategory("staff"))
 	app.Get("/api/ba", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), userHandler.GetListByCategory("ba"))
+	app.Put("/api/users/:id/reset-password", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager"), userHandler.AdminResetPassword)
 
 	// Talent Endpoints (B2B - blocked when club is expired)
 	app.Get("/api/talents", authMiddleware.Authenticate, authMiddleware.RequireActiveB2BClub(), authMiddleware.RequireCategory("owner", "manager", "team_owner"), talentHandler.GetTalents)

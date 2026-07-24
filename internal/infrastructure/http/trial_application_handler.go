@@ -114,3 +114,22 @@ func (h *TrialApplicationHandler) Reject(c *fiber.Ctx) error {
 
 	return SendSuccess(c, fiber.StatusOK, "Application rejected successfully", app)
 }
+
+func (h *TrialApplicationHandler) GetAssessmentDetail(c *fiber.Ctx) error {
+	callerID, ok := c.Locals("userID").(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	appID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid application id", err)
+	}
+
+	detail, err := h.appUsecase.GetAssessmentDetail(c.Context(), appID, callerID)
+	if err != nil {
+		return err
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Assessment detail fetched successfully", detail)
+}

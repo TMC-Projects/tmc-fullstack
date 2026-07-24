@@ -103,6 +103,7 @@ type AuthUsecase interface {
 	UpdateProfilePicture(ctx context.Context, userID int64, url string) error
 	InvalidateProfileCache(ctx context.Context, userID int64) error
 	ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) error
+	AdminResetPassword(ctx context.Context, requesterClubID int64, targetUserID int64, newPassword string) error
 }
 
 // RolePermissionRepository defines the outbound port for role permission mappings.

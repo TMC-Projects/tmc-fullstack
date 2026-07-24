@@ -15,6 +15,8 @@ type trialApplicationUsecase struct {
 	userRepo        domain.UserRepository
 	b2cSubRepo      domain.B2CSubscriptionRepository
 	notifUsecase    domain.NotificationUsecase
+	assessmentRepo  domain.AssessmentResultRepository
+	scoreRepo       domain.AssessmentScoreRepository
 }
 
 func NewTrialApplicationUsecase(
@@ -24,11 +26,14 @@ func NewTrialApplicationUsecase(
 	userRepo domain.UserRepository,
 	b2cSubRepo domain.B2CSubscriptionRepository,
 	notifUsecase domain.NotificationUsecase,
+	assessmentRepo domain.AssessmentResultRepository,
+	scoreRepo domain.AssessmentScoreRepository,
 ) domain.TrialApplicationUsecase {
 	return &trialApplicationUsecase{
 		appRepo: appRepo, trialRepo: trialRepo,
 		participantRepo: participantRepo, userRepo: userRepo,
 		b2cSubRepo: b2cSubRepo, notifUsecase: notifUsecase,
+		assessmentRepo: assessmentRepo, scoreRepo: scoreRepo,
 	}
 }
 
@@ -57,6 +62,10 @@ func (u *trialApplicationUsecase) Apply(ctx context.Context, trialID int64, call
 	}
 	if trial.Status != domain.TrialStatusPublished {
 		return nil, domain.NewAppError(domain.ErrCodeBadRequest, "trial is not published yet", nil)
+	}
+
+	if user.ClubID == trial.ClubID {
+		return nil, domain.NewAppError(domain.ErrCodeBadRequest, "you cannot apply to a trial held by your own club", nil)
 	}
 
 	// Check for duplicate application
@@ -309,4 +318,44 @@ func (u *trialApplicationUsecase) resolveManagementAction(ctx context.Context, a
 	}
 
 	return caller, app, trial, nil
+}
+
+// GetAssessmentDetail returns the application, assessment result, and scores.
+func (u *trialApplicationUsecase) GetAssessmentDetail(ctx context.Context, applicationID int64, callerUserID int64) (*domain.AssessmentDetail, error) {
+	app, err := u.appRepo.GetByID(ctx, applicationID)
+	if err != nil {
+		return nil, domain.NewAppError(domain.ErrCodeInternal, "failed to get application", err)
+	}
+	if app == nil {
+		return nil, domain.NewAppError(domain.ErrCodeNotFound, "application not found", nil)
+	}
+	if app.PlayerID != callerUserID {
+		return nil, forbiddenErr("only the player can view their assessment detail")
+	}
+
+	detail := &domain.AssessmentDetail{Application: app}
+
+	participant, err := u.participantRepo.GetByApplicationID(ctx, app.ID)
+	if err != nil || participant == nil {
+		return detail, nil
+	}
+	
+	app.FinalResult = participant.FinalResult
+
+	assessments, err := u.assessmentRepo.GetByParticipantID(ctx, participant.ID)
+	if err != nil || len(assessments) == 0 {
+		return detail, nil
+	}
+	
+	assessment := assessments[0]
+	detail.Assessment = assessment
+	score := assessment.TotalScore
+	app.AssessmentScore = &score
+
+	scores, err := u.scoreRepo.GetByAssessmentID(ctx, assessment.ID)
+	if err == nil {
+		detail.Scores = scores
+	}
+
+	return detail, nil
 }
