@@ -40,6 +40,9 @@ type Config struct {
 	MinioUseSSL    bool
 	MinioBucket    string
 	MinioPublicURL string
+
+	InternalPortalUser     string
+	InternalPortalPassword string
 }
 
 // LoadConfig reads variables from environment or returns defaults.
@@ -119,6 +122,9 @@ func LoadConfig() Config {
 		MinioUseSSL:    minioUseSSL,
 		MinioBucket:    minioBucket,
 		MinioPublicURL: minioPublicURL,
+
+		InternalPortalUser:     getEnv("INTERNAL_PORTAL_USER", "admin"),
+		InternalPortalPassword: getEnv("INTERNAL_PORTAL_PASSWORD", "admin123"),
 	}
 }
 

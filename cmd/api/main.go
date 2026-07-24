@@ -177,7 +177,7 @@ func main() {
 	// Subscription
 	subPlanRepo := postgres.NewSubscriptionPlanRepository(db)
 	subRepo := postgres.NewSubscriptionRepository(db)
-	
+
 	// Payment Methods
 	paymentMethodRepo := postgres.NewPaymentMethodRepository(db)
 	paymentMethodUsecase := usecase.NewPaymentMethodUsecase(paymentMethodRepo)
@@ -238,6 +238,9 @@ func main() {
 	accessLogUsecase := usecase.NewAccessLogUsecase(accessLogRepo)
 	accessLogHandler := domainhttp.NewAccessLogHandler(accessLogUsecase)
 
+	internalUsecase := usecase.NewInternalUsecase(db)
+	internalHandler := domainhttp.NewInternalHandler(internalUsecase, tokenProvider, cfg)
+
 	authMiddleware := domainhttp.NewAuthMiddleware(tokenProvider, authUsecase, rolePermRepo, clubRepo, cfg.GlobalAPIKey, accessLogRepo)
 
 	// Background Workers
@@ -288,6 +291,17 @@ func main() {
 
 	// Attach custom access log middleware for database tracing
 	app.Use(authMiddleware.AccessLogMiddleware())
+
+	// Internal Portal Endpoints Back Office
+	internalGroup := app.Group("/api/internal")
+	internalGroup.Post("/login", internalHandler.Login)
+	internalGroup.Get("/tables", domainhttp.InternalAuthMiddleware(tokenProvider), internalHandler.GetTables)
+	internalGroup.Get("/tables/:tableName", domainhttp.InternalAuthMiddleware(tokenProvider), internalHandler.GetTableData)
+	internalGroup.Get("/tables/:tableName/:id", domainhttp.InternalAuthMiddleware(tokenProvider), internalHandler.GetTableDataByID)
+	internalGroup.Post("/tables/:tableName", domainhttp.InternalAuthMiddleware(tokenProvider), internalHandler.CreateTableData)
+	internalGroup.Put("/tables/:tableName/:id", domainhttp.InternalAuthMiddleware(tokenProvider), internalHandler.UpdateTableData)
+	internalGroup.Delete("/tables/:tableName/:id", domainhttp.InternalAuthMiddleware(tokenProvider), internalHandler.DeleteTableData)
+	internalGroup.Post("/tables/users/:id/reset-password", domainhttp.InternalAuthMiddleware(tokenProvider), internalHandler.ResetUserPassword)
 
 	// Notifications Endpoints
 	notifGroup := app.Group("/api/notifications", authMiddleware.Authenticate)
