@@ -97,5 +97,45 @@ func (h *UserHandler) GetUserDetail(c *fiber.Ctx) error {
 	// We can return the user directly, but we should clear out PasswordHash
 	targetUser.PasswordHash = ""
 
-	return SendSuccess(c, fiber.StatusOK, "User retrieved successfully", targetUser)
+	return SendSuccess(c, fiber.StatusOK, "User details retrieved successfully", targetUser)
+}
+
+func (h *UserHandler) AdminResetPassword(c *fiber.Ctx) error {
+	// Parse target user ID
+	targetIDStr := c.Params("id")
+	targetUserID, err := strconv.ParseInt(targetIDStr, 10, 64)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid user id", err)
+	}
+
+	// Get current requester ID
+	userIDVal := c.Locals("userID")
+	requesterID, ok := userIDVal.(int64)
+	if !ok {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized", nil)
+	}
+
+	// Get requester's club ID
+	requester, err := h.authUsecase.GetProfile(c.UserContext(), requesterID)
+	if err != nil {
+		return domain.NewAppError(domain.ErrCodeUnauthorized, "unauthorized or user not found", err)
+	}
+
+	// Parse new password from body
+	var req struct {
+		NewPassword string `json:"new_password"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "invalid request body", err)
+	}
+	if len(req.NewPassword) < 6 {
+		return domain.NewAppError(domain.ErrCodeBadRequest, "password must be at least 6 characters", nil)
+	}
+
+	err = h.authUsecase.AdminResetPassword(c.UserContext(), requester.ClubID, targetUserID, req.NewPassword)
+	if err != nil {
+		return err // Errors from usecase are already AppErrors
+	}
+
+	return SendSuccess(c, fiber.StatusOK, "Password reset successfully", nil)
 }

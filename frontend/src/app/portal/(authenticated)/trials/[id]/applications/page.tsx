@@ -179,10 +179,10 @@ function ApplicationRow({ app, participant, trialId, token, userCategory, openAc
                       ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20'
                       : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-500 cursor-not-allowed border border-slate-400 dark:border-slate-700'
                     }`}
-                  title={hasAssessment ? "Sign Player" : "Harus Assessment Dulu"}
+                  title={hasAssessment ? "Final Decision" : "Harus Assessment Dulu"}
                 >
-                  <FileSignature className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Sign Player</span>
+                  <FileSignature className="w-4 h-4" />
+                  <span className="hidden sm:inline">Final Decision</span>
                 </button>
               )}
             </>
@@ -749,8 +749,8 @@ export default function TrialApplicationsPage() {
 
           <div className="relative bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-300 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <FileSignature className="w-5 h-5 text-amber-400" /> Sign Player
+              <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <FileSignature className="w-5 h-5 text-amber-400" /> Final Decision
               </h3>
               <button
                 onClick={closeDecisionModal}

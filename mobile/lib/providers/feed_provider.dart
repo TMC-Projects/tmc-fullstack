@@ -132,7 +132,7 @@ class FeedNotifier extends Notifier<FeedState> {
       // Sync exact state from server
       final isLikedServer = data['data']['is_liked'];
       state = state.copyWith(
-        posts: prevPosts.map((p) {
+        posts: state.posts.map((p) {
           if (p['ID'] == postId) {
             return Map<String, dynamic>.from(p)..addAll({
               'IsLiked': isLikedServer,

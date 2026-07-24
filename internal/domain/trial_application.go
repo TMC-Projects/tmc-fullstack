@@ -28,6 +28,9 @@ type TrialApplication struct {
 	Remarks    string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
+	// Extra fields for frontend
+	AssessmentScore *float64 `json:"AssessmentScore,omitempty" gorm:"-"`
+	FinalResult     string   `json:"FinalResult,omitempty" gorm:"-"`
 }
 
 // TrialApplicationRepository defines the outbound port for TrialApplication persistence.
@@ -48,4 +51,12 @@ type TrialApplicationUsecase interface {
 	Shortlist(ctx context.Context, applicationID int64, remarks string, callerUserID int64) (*TrialApplication, error)
 	Reject(ctx context.Context, applicationID int64, remarks string, callerUserID int64) (*TrialApplication, error)
 	GetMyApplications(ctx context.Context, callerUserID int64) ([]*TrialApplication, error)
+	GetAssessmentDetail(ctx context.Context, applicationID int64, callerUserID int64) (*AssessmentDetail, error)
+}
+
+// AssessmentDetail holds the full assessment result for an application.
+type AssessmentDetail struct {
+	Application *TrialApplication
+	Assessment  *AssessmentResult
+	Scores      []*AssessmentScore
 }

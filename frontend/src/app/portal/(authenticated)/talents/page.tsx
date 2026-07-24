@@ -8,7 +8,7 @@ import {
   Shield, Activity, DollarSign, Calendar,
   ChevronLeft, ChevronRight, UserCircle, LogOut, Menu,
   Settings, Trash2, Image as ImageIcon, Contact, Star, RefreshCw, UserMinus,
-  LayoutGrid, List
+  LayoutGrid, List, Lock
 } from "lucide-react";
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -76,6 +76,7 @@ export default function TalentsPage() {
   const [isAssignTeamOpen, setIsAssignTeamOpen] = useState(false);
   const [isReleaseTeamOpen, setIsReleaseTeamOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -245,6 +246,7 @@ export default function TalentsPage() {
                   onAssignTeam={(talent) => { setSelectedTalent(talent); setIsAssignTeamOpen(true); }}
                   onReleaseTeam={(talent) => { setSelectedTalent(talent); setIsReleaseTeamOpen(true); }}
                   onEditStatus={(talent) => { setSelectedTalent(talent); setIsStatusOpen(true); }}
+                  onResetPassword={(talent) => { setSelectedTalent(talent); setIsResetPasswordOpen(true); }}
                   onViewDetail={(talent) => { router.push(`/portal/talents/${talent.id}`); }}
                 />
               ))}
@@ -274,6 +276,7 @@ export default function TalentsPage() {
                       onAssignTeam={(talent) => { setSelectedTalent(talent); setIsAssignTeamOpen(true); }}
                       onReleaseTeam={(talent) => { setSelectedTalent(talent); setIsReleaseTeamOpen(true); }}
                       onEditStatus={(talent) => { setSelectedTalent(talent); setIsStatusOpen(true); }}
+                      onResetPassword={(talent) => { setSelectedTalent(talent); setIsResetPasswordOpen(true); }}
                       onViewDetail={(talent) => { router.push(`/portal/talents/${talent.id}`); }}
                     />
                   ))}
@@ -394,6 +397,15 @@ export default function TalentsPage() {
           talent={selectedTalent}
           onClose={() => { setIsReleaseTeamOpen(false); setSelectedTalent(null); }}
           onSuccess={() => { setIsReleaseTeamOpen(false); setSelectedTalent(null); fetchTalents(); }}
+          token={token || ''}
+        />
+      )}
+
+      {/* Reset Password Modal */}
+      {isResetPasswordOpen && selectedTalent && (
+        <ResetPasswordModal
+          talent={selectedTalent}
+          onClose={() => { setIsResetPasswordOpen(false); setSelectedTalent(null); }}
           token={token || ''}
         />
       )}
@@ -636,7 +648,7 @@ function ContractModal({ talent, onClose, onSuccess, token }: { talent: TalentRe
             <input type="date" value={contractUntil} onChange={e => setContractUntil(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 outline-none style-color-scheme-dark" style={{ colorScheme: 'dark' }} />
           </div>
           <div>
-            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Gaji (IDR/bulan)</label>
+            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Gaji ($/bulan)</label>
             <input type="number" placeholder="Kosongkan jika tidak ada" value={salary} onChange={e => setSalary(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 outline-none" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
@@ -939,6 +951,7 @@ function TalentCard({
   onAssignTeam,
   onReleaseTeam,
   onEditStatus,
+  onResetPassword,
   onViewDetail
 }: {
   talent: TalentResult,
@@ -950,6 +963,7 @@ function TalentCard({
   onAssignTeam: (t: TalentResult) => void,
   onReleaseTeam: (t: TalentResult) => void,
   onEditStatus: (t: TalentResult) => void,
+  onResetPassword: (t: TalentResult) => void,
   onViewDetail: (t: TalentResult) => void,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -1061,6 +1075,12 @@ function TalentCard({
                 )}
                 <div className="border-t border-slate-700 my-1"></div>
                 <button
+                  onClick={() => { setIsMenuOpen(false); onResetPassword(talent); }}
+                  className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
+                >
+                  <Lock className="w-4 h-4 text-rose-400" /> Reset Password
+                </button>
+                <button
                   onClick={() => { setIsMenuOpen(false); onViewDetail(talent); }}
                   className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
                 >
@@ -1118,6 +1138,7 @@ function TalentTableRow({
   onAssignTeam,
   onReleaseTeam,
   onEditStatus,
+  onResetPassword,
   onViewDetail
 }: {
   talent: TalentResult,
@@ -1129,6 +1150,7 @@ function TalentTableRow({
   onAssignTeam: (t: TalentResult) => void,
   onReleaseTeam: (t: TalentResult) => void,
   onEditStatus: (t: TalentResult) => void,
+  onResetPassword: (t: TalentResult) => void,
   onViewDetail: (t: TalentResult) => void,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -1224,6 +1246,10 @@ function TalentTableRow({
                       </button>
                     )
                   )}
+                  <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
+                  <button onClick={() => { setIsMenuOpen(false); onResetPassword(talent); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-rose-500" /> Reset Password
+                  </button>
                 </div>
               </>
             )}
@@ -1369,6 +1395,84 @@ function ReleaseTeamModal({ talent, onClose, onSuccess, token }: { talent: Talen
           </button>
           <button type="button" onClick={handleRelease} disabled={isLoading} className="px-4 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 disabled:opacity-50">
             {isLoading ? 'Loading...' : 'Release'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResetPasswordModal({ talent, onClose, token }: { talent: TalentResult, onClose: () => void, token: string }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
+  const { showAlert } = useAlertStore();
+
+  useEffect(() => {
+    // Generate a strong random password
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let pass = '';
+    for (let i = 0; i < 12; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewPassword(pass);
+  }, []);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(newPassword);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const handleReset = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/users/${talent.id}/reset-password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ new_password: newPassword })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Gagal mereset password');
+      }
+      showAlert('Password berhasil direset', 'success');
+      onClose();
+    } catch (err: any) {
+      showAlert(err.message, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Reset Password</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+          Password baru untuk <strong>{talent.full_name || talent.username}</strong>:
+        </p>
+        
+        <div className="flex items-center justify-between bg-slate-200 dark:bg-slate-800 p-3 rounded-xl mb-6 border border-slate-300 dark:border-slate-700">
+          <span className="font-mono text-slate-900 dark:text-slate-100 tracking-wider truncate">{newPassword}</span>
+          <button 
+            onClick={handleCopy}
+            title="Copy to clipboard"
+            className="text-slate-500 hover:text-emerald-500 transition-colors ml-2 flex-shrink-0"
+          >
+            {isCopied ? <Shield className="w-5 h-5 text-emerald-500" /> : <RefreshCw className="w-5 h-5" />} {/* Using fallback icons as Copy icon is not imported yet, will update next */}
+          </button>
+        </div>
+
+        <div className="flex justify-center gap-3">
+          <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-700">
+            Batal
+          </button>
+          <button type="button" onClick={handleReset} disabled={isLoading || !newPassword} className="px-4 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 disabled:opacity-50">
+            {isLoading ? 'Loading...' : 'Konfirmasi Reset'}
           </button>
         </div>
       </div>

@@ -551,7 +551,7 @@ function ContractModal({ talent, onClose, onSuccess, token }: { talent: TalentRe
             <input type="date" value={contractUntil} onChange={e => setContractUntil(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 outline-none style-color-scheme-dark" style={{ colorScheme: 'dark' }} />
           </div>
           <div>
-            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Gaji (IDR/bulan)</label>
+            <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Gaji ($/bulan)</label>
             <input type="number" placeholder="Kosongkan jika tidak ada" value={salary} onChange={e => setSalary(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-200 outline-none" />
           </div>
           <div className="flex justify-end gap-2 pt-2">

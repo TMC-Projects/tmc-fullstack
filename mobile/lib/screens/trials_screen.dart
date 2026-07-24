@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../providers/trials_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'trial_result_screen.dart';
 
 class TrialsScreen extends ConsumerStatefulWidget {
   const TrialsScreen({super.key});
@@ -108,8 +109,9 @@ class _TrialsScreenState extends ConsumerState<TrialsScreen> {
                         final trialId = trial['ID'];
                         
                         // Check if already applied
-                        final isApplied = trialsState.myApplications.any((app) => app['TrialID'] == trialId);
-                        
+                        final myAppIndex = trialsState.myApplications.indexWhere((app) => app['TrialID'] == trialId);
+                        final myApp = myAppIndex >= 0 ? trialsState.myApplications[myAppIndex] : null;
+                        final isApplied = myApp != null;
                         // Parse dates
                         String formatDate(String? dateStr) {
                           if (dateStr == null || dateStr.isEmpty) return '';
@@ -129,7 +131,18 @@ class _TrialsScreenState extends ConsumerState<TrialsScreen> {
                         
                         final isApplying = trialsState.applyingTrialId == trialId;
 
-                        return Container(
+                        return GestureDetector(
+                          onTap: isApplied && myApp != null
+                              ? () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => TrialResultScreen(application: myApp),
+                                    ),
+                                  );
+                                }
+                              : null,
+                          child: Container(
                           width: double.infinity,
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(20),
@@ -195,19 +208,68 @@ class _TrialsScreenState extends ConsumerState<TrialsScreen> {
                                           color: context.border, // slate-800
                                           borderRadius: BorderRadius.circular(12),
                                         ),
-                                        child: Row(
+                                        child: Column(
                                           mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.end,
                                           children: [
-                                            Icon(LucideIcons.checkCircle2, size: 16, color: context.success), // emerald-400
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              'Applied',
-                                              style: GoogleFonts.inter(
-                                                color: context.textSecondary,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15,
-                                              ),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  myApp!['FinalResult'] == 'PASSED' || myApp['Status'] == 'SIGNED' 
+                                                    ? LucideIcons.checkCircle2 
+                                                    : (myApp['FinalResult'] == 'FAILED' || myApp['Status'] == 'REJECTED' 
+                                                        ? LucideIcons.xCircle 
+                                                        : (myApp['Status'] == 'SHORTLISTED' ? LucideIcons.checkCircle2 : LucideIcons.clock)), 
+                                                  size: 16, 
+                                                  color: myApp['FinalResult'] == 'PASSED' || myApp['Status'] == 'SIGNED' 
+                                                    ? context.success 
+                                                    : (myApp['FinalResult'] == 'FAILED' || myApp['Status'] == 'REJECTED' 
+                                                        ? context.error 
+                                                        : (myApp['Status'] == 'SHORTLISTED' ? context.success : context.accent))
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  myApp['FinalResult'] == 'PASSED' || myApp['Status'] == 'SIGNED' ? 'Accepted' :
+                                                  myApp['FinalResult'] == 'FAILED' || myApp['Status'] == 'REJECTED' ? 'Rejected' :
+                                                  myApp['Status'] == 'SHORTLISTED' ? 'Shortlisted' : 'Pending',
+                                                  style: GoogleFonts.inter(
+                                                    color: context.textSecondary,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
+                                            if (myApp['AssessmentScore'] != null) ...[
+                                              const SizedBox(height: 6),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: context.bgPrimary.withOpacity(0.5),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  'Assessment Score: ${myApp['AssessmentScore']}',
+                                                  style: GoogleFonts.inter(
+                                                    color: context.accent,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                            if (myApp['Remarks'] != null && myApp['Remarks'].toString().isNotEmpty && myApp['AssessmentScore'] == null) ...[
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'Note: ${myApp['Remarks']}',
+                                                style: GoogleFonts.inter(
+                                                  color: context.textMuted,
+                                                  fontSize: 12,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                              ),
+                                            ]
                                           ],
                                         ),
                                       )
@@ -262,6 +324,7 @@ class _TrialsScreenState extends ConsumerState<TrialsScreen> {
                                       ),
                               ),
                             ],
+                          ),
                           ),
                         );
                       },

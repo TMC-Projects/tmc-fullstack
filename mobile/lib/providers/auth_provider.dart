@@ -6,6 +6,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 String get _apiUrl => dotenv.env['API_URL'] ?? 'http://localhost:3000/api';
 
+/// Provider untuk http.Client agar bisa di-override saat testing.
+final httpClientProvider = Provider<http.Client>((ref) => http.Client());
+
 class AuthState {
   final bool isLoading;
   final String? error;
@@ -30,6 +33,8 @@ class AuthNotifier extends Notifier<AuthState> {
     return AuthState();
   }
 
+  http.Client get _client => ref.read(httpClientProvider);
+
   Future<void> checkAuth() async {
     state = state.copyWith(isLoading: true);
     try {
@@ -38,7 +43,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       if (token != null && token.isNotEmpty) {
         // Optionally validate with backend
-        final response = await http.get(
+        final response = await _client.get(
           Uri.parse('$_apiUrl/profile'),
           headers: {'Authorization': 'Bearer $token'},
         );
@@ -58,11 +63,50 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<void> register({
+    required String username,
+    required String email,
+    required String password,
+    required String fullName,
+    String language = 'en',
+    String category = 'player',
+    String bio = '',
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final response = await _client.post(
+        Uri.parse('$_apiUrl/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'email': email,
+          'password': password,
+          'full_name': fullName,
+          'language': language,
+          'category': category,
+          'bio': bio,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception(data['message'] ?? 'Registration failed. Please try again.');
+      }
+
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString().replaceAll('Exception: ', ''));
+      rethrow;
+    }
+  }
+
   Future<void> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse('$_apiUrl/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
